@@ -1,4 +1,4 @@
-# Map Colonies typescript service template
+# Polygon Parts Worker
 
 ----------------------------------
 
