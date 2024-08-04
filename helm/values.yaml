@@ -52,8 +52,8 @@ caKey: 'ca.crt'
 
 image:
   registry: ""
-  repository: ts-server-boilerplate
-  tag: 'v4.2.0'
+  repository: polygon-parts-worker
+  tag: 'latest'
   digest: ""
   pullSecrets: []
 env:
