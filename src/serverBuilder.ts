@@ -13,10 +13,7 @@ import { IConfig } from './common/interfaces';
 export class ServerBuilder {
   private readonly serverInstance: express.Application;
 
-  public constructor(
-    @inject(SERVICES.CONFIG) private readonly config: IConfig,
-    @inject(SERVICES.LOGGER) private readonly logger: Logger,
-  ) {
+  public constructor(@inject(SERVICES.CONFIG) private readonly config: IConfig, @inject(SERVICES.LOGGER) private readonly logger: Logger) {
     this.serverInstance = express();
   }
 
@@ -26,7 +23,6 @@ export class ServerBuilder {
 
     return this.serverInstance;
   }
-
 
   private registerPreRoutesMiddleware(): void {
     this.serverInstance.use(collectMetricsExpressMiddleware({}));
