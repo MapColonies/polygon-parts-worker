@@ -31,14 +31,12 @@ const mainPollLoop = async (): Promise<void> => {
   logger.info({ msg: 'Running job status poll' });
   //eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   while (isRunning) {
-    let polledData = false;
-    let finalizePolledData = false;
+
 
     //tail sampling is needed here! https://opentelemetry.io/docs/concepts/sampling/
     await tracer.startActiveSpan('jobManager.job get_job', async (span: Span) => {
       try {
-        polledData = await finalizationManager.jobStatusPoll();
-        finalizePolledData = await finalizationManager.jobFinalizePoll();
+        
       } catch (error) {
         logger.error({ err: error, msg: `Main loop poll error occurred` });
       } finally {
