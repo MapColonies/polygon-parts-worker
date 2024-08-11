@@ -14,13 +14,8 @@ export class ServerBuilder {
   }
 
   public build(): express.Application {
-    this.registerPostRoutesMiddleware();
     this.serverInstance.use(collectMetricsExpressMiddleware({}));
 
     return this.serverInstance;
-  }
-
-  private registerPostRoutesMiddleware(): void {
-    this.serverInstance.use();
   }
 }
