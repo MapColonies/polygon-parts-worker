@@ -1,6 +1,6 @@
 apiVersion: v2
-name: ts-server-boilerplate
-description: A Helm chart for ts-server-boilerplate service
+name: polygon-parts-worker
+description: A Helm chart for polygon-parts-worker
 type: application
 version: 1.0.0
 appVersion: 1.0.0

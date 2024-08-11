@@ -1,8 +1,8 @@
-# Map Colonies typescript service template
+# Polygon Parts Worker
 
 ----------------------------------
 
-This is a basic repo template for building new MapColonies web services in Typescript.
+This is a Worker service that communicate with the ‘Job-Manager’ service by polling strategy and handle the polygon parts different tasks that created by the ‘Overseer' service..
 
 ### Template Features:
 
@@ -21,8 +21,6 @@ This is a basic repo template for building new MapColonies web services in Types
 - git hooks
 
 - logging by [@map-colonies/js-logger](https://github.com/MapColonies/js-logger)
-
-- OpenAPI request validation
 
 - config load with [node-config](https://www.npmjs.com/package/node-config)
 
@@ -47,9 +45,6 @@ This is a basic repo template for building new MapColonies web services in Types
 - lint
 
 - snyk
-
-## API
-Checkout the OpenAPI spec [here](/openapi3.yaml)
 
 ## Installation
 
