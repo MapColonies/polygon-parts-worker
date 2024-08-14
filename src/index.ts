@@ -7,7 +7,7 @@ import { container } from 'tsyringe';
 import config from 'config';
 import { Span, Tracer } from '@opentelemetry/api';
 import { DEFAULT_SERVER_PORT, SERVICES } from './common/constants';
-
+import { JobHandler } from './jobHandler/models/jobHandler';
 import { getApp } from './app';
 
 const port: number = config.get<number>('server.port') || DEFAULT_SERVER_PORT;
@@ -28,6 +28,7 @@ server.listen(port, () => {
 const mainPollLoop = async (): Promise<void> => {
   const pollingTimout = config.get<number>('pollingTimeMS');
   const isRunning = true;
+  const jobHandler = new JobHandler(logger,queue,config);
   logger.info({ msg: 'Running job status poll' });
   //eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   while (isRunning) {
@@ -40,7 +41,7 @@ const mainPollLoop = async (): Promise<void> => {
       } catch (error) {
         logger.error({ err: error, msg: `Main loop poll error occurred` });
       } finally {
-        if (!(polledData || finalizePolledData)) {
+        if (!(jobHandler.getPolyPartsTask())) {
           await new Promise((resolve) => setTimeout(resolve, pollingTimout));
         }
       }

@@ -15,6 +15,7 @@ export class JobHandler {
   public async getPolyPartsTask() : Promise<ITaskResponse<IFindJobsRequest> | undefined> {
     const taskType = 'polygon-parts'
     const pollingJobTypes = this.config.get<string[]>('forbiddenTypesForParallelIngesion');
+    console.log(pollingJobTypes);
 
     for (const jobType of pollingJobTypes){
       this.logger.debug({ msg: `try to dequeue task of type "${taskType}" and job of type "${jobType}"`}, jobType, taskType);
