@@ -11,3 +11,14 @@ export interface IQueueConfig {
   jobType: string;
   tilesTaskType: string;
 }
+
+export interface IJobManagerConfig {
+  jobManagerBaseUrl: string;
+  heartbeat: IHeartbeatConfig;
+  dequeueIntervalMs: number;
+}
+
+export interface IHeartbeatConfig {
+  baseUrl: string;
+  intervalMs: number;
+}

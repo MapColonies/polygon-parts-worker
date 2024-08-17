@@ -1,13 +1,31 @@
-import config from 'config';
+import config, { IConfig } from 'config';
 import { getOtelMixin } from '@map-colonies/telemetry';
 import { trace, metrics as OtelMetrics } from '@opentelemetry/api';
 import { DependencyContainer } from 'tsyringe/dist/typings/types';
-import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
+import jsLogger, { Logger, LoggerOptions } from '@map-colonies/js-logger';
 import { Metrics } from '@map-colonies/telemetry';
+import { instancePerContainerCachingFactory } from 'tsyringe';
+import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import { IHttpRetryConfig } from '@map-colonies/mc-utils';
 import { SERVICES, SERVICE_NAME } from './common/constants';
 import { tracing } from './common/tracing';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
+import { IJobManagerConfig } from './common/interfaces';
 
+const queueClientFactory = (container: DependencyContainer): QueueClient => {
+  const logger = container.resolve<Logger>(SERVICES.LOGGER);
+  const config = container.resolve<IConfig>(SERVICES.CONFIG);
+  const queueConfig = config.get<IJobManagerConfig>('jobManagement.config');
+  const httpRetryConfig = config.get<IHttpRetryConfig>('server.httpRetry');
+  return new QueueClient(
+    logger,
+    queueConfig.jobManagerBaseUrl,
+    queueConfig.heartbeat.baseUrl,
+    queueConfig.dequeueIntervalMs,
+    queueConfig.heartbeat.intervalMs,
+    httpRetryConfig
+  );
+};
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
   useChild?: boolean;
@@ -27,7 +45,7 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     { token: SERVICES.LOGGER, provider: { useValue: logger } },
     { token: SERVICES.TRACER, provider: { useValue: tracer } },
     { token: SERVICES.METER, provider: { useValue: OtelMetrics.getMeterProvider().getMeter(SERVICE_NAME) } },
-    { token: RESOURCE_NAME_ROUTER_SYMBOL, provider: { useFactory: resourceNameRouterFactory } },
+    { token: SERVICES.QUEUE_CLIENT, provider: { useFactory: instancePerContainerCachingFactory(queueClientFactory) } },
     {
       token: 'onSignal',
       provider: {

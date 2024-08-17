@@ -1,8 +1,8 @@
 import { Logger } from '@map-colonies/js-logger';
 import { inject, singleton } from 'tsyringe';
-import { SERVICES } from '../../common/constants';
 import { TaskHandler as QueueHandler, JobManagerClient } from '@map-colonies/mc-priority-queue';
 import { IHttpRetryConfig } from '@map-colonies/mc-utils';
+import { SERVICES } from '../../common/constants';
 import { IConfig, IQueueConfig } from '../../common/interfaces';
 
 @singleton()

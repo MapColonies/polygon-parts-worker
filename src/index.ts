@@ -3,19 +3,20 @@ import 'reflect-metadata';
 import { createServer } from 'http';
 import { createTerminus } from '@godaddy/terminus';
 import { Logger } from '@map-colonies/js-logger';
-import { container } from 'tsyringe';
 import config from 'config';
 import { Span, Tracer } from '@opentelemetry/api';
 import { DEFAULT_SERVER_PORT, SERVICES } from './common/constants';
 import { JobHandler } from './jobHandler/models/jobHandler';
 import { getApp } from './app';
+import { QueueClient } from './queueClient/models/queueClient';
 
 const port: number = config.get<number>('server.port') || DEFAULT_SERVER_PORT;
 
-const app = getApp();
+const {app, container} = getApp();
 
 const logger = container.resolve<Logger>(SERVICES.LOGGER);
 const tracer = container.resolve<Tracer>(SERVICES.TRACER);
+const queueClient = container.resolve<QueueClient>(SERVICES.QUEUE_CLIENT).queueHandlerForFinalizeTasks;
 
 const stubHealthCheck = async (): Promise<void> => Promise.resolve();
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -28,20 +29,17 @@ server.listen(port, () => {
 const mainPollLoop = async (): Promise<void> => {
   const pollingTimout = config.get<number>('pollingTimeMS');
   const isRunning = true;
-  const jobHandler = new JobHandler(logger,queue,config);
+  const jobHandler = new JobHandler(logger, queueClient, config);
   logger.info({ msg: 'Running job status poll' });
   //eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   while (isRunning) {
-
-
     //tail sampling is needed here! https://opentelemetry.io/docs/concepts/sampling/
     await tracer.startActiveSpan('jobManager.job get_job', async (span: Span) => {
       try {
-        
       } catch (error) {
         logger.error({ err: error, msg: `Main loop poll error occurred` });
       } finally {
-        if (!(jobHandler.getPolyPartsTask())) {
+        if (!jobHandler.getPolyPartsTask()) {
           await new Promise((resolve) => setTimeout(resolve, pollingTimout));
         }
       }
