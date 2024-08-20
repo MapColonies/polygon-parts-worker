@@ -14,7 +14,7 @@ export class JobHandler {
 
   public async getPolyPartsTask(): Promise<ITaskResponse<IFindJobsRequest> | undefined> {
     const taskType = 'polygon-parts';
-    const pollingJobTypes = this.config.get<string[]>('forbiddenTypesForParallelIngesion');
+    const pollingJobTypes = this.config.get<string[]>('pollingJobTypes');
     console.log(pollingJobTypes);
 
     for (const jobType of pollingJobTypes) {

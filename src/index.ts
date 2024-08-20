@@ -6,9 +6,9 @@ import { Logger } from '@map-colonies/js-logger';
 import config from 'config';
 import { Span, Tracer } from '@opentelemetry/api';
 import { DEFAULT_SERVER_PORT, SERVICES } from './common/constants';
+import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { JobHandler } from './jobHandler/models/jobHandler';
 import { getApp } from './app';
-import { QueueClient } from './queueClient/models/queueClient';
 
 const port: number = config.get<number>('server.port') || DEFAULT_SERVER_PORT;
 
@@ -16,7 +16,7 @@ const {app, container} = getApp();
 
 const logger = container.resolve<Logger>(SERVICES.LOGGER);
 const tracer = container.resolve<Tracer>(SERVICES.TRACER);
-const queueClient = container.resolve<QueueClient>(SERVICES.QUEUE_CLIENT).queueHandlerForFinalizeTasks;
+const queueClient = container.resolve<QueueClient>(SERVICES.QUEUE_CLIENT);
 
 const stubHealthCheck = async (): Promise<void> => Promise.resolve();
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -27,7 +27,7 @@ server.listen(port, () => {
 });
 
 const mainPollLoop = async (): Promise<void> => {
-  const pollingTimout = config.get<number>('pollingTimeMS');
+  const pollingTimout = config.get<number>('jobManagement.config.dequeueIntervalMs');
   const isRunning = true;
   const jobHandler = new JobHandler(logger, queueClient, config);
   logger.info({ msg: 'Running job status poll' });
