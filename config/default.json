@@ -23,35 +23,9 @@
         "intervalMs": 3000
       },
       "dequeueIntervalMs": 3000
-    },
-    "ingestion": {
-      "pollingTasks": {
-        "init": "init",
-        "finalize": "finalize"
-      },
-      "jobs": {
-        "new": {
-          "type": "Ingestion_New",
-          "tasks": {
-            "splitTiles": "tilesSplitting",
-            "mergeTiles": "tilesMerging"
-          }
-        },
-        "update": {
-          "type": "Ingestion_Update",
-          "tasks": {
-            "mergeTiles": "tilesMerging"
-          }
-        },
-        "swapUpdate": {
-          "type": "Ingestion_Swap_Update",
-          "tasks": {
-            "swapTiles": "tilesSwapping"
-          }
-        }
-      }
     }
   },
+  "handlerJobTypes": ["Ingestion_New", "Ingestion_Update", "Ingestion_Swap_Update", "Remove_Layer"],
   "server": {
     "port": "8080",
     "request": {
