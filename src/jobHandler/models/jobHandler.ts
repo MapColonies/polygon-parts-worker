@@ -14,9 +14,9 @@ export class JobHandler {
 
   public async getPolyPartsTask(): Promise<ITaskResponse<IFindJobsRequest> | undefined> {
     const taskType = 'polygon-parts';
-    const pollingJobTypes = this.config.get<string[]>('handlerJobTypes');
+    const jobTypesToProcess = this.config.get<string[]>('jobTypesToProcess');
 
-    for (const jobType of pollingJobTypes) {
+    for (const jobType of jobTypesToProcess) {
       this.logger.debug({ msg: `try to dequeue task of type "${taskType}" and job of type "${jobType}"` }, jobType, taskType);
       const task = await this.queueClient.dequeue<IFindJobsRequest>(jobType, taskType);
       if (task !== null) {
@@ -24,9 +24,5 @@ export class JobHandler {
         return task;
       }
     }
-  }
-
-  public async jobProccesor(): Promise<void> {
-    //TODO: to implement
   }
 }
