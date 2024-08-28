@@ -18,6 +18,6 @@ data:
   TELEMETRY_METRICS_ENABLED: 'true'
   TELEMETRY_METRICS_URL: {{ $metricsUrl }}
   {{ end }}
-  POLLING_JOB_TYPES: .Values.poolingJobTypes
+  JOB_TYPES_TO_PROCESS: {{ .Values.env.jobTypesToProcess }}
   npm_config_cache: /tmp/
 {{- end }}

@@ -25,7 +25,7 @@
       "dequeueIntervalMs": 3000
     }
   },
-  "handlerJobTypes": ["Ingestion_New", "Ingestion_Update", "Ingestion_Swap_Update", "Remove_Layer"],
+  "jobTypesToProcess": ["Ingestion_New", "Ingestion_Update", "Ingestion_Swap_Update", "Remove_Layer"],
   "server": {
     "port": "8080",
     "request": {

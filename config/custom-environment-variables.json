@@ -34,9 +34,11 @@
           "__format": "boolean"
         }
       }
-    },
-    "pollingJobTypes": {
-      "__name": "POLLING_JOB_TYPES",
+    }
+  },
+  "jobManagement": {
+    "jobTypesToProcess": {
+      "__name": "JOB_TYPES_TO_PROCESS",
       "__format": "json"
     }
   }
