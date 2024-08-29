@@ -2,7 +2,7 @@ import { Logger } from '@map-colonies/js-logger';
 import { inject, injectable } from 'tsyringe';
 import { IFindJobsRequest, ITaskResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { IConfig } from 'config';
-import { SERVICES } from '../../common/constants';
+import { SERVICES } from '../common/constants';
 
 @injectable()
 export class JobHandler {
@@ -12,9 +12,9 @@ export class JobHandler {
     @inject(SERVICES.CONFIG) private readonly config: IConfig
   ) {}
 
-  public async getPolyPartsTask(): Promise<ITaskResponse<IFindJobsRequest> | undefined> {
+    public async getPolyPartsTask(): Promise<ITaskResponse<IFindJobsRequest> | undefined> {
     const taskType = 'polygon-parts';
-    const jobTypesToProcess = this.config.get<string[]>('jobTypesToProcess');
+    const jobTypesToProcess = this.config.get<string[]>('jobManagement.jobTypesToProcess');
 
     for (const jobType of jobTypesToProcess) {
       this.logger.debug({ msg: `try to dequeue task of type "${taskType}" and job of type "${jobType}"` }, jobType, taskType);
