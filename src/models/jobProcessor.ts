@@ -30,7 +30,6 @@ export class JobProcessor {
 
   public async start(): Promise<void> {
     const logCtx: LogContext = { ...this.logContext, function: this.start.name };
-
     await this.tracer.startActiveSpan('jobManager.job start polling', async (span: Span) => {
       this.logger.info({ msg: 'starting polling', logContext: logCtx });
       while (this.isRunning) {
