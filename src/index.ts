@@ -25,11 +25,11 @@ async function startPolling(): Promise<void> {
 
 server.listen(port, () => {
   logger.info(`app started on port ${port}`);
-    startPolling().catch((error) => {
-      if (error instanceof Error) {
-        logger.fatal({ msg: 'error in main loop', error: error.message });
-        jobProcessor.stop();
-        process.exit(1);
-      }
-    })
+  startPolling().catch((error) => {
+    if (error instanceof Error) {
+      logger.fatal({ msg: 'error in main loop', error: error.message });
+      jobProcessor.stop();
+      process.exit(1);
+    }
+  });
 });
