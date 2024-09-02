@@ -24,7 +24,8 @@
       },
       "dequeueIntervalMs": 3000
     },
-    "jobTypesToProcess": ["Ingestion_New", "Ingestion_Update", "Ingestion_Swap_Update", "Remove_Layer"]
+    "jobTypesToProcess": ["Ingestion_New", "Ingestion_Update", "Ingestion_Swap_Update", "Remove_Layer"],
+    "taskTypeToProcess": "polygon-parts"
   },
   "server": {
     "port": "8080",

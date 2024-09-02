@@ -19,5 +19,6 @@ data:
   TELEMETRY_METRICS_URL: {{ $metricsUrl }}
   {{ end }}
   JOB_TYPES_TO_PROCESS: {{ .Values.env.jobTypesToProcess }}
+  TASK_TYPE_TO_PROCESS: {{ .Values.env.taskTypeToProcess }}
   npm_config_cache: /tmp/
 {{- end }}

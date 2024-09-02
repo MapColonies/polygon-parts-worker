@@ -69,6 +69,7 @@ env:
   - Ingestion_Update
   - Ingestion_Swap_Update
   - Remove_Layer
+  taskTypeToProcess: "polygon-parts"
   tracing:
     enabled: false
     url: http://localhost:55681/v1/trace
