@@ -1,6 +1,6 @@
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock } from '../mocks/configMock';
-import { JobProcessorTestContext } from '../jobProcessor/jobProcessorSetup';
+import { jobProcessor, mockDequeue, mockQueueClient } from '../jobProcessor/jobProcessorSetup';
 
 describe('JobProcessor', ()=>{
     // beforeAll(() => {
@@ -23,7 +23,7 @@ describe('JobProcessor', ()=>{
 
     describe('start', () => {
         it('should successfully pool task', async () => {
-            const jobProcessor :JobProcessorTestContext
+        JobProcessor.
         });
       });
 });
