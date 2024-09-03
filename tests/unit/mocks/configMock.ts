@@ -49,7 +49,7 @@ const registerDefaultConfig = (): void => {
                 prettyPrint: false,
             },
             tracing: {
-                enabled: true, // Changed from string "true" to boolean true
+                enabled: false,
                 url: 'http://localhost:4318/v1/traces',
             },
             metrics: {
@@ -88,33 +88,8 @@ const registerDefaultConfig = (): void => {
                 },
                 dequeueIntervalMs: 3000,
             },
-            ingestion: {
-                pollingTasks: {
-                    init: 'init',
-                    finalize: 'finalize',
-                },
-                jobs: {
-                    new: {
-                        type: 'Ingestion_New',
-                        tasks: {
-                            splitTiles: 'tilesSplitting',
-                            mergeTiles: 'tilesMerging',
-                        },
-                    },
-                    update: {
-                        type: 'Ingestion_Update',
-                        tasks: {
-                            mergeTiles: 'tilesMerging',
-                        },
-                    },
-                    swapUpdate: {
-                        type: 'Ingestion_Swap_Update',
-                        tasks: {
-                            swapTiles: 'tilesSwapping',
-                        },
-                    },
-                },
-            },
+            jobTypesToProcess: ["Ingestion_New", "Ingestion_Update", "Ingestion_Swap_Update", "Remove_Layer"],
+            taskTypeToProcess: "polygon-parts"
         },
     };
 

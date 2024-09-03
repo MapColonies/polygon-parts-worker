@@ -2,7 +2,7 @@ import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import { Logger } from '@map-colonies/js-logger';
 import { inject, injectable } from 'tsyringe';
 import { IFindJobsRequest, ITaskResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
-import { Span, Tracer } from '@opentelemetry/api';
+import { Tracer } from '@opentelemetry/api';
 import { SERVICES } from '../common/constants';
 import { IConfig, LogContext } from '../common/interfaces';
 
@@ -20,7 +20,7 @@ export class JobProcessor {
     @inject(SERVICES.CONFIG) private readonly config: IConfig
   ) {
     this.dequeueIntervalMs = this.config.get<number>('jobManagement.config.dequeueIntervalMs');
-    this.taskTypeToProcess = 'polygon-parts';
+    this.taskTypeToProcess = this.config.get<string>('jobManagement.taskTypeToProcess');
     this.jobTypesToProcess = this.config.get<string[]>('jobManagement.jobTypesToProcess');
     this.logContext = {
       fileName: __filename,
@@ -30,8 +30,8 @@ export class JobProcessor {
 
   public async start(): Promise<void> {
     const logCtx: LogContext = { ...this.logContext, function: this.start.name };
-    await this.tracer.startActiveSpan('jobManager.job start polling', async (span: Span) => {
       this.logger.info({ msg: 'starting polling', logContext: logCtx });
+
       while (this.isRunning) {
         try {
           this.logger.info({ msg: 'fetching task', logContext: logCtx });
@@ -39,15 +39,13 @@ export class JobProcessor {
 
           if (task) {
             this.logger.info({ msg: 'processing task', task, logContext: logCtx });
-            await this.processJob(task);
+            await this.processTask(task);
           }
         } catch (error) {
           this.logger.error({ msg: 'Failed fetching or processing task', error, logContext: logCtx });
           await setTimeoutPromise(this.dequeueIntervalMs);
         }
       }
-      span.end();
-    });
   }
 
   public stop(): void {
@@ -66,7 +64,7 @@ export class JobProcessor {
     return polyPartsTask;
   }
 
-  private async processJob(task: ITaskResponse<IFindJobsRequest>): Promise<void> {
+  private async processTask(task: ITaskResponse<IFindJobsRequest>): Promise<void> {
     //TODO
   }
 
@@ -78,7 +76,7 @@ export class JobProcessor {
         this.taskTypeToProcess
       );
       const task = await this.queueClient.dequeue<IFindJobsRequest>(jobType, this.taskTypeToProcess);
-      if (task !== null) {
+      if (task) {
         this.logger.info({ msg: `dequeued task ${task.id}`, task });
         return task;
       }
