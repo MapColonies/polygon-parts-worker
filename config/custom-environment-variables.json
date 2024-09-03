@@ -11,7 +11,10 @@
       }
     },
     "tracing": {
-      "enabled": "TELEMETRY_TRACING_ENABLED",
+      "enabled": {
+        "__name": "TELEMETRY_TRACING_ENABLED",
+        "__format": "boolean"
+      },
       "url": "TELEMETRY_TRACING_URL"
     },
     "metrics": {
