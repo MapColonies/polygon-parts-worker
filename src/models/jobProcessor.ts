@@ -30,22 +30,22 @@ export class JobProcessor {
 
   public async start(): Promise<void> {
     const logCtx: LogContext = { ...this.logContext, function: this.start.name };
-      this.logger.info({ msg: 'starting polling', logContext: logCtx });
+    this.logger.info({ msg: 'starting polling', logContext: logCtx });
 
-      while (this.isRunning) {
-        try {
-          this.logger.info({ msg: 'fetching task', logContext: logCtx });
-          const task = await this.fetchTask();
+    while (this.isRunning) {
+      try {
+        this.logger.info({ msg: 'fetching task', logContext: logCtx });
+        const task = await this.getNextPolyPartsTask();
 
-          if (task) {
-            this.logger.info({ msg: 'processing task', task, logContext: logCtx });
-            await this.processTask(task);
-          }
-        } catch (error) {
-          this.logger.error({ msg: 'Failed fetching or processing task', error, logContext: logCtx });
-          await setTimeoutPromise(this.dequeueIntervalMs);
+        if (task) {
+          this.logger.info({ msg: 'processing task', task, logContext: logCtx });
+          await this.processTask(task);
         }
+      } catch (error) {
+        this.logger.error({ msg: 'error fetching or processing task', error, logContext: logCtx });
+        await setTimeoutPromise(this.dequeueIntervalMs);
       }
+    }
   }
 
   public stop(): void {
@@ -54,21 +54,12 @@ export class JobProcessor {
     this.isRunning = false;
   }
 
-  private async fetchTask(): Promise<ITaskResponse<IFindJobsRequest> | undefined> {
-    const polyPartsTask = await this.getPolyPartsTask();
-
-    if (!polyPartsTask) {
-      await setTimeoutPromise(this.dequeueIntervalMs);
-      return;
-    }
-    return polyPartsTask;
-  }
-
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async processTask(task: ITaskResponse<IFindJobsRequest>): Promise<void> {
     //TODO
   }
 
-  private async getPolyPartsTask(): Promise<ITaskResponse<IFindJobsRequest> | undefined> {
+  private async getNextPolyPartsTask(): Promise<ITaskResponse<IFindJobsRequest> | undefined> {
     for (const jobType of this.jobTypesToProcess) {
       this.logger.debug(
         { msg: `try to dequeue task of type "${this.taskTypeToProcess}" and job of type "${jobType}"` },
