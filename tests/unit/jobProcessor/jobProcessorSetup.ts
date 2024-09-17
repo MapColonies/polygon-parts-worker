@@ -11,13 +11,19 @@ const mockDequeue = jest.fn() as MockDequeue;
 const mockGetJob = jest.fn() as MockGetJob;
 
 registerDefaultConfig();
-const mockQueueClient = new QueueClient(mockLogger, configMock.get<string>('jobManagement.config.jobManagerBaseUrl'),
+const mockQueueClient = new QueueClient(
+  mockLogger,
+  configMock.get<string>('jobManagement.config.jobManagerBaseUrl'),
   configMock.get<string>('jobManagement.config.heartbeat.baseUrl'),
   configMock.get<number>('jobManagement.config.dequeueIntervalMs'),
-  configMock.get<number>('jobManagement.config.heartbeat.intervalMs'));
+  configMock.get<number>('jobManagement.config.heartbeat.intervalMs')
+);
 
-  const jobProcessor = new JobProcessor(mockLogger, trace.getTracer('testingTracer'), mockQueueClient, configMock);
-export { jobProcessor, mockDequeue, mockGetJob, configMock, mockQueueClient };
+function newJobProcessor(): JobProcessor {
+  return new JobProcessor(mockLogger, trace.getTracer('testingTracer'), mockQueueClient, configMock);
+}
+
+export { newJobProcessor, mockDequeue, mockGetJob, configMock, mockQueueClient };
 
 export type MockDequeue = jest.MockedFunction<(jobType: string, taskType: string) => Promise<ITaskResponse<unknown> | null>>;
 export type MockGetJob = jest.MockedFunction<(jobId: string) => Promise<IJobResponse<unknown, unknown>>>;
