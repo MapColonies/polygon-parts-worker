@@ -29,7 +29,7 @@ export class JobProcessor {
     while (this.isRunning) {
       try {
         this.logger.debug({ msg: 'fetching task'});
-        const task = await this.getNextPolyPartsTask();
+        const task = await this.getTask();
 
         if (task) {
           this.logger.info({ msg: 'processing task', taskId: task.id });
@@ -52,7 +52,7 @@ export class JobProcessor {
     //TODO
   }
 
-  private async getNextPolyPartsTask(): Promise<ITaskResponse<unknown> | undefined> {
+  private async getTask(): Promise<ITaskResponse<unknown> | undefined> {
     for (const jobType of this.jobTypesToProcess) {
       this.logger.debug(
         { msg: `try to dequeue task of type "${this.taskTypeToProcess}" and job of type "${jobType}"` },
