@@ -23,7 +23,7 @@ function jobProcessorInstace(): JobProcessor {
   return new JobProcessor(mockLogger, trace.getTracer('testingTracer'), mockQueueClient, configMock);
 }
 
-export { jobProcessorInstace as newJobProcessor, mockDequeue, mockGetJob, configMock, mockQueueClient };
+export { jobProcessorInstace, mockDequeue, mockGetJob, configMock, mockQueueClient };
 
 export type MockDequeue = jest.MockedFunction<(jobType: string, taskType: string) => Promise<ITaskResponse<unknown> | null>>;
 export type MockGetJob = jest.MockedFunction<(jobId: string) => Promise<IJobResponse<unknown, unknown>>>;

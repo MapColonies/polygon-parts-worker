@@ -1,7 +1,7 @@
 import nock from 'nock';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
-import { newJobProcessor as jobProcessorInstace, mockQueueClient } from '../jobProcessor/jobProcessorSetup';
+import { jobProcessorInstace, mockQueueClient } from '../jobProcessor/jobProcessorSetup';
 import { initTaskForIngestionNew } from '../mocks/tasksMocks';
 
 describe('JobProcessor', () => {
