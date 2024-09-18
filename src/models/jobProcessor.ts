@@ -15,7 +15,7 @@ export class JobProcessor {
   private readonly jobTypesToProcess: string[];
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(SERVICES.TRACER) public tracer: Tracer,
+    @inject(SERVICES.TRACER) public readonly tracer: Tracer,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
     @inject(SERVICES.CONFIG) private readonly config: IConfig
   ) {
