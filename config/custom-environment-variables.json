@@ -35,5 +35,12 @@
         }
       }
     }
+  },
+  "jobManagement": {
+    "jobTypesToProcess": {
+      "__name": "JOB_TYPES_TO_PROCESS",
+      "__format": "json"
+    },
+    "taskTypeToProcess": "TASK_TYPE_TO_PROCESS"
   }
 }

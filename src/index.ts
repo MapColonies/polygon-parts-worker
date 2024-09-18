@@ -3,21 +3,38 @@ import 'reflect-metadata';
 import { createServer } from 'http';
 import { createTerminus } from '@godaddy/terminus';
 import { Logger } from '@map-colonies/js-logger';
-import { container } from 'tsyringe';
 import config from 'config';
+import { Span, Tracer } from '@opentelemetry/api';
 import { DEFAULT_SERVER_PORT, SERVICES } from './common/constants';
-
+import { JobProcessor } from './models/jobProcessor';
 import { getApp } from './app';
 
 const port: number = config.get<number>('server.port') || DEFAULT_SERVER_PORT;
 
-const app = getApp();
+const { app, container } = getApp();
 
 const logger = container.resolve<Logger>(SERVICES.LOGGER);
+const tracer = container.resolve<Tracer>(SERVICES.TRACER);
+
 const stubHealthCheck = async (): Promise<void> => Promise.resolve();
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const server = createTerminus(createServer(app), { healthChecks: { '/liveness': stubHealthCheck, onSignal: container.resolve('onSignal') } });
+const jobProcessor = container.resolve(JobProcessor);
+
+async function startPolling(): Promise<void> {
+  await tracer.startActiveSpan('jobManager.task start polling', async (span: Span) => {
+    await jobProcessor.start();
+    span.end();
+  });
+}
 
 server.listen(port, () => {
   logger.info(`app started on port ${port}`);
+  startPolling().catch((error) => {
+    if (error instanceof Error) {
+      logger.fatal({ msg: 'error in main loop', error: error.message });
+    }
+    jobProcessor.stop();
+    process.exit(1);
+  });
 });
