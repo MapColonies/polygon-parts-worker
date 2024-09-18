@@ -9,19 +9,7 @@ export interface IJobManagerConfig {
   dequeueIntervalMs: number;
 }
 
-export interface LogContext {
-  fileName: string;
-  class?: string;
-  function?: string;
-}
-
 export interface IHeartbeatConfig {
   baseUrl: string;
   intervalMs: number;
-}
-
-export interface LogContext {
-  fileName: string;
-  class?: string;
-  function?: string;
 }
