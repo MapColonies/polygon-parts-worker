@@ -22,7 +22,7 @@ const server = createTerminus(createServer(app), { healthChecks: { '/liveness': 
 const jobProcessor = container.resolve(JobProcessor);
 
 async function startPolling(): Promise<void> {
-  await tracer.startActiveSpan('jobManager.job start polling', async (span: Span) => {
+  await tracer.startActiveSpan('jobManager.task start polling', async (span: Span) => {
     await jobProcessor.start();
     span.end();
   });
@@ -30,11 +30,11 @@ async function startPolling(): Promise<void> {
 
 server.listen(port, () => {
   logger.info(`app started on port ${port}`);
-  startPolling().catch((error) => {
-    if (error instanceof Error) {
-      logger.fatal({ msg: 'error in main loop', error: error.message });
-      jobProcessor.stop();
-      process.exit(1);
-    }
-  });
+  try {
+    void startPolling();
+  } catch (error) {
+    logger.fatal({ msg: 'error in main loop', error });
+    jobProcessor.stop();
+    process.exit(1);
+  }
 });
