@@ -1,14 +1,14 @@
 import nock from 'nock';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
-import { newJobProcessor, mockQueueClient } from '../jobProcessor/jobProcessorSetup';
+import { newJobProcessor as jobProcessorInstace, mockQueueClient } from '../jobProcessor/jobProcessorSetup';
 import { initTaskForIngestionNew } from '../mocks/tasksMocks';
 
 describe('JobProcessor', () => {
   let jobProcessor: JobProcessor;
 
   beforeEach(() => {
-    jobProcessor = newJobProcessor();
+    jobProcessor = jobProcessorInstace();
     jest.clearAllMocks();
     registerDefaultConfig();
   });
