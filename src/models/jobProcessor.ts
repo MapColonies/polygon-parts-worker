@@ -3,6 +3,7 @@ import { Logger } from '@map-colonies/js-logger';
 import { inject, injectable } from 'tsyringe';
 import { ITaskResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { Tracer } from '@opentelemetry/api';
+import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { SERVICES } from '../common/constants';
 import { IConfig } from '../common/interfaces';
 
@@ -14,7 +15,7 @@ export class JobProcessor {
   private readonly jobTypesToProcess: string[];
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(SERVICES.TRACER) private readonly tracer: Tracer,
+    @inject(SERVICES.TRACER) public readonly tracer: Tracer,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
     @inject(SERVICES.CONFIG) private readonly config: IConfig
   ) {
@@ -23,6 +24,7 @@ export class JobProcessor {
     this.jobTypesToProcess = this.config.get<string[]>('jobManagement.jobTypesToProcess');
   }
 
+  @withSpanAsyncV4
   public async start(): Promise<void> {
     this.logger.info({ msg: 'starting polling' });
 
@@ -42,16 +44,13 @@ export class JobProcessor {
     }
   }
 
-  public stop(): void {
-    this.logger.info({ msg: 'stopping polling' });
-    this.isRunning = false;
-  }
-
+  @withSpanAsyncV4
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async processTask(task: ITaskResponse<unknown>): Promise<void> {
     //TODO
   }
 
+  @withSpanAsyncV4
   private async getTask(): Promise<ITaskResponse<unknown> | undefined> {
     for (const jobType of this.jobTypesToProcess) {
       this.logger.debug(
@@ -65,5 +64,10 @@ export class JobProcessor {
         return task;
       }
     }
+  }
+
+  public stop(): void {
+    this.logger.info({ msg: 'stopping polling' });
+    this.isRunning = false;
   }
 }
