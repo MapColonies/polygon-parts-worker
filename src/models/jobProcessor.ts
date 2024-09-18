@@ -44,8 +44,8 @@ export class JobProcessor {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   @withSpanAsyncV4
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async processTask(task: ITaskResponse<unknown>): Promise<void> {
     //TODO
   }
