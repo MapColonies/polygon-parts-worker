@@ -1,3 +1,5 @@
+import { IJobResponse } from "@map-colonies/mc-priority-queue";
+
 export interface IConfig {
   get: <T>(setting: string) => T;
   has: (setting: string) => boolean;
@@ -12,4 +14,11 @@ export interface IJobManagerConfig {
 export interface IHeartbeatConfig {
   baseUrl: string;
   intervalMs: number;
+}
+
+export interface IJobHandler {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  handleJobInit: (job: IJobResponse<any, any>, taskId: string) => Promise<void>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  handleJobFinalize: (job: IJobResponse<any, any>, taskId: string) => Promise<void>;
 }
