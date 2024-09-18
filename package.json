@@ -42,6 +42,7 @@
     "@godaddy/terminus": "^4.12.1",
     "@map-colonies/error-express-handler": "^2.1.0",
     "@map-colonies/js-logger": "^1.0.1",
+    "@map-colonies/mc-model-types": "^17.2.0",
     "@map-colonies/mc-priority-queue": "^8.1.0",
     "@map-colonies/read-pkg": "0.0.1",
     "@map-colonies/telemetry": "^6.0.0",
