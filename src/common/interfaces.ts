@@ -1,4 +1,4 @@
-import { IJobResponse } from "@map-colonies/mc-priority-queue";
+import { IJobResponse, ITaskResponse } from "@map-colonies/mc-priority-queue";
 
 export interface IConfig {
   get: <T>(setting: string) => T;
@@ -14,6 +14,11 @@ export interface IJobManagerConfig {
 export interface IHeartbeatConfig {
   baseUrl: string;
   intervalMs: number;
+}
+
+export interface IJobAndTask{
+  job: IJobResponse<unknown, unknown>;
+  task: ITaskResponse<unknown>;
 }
 
 export interface IJobHandler {

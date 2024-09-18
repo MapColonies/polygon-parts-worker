@@ -5,7 +5,7 @@ import { ITaskResponse, TaskHandler as QueueClient } from '@map-colonies/mc-prio
 import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { SERVICES } from '../common/constants';
-import { IConfig } from '../common/interfaces';
+import { IConfig, IJobAndTask } from '../common/interfaces';
 
 @injectable()
 export class JobProcessor {
@@ -51,7 +51,7 @@ export class JobProcessor {
   }
 
   @withSpanAsyncV4
-  private async getTask(): Promise<ITaskResponse<unknown> | undefined> {
+  private async getTask(): Promise<IJobAndTask | undefined> {
     for (const jobType of this.jobTypesToProcess) {
       this.logger.debug(
         { msg: `try to dequeue task of type "${this.taskTypeToProcess}" and job of type "${jobType}"` },
@@ -61,7 +61,9 @@ export class JobProcessor {
       const task = await this.queueClient.dequeue(jobType, this.taskTypeToProcess);
       if (task) {
         this.logger.info({ msg: `dequeued task ${task.id}`, task });
-        return task;
+        this.logger.info({ msg: `getting task's job ${task.id}`, task });
+        const job = await this.queueClient.jobManagerClient.getJob(task.jobId)
+        return { job, task } as IJobAndTask;
       }
     }
   }
