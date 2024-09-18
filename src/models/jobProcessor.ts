@@ -24,11 +24,11 @@ export class JobProcessor {
   }
 
   public async start(): Promise<void> {
-    this.logger.info({ msg: 'starting polling'});
+    this.logger.info({ msg: 'starting polling' });
 
     while (this.isRunning) {
       try {
-        this.logger.debug({ msg: 'fetching task'});
+        this.logger.debug({ msg: 'fetching task' });
         const task = await this.getTask();
 
         if (task) {
