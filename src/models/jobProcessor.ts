@@ -6,6 +6,7 @@ import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { SERVICES } from '../common/constants';
 import { IConfig, IJobAndTask } from '../common/interfaces';
+import { JobHandlerFactory } from './handlersManager';
 
 @injectable()
 export class JobProcessor {
@@ -30,12 +31,12 @@ export class JobProcessor {
 
     while (this.isRunning) {
       try {
-        this.logger.debug({ msg: 'fetching task' });
-        const task = await this.getTask();
+        this.logger.debug({ msg: 'fetching next task and job' });
+        const jobAndTask = await this.getJobAndTask();
 
-        if (task) {
-          this.logger.info({ msg: 'processing task', taskId: task.id });
-          await this.processTask(task);
+        if (jobAndTask) {
+          this.logger.info({ msg: 'processing task', taskId: jobAndTask.task.id });
+          await this.processTask(jobAndTask);
         }
       } catch (error) {
         this.logger.error({ msg: 'error fetching or processing task', error });
@@ -47,11 +48,11 @@ export class JobProcessor {
   @withSpanAsyncV4
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async processTask(task: ITaskResponse<unknown>): Promise<void> {
-    //TODO
+    const jobHandler = new JobHandlerFactory.initJobHandler(task.type);
   }
 
   @withSpanAsyncV4
-  private async getTask(): Promise<IJobAndTask | undefined> {
+  private async getJobAndTask(): Promise<IJobAndTask | undefined> {
     for (const jobType of this.jobTypesToProcess) {
       this.logger.debug(
         { msg: `try to dequeue task of type "${this.taskTypeToProcess}" and job of type "${jobType}"` },

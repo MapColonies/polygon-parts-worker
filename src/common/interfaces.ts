@@ -16,14 +16,7 @@ export interface IHeartbeatConfig {
   intervalMs: number;
 }
 
-export interface IJobAndTask{
+export interface IJobAndTask {
   job: IJobResponse<unknown, unknown>;
   task: ITaskResponse<unknown>;
-}
-
-export interface IJobHandler {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  handleJobInit: (job: IJobResponse<any, any>, taskId: string) => Promise<void>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  handleJobFinalize: (job: IJobResponse<any, any>, taskId: string) => Promise<void>;
 }
