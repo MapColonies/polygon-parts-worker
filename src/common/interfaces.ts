@@ -1,3 +1,4 @@
+import { PolygonPartsPayload } from "@map-colonies/mc-model-types";
 import { IJobResponse, ITaskResponse } from "@map-colonies/mc-priority-queue";
 
 export interface IConfig {
@@ -22,5 +23,5 @@ export interface IJobAndTask {
 }
 
 export interface JobHandler {
-  processJob: (job: IJobResponse<unknown, unknown>) => Promise<void>;
+  processJob: (job: IJobResponse<PolygonPartsPayload, unknown>) => Promise<void>;
 }
