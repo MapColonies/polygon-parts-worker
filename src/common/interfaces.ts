@@ -20,3 +20,7 @@ export interface IJobAndTask {
   job: IJobResponse<unknown, unknown>;
   task: ITaskResponse<unknown>;
 }
+
+export interface JobHandler {
+  processJob: (job: IJobResponse<unknown, unknown>) => Promise<void>;
+}

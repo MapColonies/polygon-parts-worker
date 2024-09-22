@@ -6,7 +6,7 @@ import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { SERVICES } from '../common/constants';
 import { IConfig, IJobAndTask } from '../common/interfaces';
-import { JobHandlerFactory } from './handlersManager';
+import { initJobHandler } from "./handlersFactory";
 
 @injectable()
 export class JobProcessor {
@@ -47,8 +47,10 @@ export class JobProcessor {
 
   @withSpanAsyncV4
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private async processTask(task: ITaskResponse<unknown>): Promise<void> {
-    const jobHandler = new JobHandlerFactory.initJobHandler(task.type);
+  private async processTask(jobAndTask: IJobAndTask): Promise<void> {
+    const { job, task } = jobAndTask
+    const jobHandler = initJobHandler(task.type);
+    await jobHandler.processJob(job);
   }
 
   @withSpanAsyncV4
