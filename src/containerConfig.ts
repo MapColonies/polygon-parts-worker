@@ -11,6 +11,7 @@ import { SERVICES, SERVICE_NAME } from './common/constants';
 import { tracing } from './common/tracing';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
 import { IJobManagerConfig } from './common/interfaces';
+import { PolygonPartsManagerClient } from './clients/polygonPartsManagerClient';
 
 const queueClientFactory = (container: DependencyContainer): QueueClient => {
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
@@ -18,6 +19,21 @@ const queueClientFactory = (container: DependencyContainer): QueueClient => {
   const queueConfig = config.get<IJobManagerConfig>('jobManagement.config');
   const httpRetryConfig = config.get<IHttpRetryConfig>('server.httpRetry');
   return new QueueClient(
+    logger,
+    queueConfig.jobManagerBaseUrl,
+    queueConfig.heartbeat.baseUrl,
+    queueConfig.dequeueIntervalMs,
+    queueConfig.heartbeat.intervalMs,
+    httpRetryConfig
+  );
+};
+
+const queueClientFactory = (container: DependencyContainer): PolygonPartsManagerClient => {
+  const logger = container.resolve<Logger>(SERVICES.LOGGER);
+  const config = container.resolve<IConfig>(SERVICES.CONFIG);
+  const queueConfig = config.get<IJobManagerConfig>('jobManagement.config');
+  const httpRetryConfig = config.get<IHttpRetryConfig>('server.httpRetry');
+  return new PolygonPartsManagerClient(
     logger,
     queueConfig.jobManagerBaseUrl,
     queueConfig.heartbeat.baseUrl,

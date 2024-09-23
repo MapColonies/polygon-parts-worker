@@ -1,11 +1,13 @@
 import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import { Logger } from '@map-colonies/js-logger';
 import { inject, injectable } from 'tsyringe';
-import { ITaskResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import { IJobResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
+import { PolygonPartsPayload } from '@map-colonies/mc-model-types';
 import { SERVICES } from '../common/constants';
-import { IConfig, IJobAndTask } from '../common/interfaces';
+import { IConfig } from '../common/interfaces';
+import { PolygonPartsManagerClient } from '../clients/polygonPartsManagerClient';
 import { initJobHandler } from "./handlersFactory";
 
 @injectable()
@@ -18,7 +20,8 @@ export class JobProcessor {
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.TRACER) public readonly tracer: Tracer,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
-    @inject(SERVICES.CONFIG) private readonly config: IConfig
+    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    private readonly polygonPartsClient: PolygonPartsManagerClient
   ) {
     this.dequeueIntervalMs = this.config.get<number>('jobManagement.config.dequeueIntervalMs');
     this.taskTypeToProcess = this.config.get<string>('jobManagement.taskTypeToProcess');
@@ -31,12 +34,13 @@ export class JobProcessor {
 
     while (this.isRunning) {
       try {
-        this.logger.debug({ msg: 'fetching next task and job' });
-        const jobAndTask = await this.getJobAndTask();
+        this.logger.debug({ msg: 'fetching next job' });
+        const job = await this.getJob();
 
-        if (jobAndTask) {
-          this.logger.info({ msg: 'processing task', taskId: jobAndTask.task.id });
-          await this.processTask(jobAndTask);
+        if (job) {
+          this.logger.info({ msg: 'processing job', jobId: job.id });
+          const jobHandler = initJobHandler(job.type, this.logger, this.polygonPartsClient);
+          await jobHandler.processJob(job);
         }
       } catch (error) {
         this.logger.error({ msg: 'error fetching or processing task', error });
@@ -45,15 +49,9 @@ export class JobProcessor {
     }
   }
 
-  @withSpanAsyncV4
-  private async processTask(jobAndTask: IJobAndTask): Promise<void> {
-    const { job, task } = jobAndTask
-    const jobHandler = initJobHandler(task.type);
-    await jobHandler.processJob(job);
-  }
 
   @withSpanAsyncV4
-  private async getJobAndTask(): Promise<IJobAndTask | undefined> {
+  private async getJob(): Promise<IJobResponse<PolygonPartsPayload, unknown> | undefined> {
     for (const jobType of this.jobTypesToProcess) {
       this.logger.debug(
         { msg: `try to dequeue task of type "${this.taskTypeToProcess}" and job of type "${jobType}"` },
@@ -62,10 +60,9 @@ export class JobProcessor {
       );
       const task = await this.queueClient.dequeue(jobType, this.taskTypeToProcess);
       if (task) {
-        this.logger.info({ msg: `dequeued task ${task.id}`, task });
         this.logger.info({ msg: `getting task's job ${task.id}`, task });
-        const job = await this.queueClient.jobManagerClient.getJob(task.jobId)
-        return { job, task } as IJobAndTask;
+        const job = await this.queueClient.jobManagerClient.getJob<PolygonPartsPayload, unknown>(task.jobId)
+        return job
       }
     }
   }
