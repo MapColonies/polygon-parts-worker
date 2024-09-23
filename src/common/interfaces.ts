@@ -18,7 +18,7 @@ export interface IHeartbeatConfig {
 }
 
 export interface IJobAndTask {
-  job: IJobResponse<unknown, unknown>;
+  job: IJobResponse<PolygonPartsPayload, unknown>;
   task: ITaskResponse<unknown>;
 }
 

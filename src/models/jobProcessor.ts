@@ -46,7 +46,6 @@ export class JobProcessor {
   }
 
   @withSpanAsyncV4
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async processTask(jobAndTask: IJobAndTask): Promise<void> {
     const { job, task } = jobAndTask
     const jobHandler = initJobHandler(task.type);
