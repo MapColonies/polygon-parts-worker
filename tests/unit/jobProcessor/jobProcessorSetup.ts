@@ -4,6 +4,7 @@ import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { trace } from '@opentelemetry/api';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
+import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsManagerClient';
 
 const mockLogger = jsLogger({ enabled: false });
 
@@ -19,8 +20,10 @@ const mockQueueClient = new QueueClient(
   configMock.get<number>('jobManagement.config.heartbeat.intervalMs')
 );
 
+const mockPolyPartsManagerClient = new PolygonPartsManagerClient(mockLogger, trace.getTracer('testingTracer'));
+
 function jobProcessorInstace(): JobProcessor {
-  return new JobProcessor(mockLogger, trace.getTracer('testingTracer'), mockQueueClient, configMock);
+  return new JobProcessor(mockLogger, trace.getTracer('testingTracer'), mockQueueClient, configMock, mockPolyPartsManagerClient);
 }
 
 export { jobProcessorInstace, mockDequeue, mockGetJob, configMock, mockQueueClient };
