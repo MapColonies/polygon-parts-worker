@@ -20,10 +20,8 @@ const mockQueueClient = new QueueClient(
   configMock.get<number>('jobManagement.config.heartbeat.intervalMs')
 );
 
-const mockPolyPartsManagerClient = new PolygonPartsManagerClient(mockLogger, trace.getTracer('testingTracer'));
-
 function jobProcessorInstace(): JobProcessor {
-  return new JobProcessor(mockLogger, trace.getTracer('testingTracer'), mockQueueClient, configMock, mockPolyPartsManagerClient);
+  return new JobProcessor(mockLogger, trace.getTracer('testingTracer'), mockQueueClient, configMock);
 }
 
 export { jobProcessorInstace, mockDequeue, mockGetJob, configMock, mockQueueClient };
