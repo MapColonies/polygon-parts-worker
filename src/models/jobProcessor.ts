@@ -39,7 +39,7 @@ export class JobProcessor {
 
         if (job) {
           this.logger.info({ msg: 'processing job', jobId: job.id });
-          const jobHandler = initJobHandler(job.type, this.logger, this.polygonPartsManagerClient);
+          const jobHandler = initJobHandler(job.type);
           await jobHandler.processJob(job);
         }
       } catch (error) {

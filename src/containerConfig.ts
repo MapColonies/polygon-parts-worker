@@ -7,10 +7,11 @@ import { Metrics } from '@map-colonies/telemetry';
 import { instancePerContainerCachingFactory } from 'tsyringe';
 import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { IHttpRetryConfig } from '@map-colonies/mc-utils';
-import { SERVICES, SERVICE_NAME } from './common/constants';
+import { HANDLERS, SERVICES, SERVICE_NAME } from './common/constants';
 import { tracing } from './common/tracing';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
 import { IJobManagerConfig } from './common/interfaces';
+import { NewJobHandler } from './models/newLayerHandler';
 
 const queueClientFactory = (container: DependencyContainer): QueueClient => {
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
@@ -41,12 +42,16 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
 
   const tracer = trace.getTracer(SERVICE_NAME);
 
+
   const dependencies: InjectionObject<unknown>[] = [
     { token: SERVICES.CONFIG, provider: { useValue: config } },
     { token: SERVICES.LOGGER, provider: { useValue: logger } },
     { token: SERVICES.TRACER, provider: { useValue: tracer } },
     { token: SERVICES.METER, provider: { useValue: OtelMetrics.getMeterProvider().getMeter(SERVICE_NAME) } },
     { token: SERVICES.QUEUE_CLIENT, provider: { useFactory: instancePerContainerCachingFactory(queueClientFactory) } },
+    { token: HANDLERS.NEW, provider: { useClass: NewJobHandler } },
+    { token: HANDLERS.UPDATE, provider: { useClass: NewJobHandler } },
+    { token: HANDLERS.SWAP, provider: { useClass: NewJobHandler} },
     {
       token: 'onSignal',
       provider: {
