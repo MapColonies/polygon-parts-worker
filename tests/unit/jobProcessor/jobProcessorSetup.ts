@@ -4,7 +4,6 @@ import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { trace } from '@opentelemetry/api';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
-import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsManagerClient';
 
 const mockLogger = jsLogger({ enabled: false });
 
