@@ -1,4 +1,4 @@
-import { inject } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 import { IJobResponse } from '@map-colonies/mc-priority-queue';
 import { PolygonPartsPayload, partSchema } from '@map-colonies/mc-model-types';
 import { Logger } from '@map-colonies/js-logger';
@@ -8,6 +8,7 @@ import { newRequestBodySchema } from '../schemas/polyPartsManager.schema';
 import { PolygonPartsManagerClient } from '../clients/polygonPartsManagerClient';
 import { SERVICES } from '../common/constants';
 
+@injectable()
 export class NewJobHandler implements JobHandler {
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,

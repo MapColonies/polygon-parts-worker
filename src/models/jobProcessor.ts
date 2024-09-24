@@ -41,7 +41,8 @@ export class JobProcessor {
           await jobHandler.processJob(job);
         }
       } catch (error) {
-        this.logger.error({ msg: 'error fetching or processing task', error });
+        const newErr: Error = error as Error;
+        this.logger.error({ msg: 'error while handeling job', error: newErr.message });
         await setTimeoutPromise(this.dequeueIntervalMs);
       }
     }
