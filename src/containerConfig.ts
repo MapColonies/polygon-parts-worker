@@ -42,7 +42,6 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
 
   const tracer = trace.getTracer(SERVICE_NAME);
 
-
   const dependencies: InjectionObject<unknown>[] = [
     { token: SERVICES.CONFIG, provider: { useValue: config } },
     { token: SERVICES.LOGGER, provider: { useValue: logger } },
@@ -51,7 +50,7 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     { token: SERVICES.QUEUE_CLIENT, provider: { useFactory: instancePerContainerCachingFactory(queueClientFactory) } },
     { token: HANDLERS.NEW, provider: { useClass: NewJobHandler } },
     { token: HANDLERS.UPDATE, provider: { useClass: NewJobHandler } },
-    { token: HANDLERS.SWAP, provider: { useClass: NewJobHandler} },
+    { token: HANDLERS.SWAP, provider: { useClass: NewJobHandler } },
     {
       token: 'onSignal',
       provider: {

@@ -23,9 +23,9 @@ export class NewJobHandler implements JobHandler {
       partsData: job.parameters,
     };
     const validationResult = newRequestBodySchema.safeParse(requestBody);
-    const validationpartsData = partSchema.safeParse(requestBody.partsData);
+    const validationPartsData = partSchema.safeParse(requestBody.partsData);
 
-    if (validationResult.success && validationpartsData.success) {
+    if (validationResult.success && validationPartsData.success) {
       const polyData: PolygonPartsPayload = validationResult.data;
       this.logger.info('creating new polygon part', polyData);
 
