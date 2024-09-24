@@ -8,7 +8,7 @@ import { PolygonPartsPayload } from '@map-colonies/mc-model-types';
 import { SERVICES } from '../common/constants';
 import { IConfig } from '../common/interfaces';
 import { PolygonPartsManagerClient } from '../clients/polygonPartsManagerClient';
-import { initJobHandler } from "./handlersFactory";
+import { initJobHandler } from './handlersFactory';
 
 @injectable()
 export class JobProcessor {
@@ -21,7 +21,7 @@ export class JobProcessor {
     @inject(SERVICES.TRACER) public readonly tracer: Tracer,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
     @inject(SERVICES.CONFIG) private readonly config: IConfig,
-    private readonly polygonPartsClient: PolygonPartsManagerClient
+    @inject(PolygonPartsManagerClient) private readonly polygonPartsManagerClient: PolygonPartsManagerClient
   ) {
     this.dequeueIntervalMs = this.config.get<number>('jobManagement.config.dequeueIntervalMs');
     this.taskTypeToProcess = this.config.get<string>('jobManagement.taskTypeToProcess');
@@ -39,7 +39,7 @@ export class JobProcessor {
 
         if (job) {
           this.logger.info({ msg: 'processing job', jobId: job.id });
-          const jobHandler = initJobHandler(job.type, this.logger, this.polygonPartsClient);
+          const jobHandler = initJobHandler(job.type, this.logger, this.polygonPartsManagerClient);
           await jobHandler.processJob(job);
         }
       } catch (error) {
@@ -48,7 +48,6 @@ export class JobProcessor {
       }
     }
   }
-
 
   @withSpanAsyncV4
   private async getJob(): Promise<IJobResponse<PolygonPartsPayload, unknown> | undefined> {
@@ -61,8 +60,8 @@ export class JobProcessor {
       const task = await this.queueClient.dequeue(jobType, this.taskTypeToProcess);
       if (task) {
         this.logger.info({ msg: `getting task's job ${task.id}`, task });
-        const job = await this.queueClient.jobManagerClient.getJob<PolygonPartsPayload, unknown>(task.jobId)
-        return job
+        const job = await this.queueClient.jobManagerClient.getJob<PolygonPartsPayload, unknown>(task.jobId);
+        return job;
       }
     }
   }
