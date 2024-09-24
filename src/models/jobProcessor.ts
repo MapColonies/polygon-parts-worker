@@ -7,7 +7,6 @@ import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { PolygonPartsPayload } from '@map-colonies/mc-model-types';
 import { SERVICES } from '../common/constants';
 import { IConfig } from '../common/interfaces';
-import {  } from '../clients/polygonPartsManagerClient';
 import { initJobHandler } from './handlersFactory';
 
 @injectable()
@@ -20,7 +19,7 @@ export class JobProcessor {
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.TRACER) public readonly tracer: Tracer,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
-    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    @inject(SERVICES.CONFIG) private readonly config: IConfig
   ) {
     this.dequeueIntervalMs = this.config.get<number>('jobManagement.config.dequeueIntervalMs');
     this.taskTypeToProcess = this.config.get<string>('jobManagement.taskTypeToProcess');
