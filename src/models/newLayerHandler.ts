@@ -21,10 +21,10 @@ export class NewJobHandler implements JobHandler {
       productType: job.productType,
       catalogId: job.internalId,
       productVersion: job.version,
-      partsData: job.parameters,
+      partsData: job.parameters.partsData,
     };
     const validationResult = newRequestBodySchema.safeParse(requestBody);
-    const validationPartsData = partSchema.safeParse(requestBody.partsData);
+    const validationPartsData = partSchema.safeParse(requestBody.partsData[0]);
 
     if (validationResult.success && validationPartsData.success) {
       const polyData: PolygonPartsPayload = validationResult.data;
