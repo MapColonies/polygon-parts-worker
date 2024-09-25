@@ -13,7 +13,7 @@ export class NewJobHandler implements JobHandler {
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(PolygonPartsManagerClient) private readonly polygonPartsManager: PolygonPartsManagerClient
-  ) {}
+  ) { }
 
   public async processJob(job: IJobResponse<PolygonPartsPayload, unknown>): Promise<void> {
     const requestBody = {
@@ -25,7 +25,7 @@ export class NewJobHandler implements JobHandler {
     };
     const validationResult = newRequestBodySchema.safeParse(requestBody);
     const validationPartsData = partSchema.safeParse(requestBody.partsData[0]);
-
+    
     if (validationResult.success && validationPartsData.success) {
       const polyData: PolygonPartsPayload = validationResult.data;
       this.logger.info('creating new polygon part', polyData);

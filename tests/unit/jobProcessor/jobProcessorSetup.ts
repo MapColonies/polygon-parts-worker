@@ -9,6 +9,7 @@ const mockLogger = jsLogger({ enabled: false });
 
 const mockDequeue = jest.fn() as MockDequeue;
 const mockGetJob = jest.fn() as MockGetJob;
+const mockProcessJob = jest.fn() as MockProcessJob;
 
 registerDefaultConfig();
 const mockQueueClient = new QueueClient(
@@ -23,10 +24,11 @@ function jobProcessorInstace(): JobProcessor {
   return new JobProcessor(mockLogger, trace.getTracer('testingTracer'), mockQueueClient, configMock);
 }
 
-export { jobProcessorInstace, mockDequeue, mockGetJob, configMock, mockQueueClient };
+export { jobProcessorInstace, mockDequeue, mockGetJob, configMock, mockQueueClient, mockProcessJob };
 
 export type MockDequeue = jest.MockedFunction<(jobType: string, taskType: string) => Promise<ITaskResponse<unknown> | null>>;
 export type MockGetJob = jest.MockedFunction<(jobId: string) => Promise<IJobResponse<unknown, unknown>>>;
+export type MockProcessJob = jest.MockedFunction<() => Promise<void>>;
 
 export interface JobProcessorTestContext {
   jobProcessor: JobProcessor;

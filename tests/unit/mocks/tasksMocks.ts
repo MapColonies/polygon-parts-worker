@@ -16,7 +16,7 @@ export const initTaskForIngestionNew: ITaskResponse<IPollingTaskParameters> = {
   percentage: 0,
   reason: '',
   attempts: 0,
-  jobId: 'de57d743-3155-4a28-86c8-9c181faabd94',
+  jobId: '321d495f-e6e4-45cc-b301-4ebc4e894f03',
   resettable: true,
   // eslint-disable-next-line @typescript-eslint/naming-convention
   created: '2024-07-21T10:59:23.510Z',
