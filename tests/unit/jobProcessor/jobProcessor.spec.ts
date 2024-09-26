@@ -19,7 +19,7 @@ describe('JobProcessor', () => {
 
   describe('start', () => {
     const jobManagerBaseUrl = configMock.get<string>('jobManagement.config.jobManagerBaseUrl');
-    const taskType = configMock.get<string>('jobManagement.taskTypeToProcess');
+    const taskType = configMock.get<string>('permittedTyped.tasks.polygonParts');
 
     it('should successfully fetch new poly parts task and process it', () => {
       expect(1).toBe(1);
