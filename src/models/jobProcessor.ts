@@ -1,12 +1,12 @@
 import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import { Logger } from '@map-colonies/js-logger';
 import { inject, injectable } from 'tsyringe';
-import { IJobResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { PolygonPartsPayload } from '@map-colonies/mc-model-types';
 import { SERVICES } from '../common/constants';
-import { IConfig } from '../common/interfaces';
+import { IConfig, IJobAndTask } from '../common/interfaces';
 import { initJobHandler } from './handlersFactory';
 
 @injectable()
@@ -31,24 +31,32 @@ export class JobProcessor {
     this.logger.info({ msg: 'starting polling' });
 
     while (this.isRunning) {
+      let jobAndTask: IJobAndTask | undefined;
       try {
-      this.logger.debug({ msg: 'fetching next job' });
-      const job = await this.getJob();
-      
-        if (job) {
+        this.logger.debug({ msg: 'fetching next job' });
+        const jobAndTask = await this.getJobAndTask();
+
+        if (jobAndTask) {
+          const { job } = jobAndTask;
           this.logger.info({ msg: 'processing job', jobId: job.id });
           const jobHandler = initJobHandler(job.type);
           await jobHandler.processJob(job);
         }
       } catch (error) {
-        this.logger.error({ msg: 'error while handeling job', error: error instanceof Error ? error.message: 'something went wrong' })
-        await setTimeoutPromise(this.dequeueIntervalMs);
+        const errorMsg = error instanceof Error ? error.message : 'something went wrong';
+        this.logger.error({ msg: 'error while handeling job', error: errorMsg });
+        if (jobAndTask) {
+          const { job, task } = jobAndTask;
+          const isResetable = true;
+          await this.queueClient.reject(job.id, task.id, isResetable, errorMsg);
+        }
       }
+      await setTimeoutPromise(this.dequeueIntervalMs);
     }
   }
 
   @withSpanAsyncV4
-  private async getJob(): Promise<IJobResponse<PolygonPartsPayload, unknown> | undefined> {
+  private async getJobAndTask(): Promise<IJobAndTask | undefined> {
     for (const jobType of this.jobTypesToProcess) {
       this.logger.debug(
         { msg: `try to dequeue task of type "${this.taskTypeToProcess}" and job of type "${jobType}"` },
@@ -59,7 +67,7 @@ export class JobProcessor {
       if (task) {
         this.logger.info({ msg: `getting task's job ${task.id}`, task });
         const job = await this.queueClient.jobManagerClient.getJob<PolygonPartsPayload, unknown>(task.jobId);
-        return job;
+        return { task, job } as IJobAndTask;
       }
     }
   }
