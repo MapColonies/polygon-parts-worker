@@ -52,18 +52,18 @@
   },
   "permittedTypes": {
     "tasks": {
-        "polygonParts": "polygon-parts"
+      "polygonParts": "polygon-parts"
+    },
+    "jobs": {
+      "new": {
+        "type": "Ingestion_New"
       },
-      "jobs": {
-        "new": {
-          "type": "Ingestion_New"
-        },
-        "update": {
-          "type": "Ingestion_Update"
-        },
-        "swapUpdate": {
-          "type": "Ingestion_Swap_Update"
-        }
+      "update": {
+        "type": "Ingestion_Update"
+      },
+      "swapUpdate": {
+        "type": "Ingestion_Swap_Update"
       }
     }
+  }
 }
