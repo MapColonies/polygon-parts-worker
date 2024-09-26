@@ -37,7 +37,7 @@ describe('JobProcessor', () => {
     const heartbeatBaseUrl = configMock.get<string>('jobManagement.config.heartbeat.baseUrl');
     const taskType = configMock.get<string>('jobManagement.taskTypeToProcess');
 
-    it.only('should successfully fetch new poly parts task and process it', async () => {
+    it('should successfully fetch new poly parts task and process it', async () => {
       const jobType = 'Ingestion_New';
       const jobManagerUrlDequeuePath = `/tasks/${jobType}/${taskType}/startPending`;
       const jobManagerUrlGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`;
@@ -50,26 +50,25 @@ describe('JobProcessor', () => {
 
       const resultPromise = jobProcessor.start();
       jobProcessor.stop();
-      //await resultPromise;
 
       expect.assertions(2);
       await expect(resultPromise).resolves.not.toThrow();
       expect(mockProcessJob).toHaveBeenCalledTimes(1);
-      await mockQueueClient.heartbeatClient.stop(newJobResponseMock.id);
+      await mockQueueClient.heartbeatClient.stop(initTaskForIngestionNew.id);
 
-    }, 23423432);
+    });
 
     it('should fail to fetch task', async () => {
       const jobType = 'Ingestion_New';
-      const jobManagerurlPath = `/tasks/${jobType}/${taskType}/startPending`;
+      const jobManagerUrlDequeuePath = `/tasks/${jobType}/${taskType}/startPending`;
 
-      nock(jobManagerBaseUrl).post(jobManagerurlPath).reply(502).persist();
+      nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(502).persist();
 
       const resultPromise = jobProcessor.start();
       jobProcessor.stop();
       await resultPromise;
 
-      expect(1).toBe(1);
+      expect(mockProcessJob).not.toHaveBeenCalled();
     });
 
     it('should not find  task', async () => {
