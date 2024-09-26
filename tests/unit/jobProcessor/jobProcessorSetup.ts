@@ -4,6 +4,9 @@ import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { trace } from '@opentelemetry/api';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
+import { JobHandler } from '../../../src/common/interfaces';
+import { NewJobHandler } from '../../../src/models/newLayerHandler';
+import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsManagerClient';
 
 const mockLogger = jsLogger({ enabled: false });
 
@@ -20,11 +23,18 @@ const mockQueueClient = new QueueClient(
   configMock.get<number>('jobManagement.config.heartbeat.intervalMs')
 );
 
+const mockTracer = trace.getTracer('testingTracer')
+const mockHttpClient = new PolygonPartsManagerClient(mockLogger, mockTracer)
+
 function jobProcessorInstace(): JobProcessor {
-  return new JobProcessor(mockLogger, trace.getTracer('testingTracer'), mockQueueClient, configMock);
+  return new JobProcessor(mockLogger, mockTracer, mockQueueClient, configMock);
 }
 
-export { jobProcessorInstace, mockDequeue, mockGetJob, configMock, mockQueueClient, mockProcessJob };
+function newJobHandlerInstace(): JobHandler {
+  return new NewJobHandler(mockLogger, mockHttpClient);
+}
+
+export { jobProcessorInstace, newJobHandlerInstace, mockHttpClient, mockDequeue, mockGetJob, configMock, mockQueueClient, mockProcessJob };
 
 export type MockDequeue = jest.MockedFunction<(jobType: string, taskType: string) => Promise<ITaskResponse<unknown> | null>>;
 export type MockGetJob = jest.MockedFunction<(jobId: string) => Promise<IJobResponse<unknown, unknown>>>;
