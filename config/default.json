@@ -28,7 +28,7 @@
     "taskTypeToProcess": "polygon-parts"
   },
   "polygonPartsManager": {
-    "baseUrl": "https://polygonPartsManager"
+    "baseUrl": "http://localhost:8081"
   },
   "server": {
     "port": "8080",
