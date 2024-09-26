@@ -22,10 +22,10 @@ export class JobProcessor {
     @inject(SERVICES.CONFIG) private readonly config: IConfig
   ) {
     this.dequeueIntervalMs = this.config.get<number>('jobManagement.config.dequeueIntervalMs');
-    this.taskTypeToProcess = this.config.get<string>('permittedTyped.tasks.polygonParts');
-    const newType = this.config.get<string>('permittedTyped.jobs.new.type');
-    const updateType = this.config.get<string>('permittedTyped.jobs.update.type');
-    const swapType = this.config.get<string>('permittedTyped.jobs.swap.type');
+    this.taskTypeToProcess = this.config.get<string>('permittedTypes.tasks.polygonParts');
+    const newType = this.config.get<string>('permittedTypes.jobs.new.type');
+    const updateType = this.config.get<string>('permittedTypes.jobs.update.type');
+    const swapType = this.config.get<string>('permittedTypes.jobs.swapUpdate.type');
     this.jobTypesToProcess = [newType, updateType, swapType];
   }
 
