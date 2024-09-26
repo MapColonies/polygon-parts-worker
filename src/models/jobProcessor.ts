@@ -32,17 +32,16 @@ export class JobProcessor {
 
     while (this.isRunning) {
       try {
-        this.logger.debug({ msg: 'fetching next job' });
-        const job = await this.getJob();
-
+      this.logger.debug({ msg: 'fetching next job' });
+      const job = await this.getJob();
+      
         if (job) {
           this.logger.info({ msg: 'processing job', jobId: job.id });
           const jobHandler = initJobHandler(job.type);
           await jobHandler.processJob(job);
         }
       } catch (error) {
-        const newErr: Error = error as Error;
-        this.logger.error({ msg: 'error while handeling job', error: newErr.message });
+        this.logger.error({ msg: 'error while handeling job', error: error instanceof Error ? error.message: 'something went wrong' })
         await setTimeoutPromise(this.dequeueIntervalMs);
       }
     }
