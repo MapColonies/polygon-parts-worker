@@ -1,9 +1,9 @@
 import { container } from 'tsyringe';
-import { JobHandler } from '../common/interfaces';
+import { IJobHandler } from '../common/interfaces';
 import { HANDLERS } from '../common/constants';
 import { NewJobHandler } from './newLayerHandler';
 
-export function initJobHandler(jobHandlerType: string): JobHandler {
+export function initJobHandler(jobHandlerType: string): IJobHandler {
   switch (jobHandlerType) {
     case 'Ingestion_New':
       return container.resolve<NewJobHandler>(HANDLERS.NEW);

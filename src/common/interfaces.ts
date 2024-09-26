@@ -17,6 +17,6 @@ export interface IHeartbeatConfig {
   intervalMs: number;
 }
 
-export interface JobHandler {
+export interface IJobHandler {
   processJob: (job: IJobResponse<PolygonPartsPayload, unknown>) => Promise<void>;
 }

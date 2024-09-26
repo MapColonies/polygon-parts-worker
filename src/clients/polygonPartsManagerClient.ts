@@ -20,9 +20,8 @@ export class PolygonPartsManagerClient extends HttpClient {
   }
 
   @withSpanAsyncV4
-  public async createNewPolyParts(requestBody: PolygonPartsPayload): Promise<void> {
-    const newPolyPartsUrl = `/polygonParts`;
-    this.logger.info({ msg: `sending new layer request` }, requestBody.productId);
-    await this.post(newPolyPartsUrl, requestBody);
+  public async createPolygonParts(requestBody: PolygonPartsPayload): Promise<void> {
+    const createPolygonPartsUrl = `/polygonParts`;
+    await this.post(createPolygonPartsUrl, requestBody);
   }
 }
