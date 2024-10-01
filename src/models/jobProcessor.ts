@@ -6,7 +6,7 @@ import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { PolygonPartsPayload } from '@map-colonies/mc-model-types';
 import { SERVICES } from '../common/constants';
-import { IConfig, IJobAndTask } from '../common/interfaces';
+import { IConfig, IJobAndTaskResponse } from '../common/interfaces';
 import { initJobHandler } from './handlersFactory';
 
 @injectable()
@@ -34,7 +34,7 @@ export class JobProcessor {
     this.logger.info({ msg: 'starting polling' });
 
     while (this.isRunning) {
-      let jobAndTask: IJobAndTask | undefined;
+      let jobAndTask: IJobAndTaskResponse | undefined;
       try {
         this.logger.debug({ msg: 'fetching next job' });
         const jobAndTask = await this.getJobAndTask();
@@ -59,7 +59,7 @@ export class JobProcessor {
   }
 
   @withSpanAsyncV4
-  private async getJobAndTask(): Promise<IJobAndTask | undefined> {
+  private async getJobAndTask(): Promise<IJobAndTaskResponse | undefined> {
     for (const jobType of this.jobTypesToProcess) {
       this.logger.debug(
         { msg: `try to dequeue task of type "${this.taskTypeToProcess}" and job of type "${jobType}"` },
@@ -70,7 +70,7 @@ export class JobProcessor {
       if (task) {
         this.logger.info({ msg: `getting task's job ${task.id}`, task });
         const job = await this.queueClient.jobManagerClient.getJob<PolygonPartsPayload, unknown>(task.jobId);
-        return { task, job } as IJobAndTask;
+        return { task, job } as IJobAndTaskResponse;
       }
     }
   }

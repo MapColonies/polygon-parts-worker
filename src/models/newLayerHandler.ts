@@ -4,7 +4,7 @@ import { PolygonPartsPayload, partSchema } from '@map-colonies/mc-model-types';
 import { Logger } from '@map-colonies/js-logger';
 import { fromError } from 'zod-validation-error';
 import { IJobHandler } from '../common/interfaces';
-import { newRequestBodySchema } from '../schemas/polyPartsManager.schema';
+import { ingestionNewRequestBodySchema } from '../schemas/polyPartsManager.schema';
 import { PolygonPartsManagerClient } from '../clients/polygonPartsManagerClient';
 import { SERVICES } from '../common/constants';
 
@@ -28,7 +28,7 @@ export class NewJobHandler implements IJobHandler {
       requestBody.partsData.forEach((part) => {
         partSchema.parse(part);
       });
-      const validatedRequestBody: PolygonPartsPayload = newRequestBodySchema.parse(requestBody);
+      const validatedRequestBody: PolygonPartsPayload = ingestionNewRequestBodySchema.parse(requestBody);
 
       this.logger.info('creating new polygon part', validatedRequestBody);
       await this.polygonPartsManager.createPolygonParts(validatedRequestBody);

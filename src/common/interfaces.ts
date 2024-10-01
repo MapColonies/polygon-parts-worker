@@ -17,7 +17,7 @@ export interface IHeartbeatConfig {
   intervalMs: number;
 }
 
-export interface IJobAndTask {
+export interface IJobAndTaskResponse {
   task: ITaskResponse<unknown>;
   job: IJobResponse<PolygonPartsPayload, unknown>;
 }

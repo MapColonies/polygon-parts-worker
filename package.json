@@ -60,7 +60,6 @@
     "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.8.0",
     "zod": "^3.23.8",
-    "zod-openapi": "^3.0.1",
     "zod-validation-error": "^3.4.0"
   },
   "devDependencies": {
