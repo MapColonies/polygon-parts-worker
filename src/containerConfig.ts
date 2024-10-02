@@ -7,16 +7,17 @@ import { Metrics } from '@map-colonies/telemetry';
 import { instancePerContainerCachingFactory } from 'tsyringe';
 import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { IHttpRetryConfig } from '@map-colonies/mc-utils';
-import { SERVICES, SERVICE_NAME } from './common/constants';
+import { HANDLERS, SERVICES, SERVICE_NAME } from './common/constants';
 import { tracing } from './common/tracing';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
 import { IJobManagerConfig } from './common/interfaces';
+import { NewJobHandler } from './models/newJobHandler';
 
 const queueClientFactory = (container: DependencyContainer): QueueClient => {
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
   const config = container.resolve<IConfig>(SERVICES.CONFIG);
   const queueConfig = config.get<IJobManagerConfig>('jobManagement.config');
-  const httpRetryConfig = config.get<IHttpRetryConfig>('server.httpRetry');
+  const httpRetryConfig = config.get<IHttpRetryConfig>('httpRetry');
   return new QueueClient(
     logger,
     queueConfig.jobManagerBaseUrl,
@@ -26,6 +27,7 @@ const queueClientFactory = (container: DependencyContainer): QueueClient => {
     httpRetryConfig
   );
 };
+
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
   useChild?: boolean;
@@ -46,6 +48,9 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     { token: SERVICES.TRACER, provider: { useValue: tracer } },
     { token: SERVICES.METER, provider: { useValue: OtelMetrics.getMeterProvider().getMeter(SERVICE_NAME) } },
     { token: SERVICES.QUEUE_CLIENT, provider: { useFactory: instancePerContainerCachingFactory(queueClientFactory) } },
+    { token: HANDLERS.NEW, provider: { useClass: NewJobHandler } },
+    { token: HANDLERS.UPDATE, provider: { useClass: NewJobHandler } },
+    { token: HANDLERS.SWAP, provider: { useClass: NewJobHandler } },
     {
       token: 'onSignal',
       provider: {

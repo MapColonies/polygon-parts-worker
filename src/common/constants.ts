@@ -14,4 +14,11 @@ export const SERVICES = {
   METER: Symbol('Meter'),
   QUEUE_CLIENT: Symbol('QueueClient'),
 } satisfies Record<string, symbol>;
-/* eslint-enable @typescript-eslint/naming-convention */
+
+/* eslint-disable @typescript-eslint/naming-convention */
+export const HANDLERS = {
+  NEW: Symbol('Ingestion_New'),
+  UPDATE: Symbol('Ingestion_Update'),
+  SWAP: Symbol('Ingestion_Swap_Update'),
+  REMOVE: Symbol('Remove_Layer'),
+} satisfies Record<string, symbol>;
