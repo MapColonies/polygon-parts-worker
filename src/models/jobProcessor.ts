@@ -37,7 +37,7 @@ export class JobProcessor {
       let jobAndTask: IJobAndTaskResponse | undefined;
       try {
         this.logger.debug({ msg: 'fetching next job' });
-        const jobAndTask = await this.getJobAndTask();
+        jobAndTask = await this.getJobAndTask();
 
         if (jobAndTask) {
           const { job } = jobAndTask;
