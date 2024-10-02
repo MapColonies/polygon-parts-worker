@@ -1,12 +1,12 @@
 import { container } from 'tsyringe';
 import { BadRequestError } from '@map-colonies/error-types';
-import { IJobHandler, IPermittedTypes } from '../common/interfaces';
+import { IJobHandler, IPermittedJobTypes } from '../common/interfaces';
 import { HANDLERS } from '../common/constants';
 import { NewJobHandler } from './newJobHandler';
 
-export function initJobHandler(jobHandlerType: string, permittedTypes: IPermittedTypes): IJobHandler {
+export function initJobHandler(jobHandlerType: string, permittedTypes: IPermittedJobTypes): IJobHandler {
   switch (jobHandlerType) {
-    case permittedTypes.newType:
+    case permittedTypes.ingestionNew:
       return container.resolve<NewJobHandler>(HANDLERS.NEW);
   }
   throw new BadRequestError(`${jobHandlerType} job type is invalid`);

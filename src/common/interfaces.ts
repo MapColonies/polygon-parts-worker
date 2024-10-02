@@ -26,7 +26,7 @@ export interface IJobHandler {
   processJob: (job: IJobResponse<PolygonPartsPayload, unknown>) => Promise<void>;
 }
 
-export interface IPermittedTypes {
+export interface IPermittedJobTypes {
   ingestionNew: string;
   ingestionUpdate: string;
   ingestionSwapUpdate: string;

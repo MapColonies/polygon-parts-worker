@@ -6,7 +6,7 @@ import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { PolygonPartsPayload } from '@map-colonies/mc-model-types';
 import { SERVICES } from '../common/constants';
-import { IConfig, IJobAndTaskResponse, IPermittedTypes } from '../common/interfaces';
+import { IConfig, IJobAndTaskResponse, IPermittedJobTypes } from '../common/interfaces';
 import { initJobHandler } from './handlersFactory';
 
 @injectable()
@@ -14,7 +14,7 @@ export class JobProcessor {
   private isRunning = true;
   private readonly dequeueIntervalMs: number;
   private readonly taskTypeToProcess: string;
-  private readonly jobTypesToProcess: IPermittedTypes;
+  private readonly jobTypesToProcess: IPermittedJobTypes;
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.TRACER) public readonly tracer: Tracer,
@@ -23,10 +23,10 @@ export class JobProcessor {
   ) {
     this.dequeueIntervalMs = this.config.get<number>('jobManagement.config.dequeueIntervalMs');
     this.taskTypeToProcess = this.config.get<string>('permittedTypes.tasks.polygonParts');
-    const newType = this.config.get<string>('permittedTypes.jobs.new.type');
-    const updateType = this.config.get<string>('permittedTypes.jobs.update.type');
-    const swapType = this.config.get<string>('permittedTypes.jobs.swapUpdate.type');
-    this.jobTypesToProcess = { newType: newType, updateType: updateType, swapType: swapType };
+    const ingestionNew = this.config.get<string>('permittedTypes.jobs.new.type');
+    const ingestionUpdate = this.config.get<string>('permittedTypes.jobs.update.type');
+    const ingestionSwapUpdate = this.config.get<string>('permittedTypes.jobs.swapUpdate.type');
+    this.jobTypesToProcess = { ingestionNew, ingestionUpdate, ingestionSwapUpdate };
   }
 
   @withSpanAsyncV4
