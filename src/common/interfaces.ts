@@ -27,7 +27,7 @@ export interface IJobHandler {
 }
 
 export interface IPermittedTypes {
-  newType: string;
-  updateType: string;
-  swapType: string;
+  ingestionNew: string;
+  ingestionUpdate: string;
+  ingestionSwapUpdate: string;
 }

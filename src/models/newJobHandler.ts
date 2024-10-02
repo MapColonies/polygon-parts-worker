@@ -32,7 +32,7 @@ export class NewJobHandler implements IJobHandler {
       this.logger.info('creating new polygon part', validatedRequestBody);
       await this.polygonPartsManager.createPolygonParts(validatedRequestBody);
     } catch (error) {
-      this.logger.error({ msg: 'error while processing job', error }, (error as Error).message);
+      this.logger.error({ msg: 'error while processing job', error });
       throw error;
     }
   }

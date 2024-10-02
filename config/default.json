@@ -23,9 +23,7 @@
         "intervalMs": 3000
       },
       "dequeueIntervalMs": 3000
-    },
-    "jobTypesToProcess": ["Ingestion_New", "Ingestion_Update", "Ingestion_Swap_Update", "Remove_Layer"],
-    "taskTypeToProcess": "polygon-parts"
+    }
   },
   "polygonPartsManager": {
     "baseUrl": "http://localhost:8081"
