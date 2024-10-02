@@ -6,7 +6,7 @@ import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { PolygonPartsPayload } from '@map-colonies/mc-model-types';
 import { SERVICES } from '../common/constants';
-import { IConfig, IJobAndTaskResponse } from '../common/interfaces';
+import { IConfig, IJobAndTaskResponse, IPermittedTypes } from '../common/interfaces';
 import { initJobHandler } from './handlersFactory';
 
 @injectable()
@@ -14,7 +14,7 @@ export class JobProcessor {
   private isRunning = true;
   private readonly dequeueIntervalMs: number;
   private readonly taskTypeToProcess: string;
-  private readonly jobTypesToProcess: string[];
+  private readonly jobTypesToProcess: IPermittedTypes;
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.TRACER) public readonly tracer: Tracer,
@@ -26,7 +26,7 @@ export class JobProcessor {
     const newType = this.config.get<string>('permittedTypes.jobs.new.type');
     const updateType = this.config.get<string>('permittedTypes.jobs.update.type');
     const swapType = this.config.get<string>('permittedTypes.jobs.swapUpdate.type');
-    this.jobTypesToProcess = [newType, updateType, swapType];
+    this.jobTypesToProcess = { newType: newType, updateType: updateType, swapType: swapType };
   }
 
   @withSpanAsyncV4
@@ -42,12 +42,12 @@ export class JobProcessor {
         if (jobAndTask) {
           const { job } = jobAndTask;
           this.logger.info({ msg: 'processing job', jobId: job.id });
-          const jobHandler = initJobHandler(job.type);
+          const jobHandler = initJobHandler(job.type, this.jobTypesToProcess);
           await jobHandler.processJob(job);
         }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'something went wrong';
-        this.logger.error({ msg: 'error while handeling job', error: errorMsg });
+        this.logger.error({ msg: 'error while handling job', error: errorMsg });
         if (jobAndTask) {
           const { job, task } = jobAndTask;
           const isResetable = true;
@@ -60,7 +60,9 @@ export class JobProcessor {
 
   @withSpanAsyncV4
   private async getJobAndTask(): Promise<IJobAndTaskResponse | undefined> {
-    for (const jobType of this.jobTypesToProcess) {
+    const jobTypesToProcessArray = Object.values(this.jobTypesToProcess) as string[];
+
+    for (const jobType of jobTypesToProcessArray) {
       this.logger.debug(
         { msg: `try to dequeue task of type "${this.taskTypeToProcess}" and job of type "${jobType}"` },
         jobType,

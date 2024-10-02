@@ -2,7 +2,6 @@ import { inject, injectable } from 'tsyringe';
 import { IJobResponse } from '@map-colonies/mc-priority-queue';
 import { PolygonPartsPayload, partSchema } from '@map-colonies/mc-model-types';
 import { Logger } from '@map-colonies/js-logger';
-import { fromError } from 'zod-validation-error';
 import { IJobHandler } from '../common/interfaces';
 import { ingestionNewRequestBodySchema } from '../schemas/polyPartsManager.schema';
 import { PolygonPartsManagerClient } from '../clients/polygonPartsManagerClient';
@@ -33,10 +32,8 @@ export class NewJobHandler implements IJobHandler {
       this.logger.info('creating new polygon part', validatedRequestBody);
       await this.polygonPartsManager.createPolygonParts(validatedRequestBody);
     } catch (error) {
-      const validationError = fromError(error);
-
-      this.logger.error(validationError.toString());
-      throw validationError;
+      this.logger.error({ msg: 'error while processing job', error }, (error as Error).message);
+      throw error;
     }
   }
 }
