@@ -1,6 +1,6 @@
 {{- $releaseName := .Release.Name -}}
 {{- $chartName := include "polygon-parts-worker.name" . -}}
-{{- $cloudProviderFlavor := include "polygon-parts-worker.deploymentFlavor" . -}}
+{{- $cloudProviderFlavor := include "polygon-parts-worker.cloudProviderFlavor" . -}}
 {{- if and (and (.Values.enabled) (eq $cloudProviderFlavor "openshift")) (.Values.route.enabled) -}}
 apiVersion: route.openshift.io/v1
 kind: Route

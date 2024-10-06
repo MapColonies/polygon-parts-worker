@@ -1,4 +1,11 @@
 {{/*
+Expand the name of the chart.
+*/}}
+{{- define "polygon-parts-worker.name" -}}
+{{- default .Chart.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
 Common labels
 */}}
 {{- define "polygon-parts-worker.labels" -}}
@@ -81,25 +88,23 @@ Return the proper image pullPolicy
 {{- end -}}
 
 {{/*
-Return the proper image deploymentFlavor
+Returns the cloud provider name from global if exists or from the chart's values, defaults to minikube
 */}}
-{{- define "polygon-parts-worker.deploymentFlavor" -}}
-{{ include "common.images.deploymentFlavor" (dict "imageRoot" .Values.image "global" .Values.global) }}
+{{- define "polygon-parts-worker.cloudProviderFlavor" -}}
+{{- if .Values.global.cloudProvider.flavor }}
+    {{- .Values.global.cloudProvider.flavor -}}
+{{- else if .Values.cloudProvider -}}
+    {{- .Values.cloudProvider.flavor | default "minikube" -}}
+{{- else -}}
+    {{ "minikube" }}
 {{- end -}}
-
+{{- end -}} 
 
 {{/*
 Return the proper fully qualified app name
 */}}
 {{- define "polygon-parts-worker.fullname" -}}
 {{ include "common.names.fullname" . }}
-{{- end -}}
-
-{{/*
-Return the proper chart name
-*/}}
-{{- define "polygon-parts-worker.name" -}}
-{{ include "common.names.name" . }}
 {{- end -}}
 
 {{/*
