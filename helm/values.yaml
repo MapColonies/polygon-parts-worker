@@ -6,6 +6,10 @@ global:
   tracing: {}
   metrics: {}
   environment: ''
+  serviceUrls:
+    jobManager: ""
+    heartbeatManager: ""
+    polygonPartsManager: ""
 
 enabled: true
 environment: development
@@ -64,18 +68,28 @@ env:
   logPrettyPrintEnabled: false
   responseCompressionEnabled: true
   requestPayloadLimit: 1mb
-  jobTypesToProcess:
-  - Ingestion_New
-  - Ingestion_Update
-  - Ingestion_Swap_Update
-  - Remove_Layer
-  taskTypeToProcess: "polygon-parts"
+  permittedTypes: 
+    tasks:
+      polygonParts: polygon-parts
+    jobs:
+      new:
+        type: Ingestion_New
+      update:
+        type: Ingestion_Update
+      swapUpdate:
+        type: Ingestion_Swap_Update
   tracing:
     enabled: false
     url: http://localhost:55681/v1/trace
   metrics:
     enabled: false
     url: http://localhost:55681/v1/metrics
+
+    jobManagement:
+      config:
+        dequeueIntervalMs: 3000
+        heartBeat:
+          intervalMs: 3000
 
 resources:
   enabled: true

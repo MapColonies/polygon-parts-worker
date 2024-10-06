@@ -37,10 +37,32 @@
     }
   },
   "jobManagement": {
-    "jobTypesToProcess": {
-      "__name": "JOB_TYPES_TO_PROCESS",
-      "__format": "json"
+    "config": {
+      "jobManagerBaseUrl": "JOB_MANAGER_BASE_URL",
+      "heartbeat": {
+        "baseUrl": "HEARTBEAT_BASE_URL",
+        "intervalMs": "HEARTBEAT_INTERVAL_MS"
+      },
+      "dequeueIntervalMs": "DEQUEUE_INTERVAL_MS"
+    }
+  },
+  "polygonPartsManager": {
+    "baseUrl": "POLYGON_PARTS_BASE_URL"
+  },
+  "permittedTypes": {
+    "tasks": {
+      "polygonParts": "POLYGON_PARTS_TYPE"
     },
-    "taskTypeToProcess": "TASK_TYPE_TO_PROCESS"
+    "jobs": {
+      "new": {
+        "type": "INGESTION_NEW_TYPE"
+      },
+      "update": {
+        "type": "INGESTION_UPDATE_TYPE"
+      },
+      "swapUpdate": {
+        "type": "INGESTION_SWAP_UPDATE_TYPE"
+      }
+    }
   }
 }
