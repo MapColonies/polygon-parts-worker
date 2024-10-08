@@ -1,8 +1,5 @@
 global:
-  imageRegistry: ""
-  imagePullSecrets: []
-  deploymentFlavor: "openshift"
-  pullPolicy: "IfNotPresent"
+  cloudProvider: {}
   tracing: {}
   metrics: {}
   environment: ''
@@ -50,6 +47,11 @@ args: []
 
 sidecars: []
 
+cloudProvider:
+  dockerRegistryUrl: 
+  imagePullSecretName: ''
+  flavor: openshift
+
 caSecretName: ''
 caPath: '/usr/local/share/ca-certificates'
 caKey: 'ca.crt'
@@ -58,8 +60,7 @@ image:
   registry: ""
   repository: polygon-parts-worker
   tag: 'latest'
-  digest: ""
-  pullSecrets: []
+  pullPolicy: IfNotPresent
 env:
   port: 8080
   targetPort: 8080
