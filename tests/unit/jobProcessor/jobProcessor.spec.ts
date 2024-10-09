@@ -34,8 +34,7 @@ describe('JobProcessor', () => {
 
   describe('start', () => {
     const jobManagerBaseUrl = configMock.get<string>('jobManagement.config.jobManagerBaseUrl');
-    const heartbeatBaseUrl = configMock.get<string>('jobManagement.config.heartbeat.baseUrl');
-    const taskType = configMock.get<string>('jobManagement.taskTypeToProcess');
+    const taskType = configMock.get<string>('permittedTyped.tasks.polygonParts');
 
     it('should successfully fetch new poly parts task and process it', async () => {
       const jobType = 'Ingestion_New';

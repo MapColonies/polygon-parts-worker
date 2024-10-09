@@ -1,12 +1,12 @@
 import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import { Logger } from '@map-colonies/js-logger';
 import { inject, injectable } from 'tsyringe';
-import { IJobResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { PolygonPartsPayload } from '@map-colonies/mc-model-types';
 import { SERVICES } from '../common/constants';
-import { IConfig } from '../common/interfaces';
+import { IConfig, IJobAndTaskResponse, IPermittedJobTypes } from '../common/interfaces';
 import { initJobHandler } from './handlersFactory';
 
 @injectable()
@@ -14,7 +14,7 @@ export class JobProcessor {
   private isRunning = true;
   private readonly dequeueIntervalMs: number;
   private readonly taskTypeToProcess: string;
-  private readonly jobTypesToProcess: string[];
+  private readonly jobTypesToProcess: IPermittedJobTypes;
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.TRACER) public readonly tracer: Tracer,
@@ -22,8 +22,11 @@ export class JobProcessor {
     @inject(SERVICES.CONFIG) private readonly config: IConfig
   ) {
     this.dequeueIntervalMs = this.config.get<number>('jobManagement.config.dequeueIntervalMs');
-    this.taskTypeToProcess = this.config.get<string>('jobManagement.taskTypeToProcess');
-    this.jobTypesToProcess = this.config.get<string[]>('jobManagement.jobTypesToProcess');
+    this.taskTypeToProcess = this.config.get<string>('permittedTypes.tasks.polygonParts');
+    const ingestionNew = this.config.get<string>('permittedTypes.jobs.new.type');
+    const ingestionUpdate = this.config.get<string>('permittedTypes.jobs.update.type');
+    const ingestionSwapUpdate = this.config.get<string>('permittedTypes.jobs.swapUpdate.type');
+    this.jobTypesToProcess = { ingestionNew, ingestionUpdate, ingestionSwapUpdate };
   }
 
   @withSpanAsyncV4
@@ -31,26 +34,35 @@ export class JobProcessor {
     this.logger.info({ msg: 'starting polling' });
 
     while (this.isRunning) {
+      let jobAndTask: IJobAndTaskResponse | undefined;
       try {
         this.logger.debug({ msg: 'fetching next job' });
-        const job = await this.getJob();
+        jobAndTask = await this.getJobAndTask();
 
-        if (job) {
+        if (jobAndTask) {
+          const { job } = jobAndTask;
           this.logger.info({ msg: 'processing job', jobId: job.id });
-          const jobHandler = initJobHandler(job.type);
+          const jobHandler = initJobHandler(job.type, this.jobTypesToProcess);
           await jobHandler.processJob(job);
         }
       } catch (error) {
-        const newErr: Error = error as Error;
-        this.logger.error({ msg: 'error while handeling job', error: newErr.message });
-        await setTimeoutPromise(this.dequeueIntervalMs);
+        const errorMsg = error instanceof Error ? error.message : 'something went wrong';
+        this.logger.error({ msg: 'error while handling job', error: errorMsg });
+        if (jobAndTask) {
+          const { job, task } = jobAndTask;
+          const isResetable = true;
+          await this.queueClient.reject(job.id, task.id, isResetable, errorMsg);
+        }
       }
+      await setTimeoutPromise(this.dequeueIntervalMs);
     }
   }
 
   @withSpanAsyncV4
-  private async getJob(): Promise<IJobResponse<PolygonPartsPayload, unknown> | undefined> {
-    for (const jobType of this.jobTypesToProcess) {
+  private async getJobAndTask(): Promise<IJobAndTaskResponse | undefined> {
+    const jobTypesToProcessArray = Object.values(this.jobTypesToProcess) as string[];
+
+    for (const jobType of jobTypesToProcessArray) {
       this.logger.debug(
         { msg: `try to dequeue task of type "${this.taskTypeToProcess}" and job of type "${jobType}"` },
         jobType,
@@ -60,7 +72,7 @@ export class JobProcessor {
       if (task) {
         this.logger.info({ msg: `getting task's job ${task.id}`, task });
         const job = await this.queueClient.jobManagerClient.getJob<PolygonPartsPayload, unknown>(task.jobId);
-        return job;
+        return { task, job } as IJobAndTaskResponse;
       }
     }
   }

@@ -2,18 +2,17 @@ import { inject, injectable } from 'tsyringe';
 import { IJobResponse } from '@map-colonies/mc-priority-queue';
 import { PolygonPartsPayload, partSchema } from '@map-colonies/mc-model-types';
 import { Logger } from '@map-colonies/js-logger';
-import createError from 'http-errors';
-import { JobHandler } from '../common/interfaces';
-import { newRequestBodySchema } from '../schemas/polyPartsManager.schema';
+import { IJobHandler } from '../common/interfaces';
+import { ingestionNewRequestBodySchema } from '../schemas/polyPartsManager.schema';
 import { PolygonPartsManagerClient } from '../clients/polygonPartsManagerClient';
 import { SERVICES } from '../common/constants';
 
 @injectable()
-export class NewJobHandler implements JobHandler {
+export class NewJobHandler implements IJobHandler {
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(PolygonPartsManagerClient) private readonly polygonPartsManager: PolygonPartsManagerClient
-  ) { }
+  ) {}
 
   public async processJob(job: IJobResponse<PolygonPartsPayload, unknown>): Promise<void> {
     const requestBody = {
@@ -23,17 +22,18 @@ export class NewJobHandler implements JobHandler {
       productVersion: job.version,
       partsData: job.parameters.partsData,
     };
-    const validationResult = newRequestBodySchema.safeParse(requestBody);
-    const validationPartsData = partSchema.safeParse(requestBody.partsData[0]);
-    
-    if (validationResult.success && validationPartsData.success) {
-      const polyData: PolygonPartsPayload = validationResult.data;
-      this.logger.info('creating new polygon part', polyData);
 
-      await this.polygonPartsManager.createNewPolyParts(polyData);
-    } else {
-      const BAD_REQUEST_CODE = 400;
-      throw createError(BAD_REQUEST_CODE, `job ${requestBody.productId} is not valid`);
+    try {
+      requestBody.partsData.forEach((part) => {
+        partSchema.parse(part);
+      });
+      const validatedRequestBody: PolygonPartsPayload = ingestionNewRequestBodySchema.parse(requestBody);
+
+      this.logger.info('creating new polygon part', validatedRequestBody);
+      await this.polygonPartsManager.createPolygonParts(validatedRequestBody);
+    } catch (error) {
+      this.logger.error({ msg: 'error while processing job', error });
+      throw error;
     }
   }
 }

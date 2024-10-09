@@ -11,7 +11,7 @@ import { HANDLERS, SERVICES, SERVICE_NAME } from './common/constants';
 import { tracing } from './common/tracing';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
 import { IJobManagerConfig } from './common/interfaces';
-import { NewJobHandler } from './models/newLayerHandler';
+import { NewJobHandler } from './models/newJobHandler';
 
 const queueClientFactory = (container: DependencyContainer): QueueClient => {
   const logger = container.resolve<Logger>(SERVICES.LOGGER);

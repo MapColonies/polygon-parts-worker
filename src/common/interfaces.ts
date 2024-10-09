@@ -1,5 +1,5 @@
 import { PolygonPartsPayload } from '@map-colonies/mc-model-types';
-import { IJobResponse } from '@map-colonies/mc-priority-queue';
+import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 
 export interface IConfig {
   get: <T>(setting: string) => T;
@@ -17,6 +17,17 @@ export interface IHeartbeatConfig {
   intervalMs: number;
 }
 
-export interface JobHandler {
+export interface IJobAndTaskResponse {
+  task: ITaskResponse<unknown>;
+  job: IJobResponse<PolygonPartsPayload, unknown>;
+}
+
+export interface IJobHandler {
   processJob: (job: IJobResponse<PolygonPartsPayload, unknown>) => Promise<void>;
+}
+
+export interface IPermittedJobTypes {
+  ingestionNew: string;
+  ingestionUpdate: string;
+  ingestionSwapUpdate: string;
 }
