@@ -47,7 +47,7 @@
     }
   },
   "polygonPartsManager": {
-    "baseUrl": "POLYGON_PARTS_BASE_URL"
+    "baseUrl": "POLYGON_PARTS_MANAGER_BASE_URL"
   },
   "jobDefinitions": {
     "tasks": {

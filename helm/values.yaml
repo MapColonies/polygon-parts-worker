@@ -69,18 +69,11 @@ env:
   logPrettyPrintEnabled: false
   responseCompressionEnabled: true
   requestPayloadLimit: 1mb
-  tracing:
-    enabled: false
-    url: http://localhost:55681/v1/trace
-  metrics:
-    enabled: false
-    url: http://localhost:55681/v1/metrics
-
-    jobManagement:
-      config:
-        dequeueIntervalMs: 3000
-        heartBeat:
-          intervalMs: 3000
+  jobManagement:
+    config:
+      dequeueIntervalMs: 3000
+      heartBeat:
+        intervalMs: 3000
 
 resources:
   enabled: true

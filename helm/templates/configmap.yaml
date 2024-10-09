@@ -23,6 +23,8 @@ data:
   JOB_MANAGER_BASE_URL: {{ $serviceUrls.jobManager | quote}}
   HEARTBEAT_BASE_URL: {{ $serviceUrls.heartbeatManager | quote}}
   POLYGON_PARTS_MANAGER_BASE_URL: {{ $serviceUrls.polygonPartsManager | quote}}
+  HEARTBEAT_INTERVAL_MS: {{ .Values.env.jobManagement.config.heartBeat.intervalMs | quote }}
+  DEQUEUE_INTERVAL_MS: {{ .Values.env.jobManagement.config.dequeueIntervalMs | quote }}
   POLYGON_PARTS_TYPE: {{ .Values.global.jobDefinitions.tasks.polygonParts.type }}
   INGESTION_NEW_TYPE: {{ .Values.global.jobDefinitions.jobs.new.type }}
   INGESTION_UPDATE_TYPE: {{ .Values.global.jobDefinitions.jobs.update.type }}
