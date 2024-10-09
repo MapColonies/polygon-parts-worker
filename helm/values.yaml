@@ -6,6 +6,7 @@ global:
   tracing: {}
   metrics: {}
   environment: ''
+  jobDefinitions: {}
   serviceUrls:
     jobManager: ""
     heartbeatManager: ""
@@ -68,16 +69,6 @@ env:
   logPrettyPrintEnabled: false
   responseCompressionEnabled: true
   requestPayloadLimit: 1mb
-  permittedTypes: 
-    tasks:
-      polygonParts: polygon-parts
-    jobs:
-      new:
-        type: Ingestion_New
-      update:
-        type: Ingestion_Update
-      swapUpdate:
-        type: Ingestion_Swap_Update
   tracing:
     enabled: false
     url: http://localhost:55681/v1/trace

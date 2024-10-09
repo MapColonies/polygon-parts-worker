@@ -4,9 +4,9 @@ import { IJobHandler, IPermittedJobTypes } from '../common/interfaces';
 import { HANDLERS } from '../common/constants';
 import { NewJobHandler } from './newJobHandler';
 
-export function initJobHandler(jobHandlerType: string, permittedTypes: IPermittedJobTypes): IJobHandler {
+export function initJobHandler(jobHandlerType: string, jobDefinitions: IPermittedJobTypes): IJobHandler {
   switch (jobHandlerType) {
-    case permittedTypes.ingestionNew:
+    case jobDefinitions.ingestionNew:
       return container.resolve<NewJobHandler>(HANDLERS.NEW);
   }
   throw new BadRequestError(`${jobHandlerType} job type is invalid`);

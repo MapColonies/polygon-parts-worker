@@ -49,9 +49,11 @@
   "polygonPartsManager": {
     "baseUrl": "POLYGON_PARTS_BASE_URL"
   },
-  "permittedTypes": {
+  "jobDefinitions": {
     "tasks": {
-      "polygonParts": "POLYGON_PARTS_TYPE"
+      "polygonParts": {
+        "type": "polygon-parts"
+      }
     },
     "jobs": {
       "new": {
