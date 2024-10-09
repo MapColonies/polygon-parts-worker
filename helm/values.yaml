@@ -1,8 +1,12 @@
 global:
-  cloudProvider: {}
+  imageRegistry: ""
+  imagePullSecrets: []
+  deploymentFlavor: "openshift"
+  pullPolicy: "IfNotPresent"
   tracing: {}
   metrics: {}
   environment: ''
+  jobDefinitions: {}
   serviceUrls:
     jobManager: ""
     heartbeatManager: ""
@@ -47,11 +51,6 @@ args: []
 
 sidecars: []
 
-cloudProvider:
-  dockerRegistryUrl: 
-  imagePullSecretName: ''
-  flavor: openshift
-
 caSecretName: ''
 caPath: '/usr/local/share/ca-certificates'
 caKey: 'ca.crt'
@@ -60,7 +59,8 @@ image:
   registry: ""
   repository: polygon-parts-worker
   tag: 'latest'
-  pullPolicy: IfNotPresent
+  digest: ""
+  pullSecrets: []
 env:
   port: 8080
   targetPort: 8080
@@ -69,16 +69,6 @@ env:
   logPrettyPrintEnabled: false
   responseCompressionEnabled: true
   requestPayloadLimit: 1mb
-  permittedTypes: 
-    tasks:
-      polygonParts: polygon-parts
-    jobs:
-      new:
-        type: Ingestion_New
-      update:
-        type: Ingestion_Update
-      swapUpdate:
-        type: Ingestion_Swap_Update
   tracing:
     enabled: false
     url: http://localhost:55681/v1/trace
@@ -126,3 +116,4 @@ ingress:
   cors:
     enabled: true
     origin: '*'
+    
