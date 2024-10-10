@@ -7,10 +7,24 @@ global:
   metrics: {}
   environment: ''
   jobDefinitions: {}
-  serviceUrls:
-    jobManager: ""
-    heartbeatManager: ""
-    polygonPartsManager: ""
+  serviceUrls: {}
+
+jobDefinitions:
+  jobs:
+    new:
+      type: ""
+    update:
+      type: ""
+    swapUpdate:
+      type: ""
+  tasks:
+    polygonParts:
+      type: ""
+
+serviceUrls:
+  jobManager: ""
+  heartbeatManager: ""
+  polygonPartsManager: ""
 
 enabled: true
 environment: development
@@ -109,4 +123,3 @@ ingress:
   cors:
     enabled: true
     origin: '*'
-    

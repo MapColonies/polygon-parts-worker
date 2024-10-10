@@ -52,18 +52,18 @@
   "jobDefinitions": {
     "tasks": {
       "polygonParts": {
-        "type": "POLYGON_PARTS_TYPE"
+        "type": "POLYGON_PARTS_TASK_TYPE"
       }
     },
     "jobs": {
       "new": {
-        "type": "INGESTION_NEW_TYPE"
+        "type": "INGESTION_NEW_JOB_TYPE"
       },
       "update": {
-        "type": "INGESTION_UPDATE_TYPE"
+        "type": "INGESTION_UPDATE_JOB_TYPE"
       },
       "swapUpdate": {
-        "type": "INGESTION_SWAP_UPDATE_TYPE"
+        "type": "INGESTION_SWAP_UPDATE_JOB_TYPE"
       }
     }
   }
