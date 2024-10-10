@@ -29,7 +29,7 @@ export const newJobResponseMock: IJobResponse<PolygonPartsPayload, unknown> = {
         horizontalAccuracyCE90: 4000
       }
     ]
-  } as PolygonPartsPayload,
+  } as unknown as PolygonPartsPayload,
   status: "Pending" as unknown as OperationStatus,
   percentage: 0,
   reason: "",
@@ -79,7 +79,7 @@ export const invalidJobResponseMock: IJobResponse<PolygonPartsPayload, unknown> 
         horizontalAccuracyCE90: 4000
       }
     ]
-  } as PolygonPartsPayload,
+  } as unknown as PolygonPartsPayload,
   status: "Pending" as unknown as OperationStatus,
   percentage: 0,
   reason: "",

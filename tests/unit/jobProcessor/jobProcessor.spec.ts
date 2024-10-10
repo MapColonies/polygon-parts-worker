@@ -34,13 +34,14 @@ describe('JobProcessor', () => {
 
   describe('start', () => {
     const jobManagerBaseUrl = configMock.get<string>('jobManagement.config.jobManagerBaseUrl');
+    const heartbeatBaseUrl = configMock.get<string>('jobManagement.config.heartbeat.baseUrl');
     const taskType = configMock.get<string>('permittedTyped.tasks.polygonParts');
 
     it('should successfully fetch new poly parts task and process it', async () => {
       const jobType = 'Ingestion_New';
       const jobManagerUrlDequeuePath = `/tasks/${jobType}/${taskType}/startPending`;
-      const jobManagerUrlGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`;
-      const heartbeatPath = `/heartbeat/${newJobResponseMock.id}`;
+      const jobManagerUrlGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`; //jobID
+      const heartbeatPath = `/heartbeat/${initTaskForIngestionNew.id}`; //taskID
 
       nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(200, initTaskForIngestionNew).persist();
       nock(jobManagerBaseUrl).get(jobManagerUrlGetJobPath).query({ shouldReturnTasks: false }).reply(200, newJobResponseMock).persist();

@@ -2,7 +2,7 @@ import nock from 'nock';
 import { registerDefaultConfig } from '../mocks/configMock';
 import { newJobHandlerInstace } from '../jobProcessor/jobProcessorSetup';
 import { invalidJobResponseMock, newJobResponseMock } from '../mocks/jobsMocks';
-import { JobHandler } from '../../../src/common/interfaces';
+import { IJobHandler } from '../../../src/common/interfaces';
 import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsManagerClient';
 
 jest.mock<typeof import('../../../src/clients/polygonPartsManagerClient')>('../../../src/clients/polygonPartsManagerClient', () => {
@@ -23,7 +23,7 @@ jest.mock<typeof import('../../../src/clients/polygonPartsManagerClient')>('../.
 
 
 describe('NewJobHandler', () => {
-    let newJobHander: JobHandler;
+    let newJobHander: IJobHandler;
 
     beforeEach(() => {
         newJobHander = newJobHandlerInstace();

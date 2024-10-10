@@ -4,8 +4,8 @@ import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { trace } from '@opentelemetry/api';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
-import { JobHandler } from '../../../src/common/interfaces';
-import { NewJobHandler } from '../../../src/models/newLayerHandler';
+import { IJobHandler } from '../../../src/common/interfaces';
+import { NewJobHandler } from '../../../src/models/newJobHandler';
 import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsManagerClient';
 
 const mockLogger = jsLogger({ enabled: false });
@@ -30,7 +30,7 @@ function jobProcessorInstace(): JobProcessor {
   return new JobProcessor(mockLogger, mockTracer, mockQueueClient, configMock);
 }
 
-function newJobHandlerInstace(): JobHandler {
+function newJobHandlerInstace(): IJobHandler {
   return new NewJobHandler(mockLogger, mockHttpClient);
 }
 
