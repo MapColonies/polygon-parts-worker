@@ -1,5 +1,6 @@
 {{- $releaseName := .Release.Name -}}
 {{- $chartName := include "polygon-parts-worker.name" . -}}
+{{- $metrics := (include "common.metrics.merged" .) | fromYaml }}
 {{- $cloudProviderFlavor := include "polygon-parts-worker.cloudProviderFlavor" . -}}
 {{- $cloudProviderDockerRegistryUrl := include "polygon-parts-worker.cloudProviderDockerRegistryUrl" . -}}
 {{- $cloudProviderImagePullSecretName := include "polygon-parts-worker.cloudProviderImagePullSecretName" . -}}
@@ -34,6 +35,10 @@ spec:
       annotations:
       {{- if .Values.resetOnConfigChange }}
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      {{- end }}
+      {{- if $metrics.enabled }}
+      prometheus.io/port: {{ $metrics.prometheus.port | quote }}
+      prometheus.io/scrape: {{ $metrics.prometheus.scrape | quote }}
       {{- end }}
       {{- if .Values.podAnnotations }}
       {{- toYaml .Values.podAnnotations | nindent 8 }}
