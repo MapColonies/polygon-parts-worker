@@ -1,5 +1,10 @@
 {{- $releaseName := .Release.Name -}}
 {{- $chartName := include "polygon-parts-worker.name" . -}}
+{{- $metrics := (include "common.metrics.merged" .) | fromYaml }}
+{{- $cloudProviderFlavor := include "polygon-parts-worker.cloudProviderFlavor" . -}}
+{{- $cloudProviderDockerRegistryUrl := include "polygon-parts-worker.cloudProviderDockerRegistryUrl" . -}}
+{{- $cloudProviderImagePullSecretName := include "polygon-parts-worker.cloudProviderImagePullSecretName" . -}}
+{{- $imageTag := include "polygon-parts-worker.tag" . -}}
 {{- if .Values.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -31,14 +36,24 @@ spec:
       {{- if .Values.resetOnConfigChange }}
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
       {{- end }}
+      {{- if $metrics.enabled }}
+      prometheus.io/port: {{ .Values.env.targetPort | quote }}
+      prometheus.io/scrape: {{ $metrics.prometheus.scrape | quote }}
+      {{- end }}
       {{- if .Values.podAnnotations }}
       {{- toYaml .Values.podAnnotations | nindent 8 }}
       {{- end }}
     spec:
-      {{- include "polygon-parts-worker.imagePullSecrets" . | nindent 6 }}
+    {{- if $cloudProviderImagePullSecretName }}
+      imagePullSecrets:
+        - name: {{ $cloudProviderImagePullSecretName | quote }}
+    {{- end }}
       containers:
         - name: {{ $releaseName }}-{{ $chartName }}-deployment
-          image: {{ include "polygon-parts-worker.image" . }}
+          {{- with .Values.image }}
+          image: {{ $cloudProviderDockerRegistryUrl }}{{ .repository }}:{{ $imageTag }}
+          imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
+          {{- end }}
           {{- if .Values.command }}
           command: 
           {{- toYaml .Values.command | nindent 12 }}
@@ -111,5 +126,5 @@ spec:
         {{- end }}
         {{- if .Values.extraVolumes -}}
           {{ tpl (toYaml .Values.extraVolumes) . | nindent 8 }}
-        {{- end }}   
+        {{- end }}
 {{- end -}}

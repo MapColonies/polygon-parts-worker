@@ -68,7 +68,6 @@
     "@map-colonies/eslint-config": "^4.0.0",
     "@map-colonies/prettier-config": "0.0.1",
     "@map-colonies/standard-version-update-helm-version": "^2.0.1",
-    "@map-colonies/telemetry": "6.0.0",
     "@types/compression": "^1.7.2",
     "@types/config": "^3.3.0",
     "@types/express": "^4.17.17",
