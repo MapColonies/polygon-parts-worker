@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.1](https://github.com/MapColonies/polygon-parts-worker/compare/v1.2.0...v1.2.1) (2024-10-10)
+
+
+### Bug Fixes
+
+* fix helm ([47e519c](https://github.com/MapColonies/polygon-parts-worker/commit/47e519c49827a48dedbd4d47d6b1eb6073d39cf7))
+* fix helming by pr ([4f4fd33](https://github.com/MapColonies/polygon-parts-worker/commit/4f4fd336de9db6457b25db1bb4be9e643f380d09))
+* github workflows ([fbd7ef6](https://github.com/MapColonies/polygon-parts-worker/commit/fbd7ef6e73176a38f1b0afc7904cd05a9cd7d190))
+* pr comments ([a0bc070](https://github.com/MapColonies/polygon-parts-worker/commit/a0bc0702d9b93f3c0f4a0b9c21e269ff91e00c91))
+* revert cloudProvider and add jobDefentions tpl ([adc1dfe](https://github.com/MapColonies/polygon-parts-worker/commit/adc1dfed83a0f226bdf3673219228c2dc276e700))
+* service.yaml and helpers (in progress) ([3142f13](https://github.com/MapColonies/polygon-parts-worker/commit/3142f1387b964d72cbcdd9956807cf8eba776d21))
+
+### [1.1.5](https://github.com/MapColonies/polygon-parts-worker/compare/v1.1.4...v1.1.5) (2024-10-06)
+
+### [1.1.4](https://github.com/MapColonies/polygon-parts-worker/compare/v1.1.3...v1.1.4) (2024-10-06)
+
+### [1.1.3](https://github.com/MapColonies/polygon-parts-worker/compare/v1.1.2...v1.1.3) (2024-10-06)
+
+### [1.1.2](https://github.com/MapColonies/polygon-parts-worker/compare/v1.1.1...v1.1.2) (2024-10-06)
+
+### [1.1.1](https://github.com/MapColonies/polygon-parts-worker/compare/v1.1.0...v1.1.1) (2024-10-06)
+
+## 1.1.0 (2024-10-06)
+
 ## 1.2.0 (2024-10-06)
 
 
