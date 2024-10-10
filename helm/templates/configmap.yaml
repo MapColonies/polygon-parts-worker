@@ -1,6 +1,7 @@
 {{- $tracing := (include "common.tracing.merged" .) | fromYaml }}
 {{- $metrics := (include "common.metrics.merged" .) | fromYaml }}
 {{- $serviceUrls := (include "common.serviceUrls.merged" .) | fromYaml }}
+{{- $jobDefinitions := (include "common.jobDefinitions.merged" .) | fromYaml }}
 
 {{- if .Values.enabled -}}
 apiVersion: v1
@@ -25,9 +26,9 @@ data:
   POLYGON_PARTS_MANAGER_BASE_URL: {{ $serviceUrls.polygonPartsManager | quote}}
   HEARTBEAT_INTERVAL_MS: {{ .Values.env.jobManagement.config.heartBeat.intervalMs | quote }}
   DEQUEUE_INTERVAL_MS: {{ .Values.env.jobManagement.config.dequeueIntervalMs | quote }}
-  POLYGON_PARTS_TASK_TYPE: {{ .Values.global.jobDefinitions.tasks.polygonParts.type }}
-  INGESTION_NEW_JOB_TYPE: {{ .Values.global.jobDefinitions.jobs.new.type }}
-  INGESTION_UPDATE_JOB_TYPE: {{ .Values.global.jobDefinitions.jobs.update.type }}
-  INGESTION_SWAP_UPDATE_JOB_TYPE: {{ .Values.global.jobDefinitions.jobs.swapUpdate.type }}
+  POLYGON_PARTS_TASK_TYPE: {{ $jobDefinitions.tasks.polygonParts.type }}
+  INGESTION_NEW_JOB_TYPE: {{ $jobDefinitions.jobs.new.type }}
+  INGESTION_UPDATE_JOB_TYPE: {{ $jobDefinitions.jobs.update.type }}
+  INGESTION_SWAP_UPDATE_JOB_TYPE: {{ $jobDefinitions.jobs.swapUpdate.type }}
   npm_config_cache: /tmp/
 {{- end }}

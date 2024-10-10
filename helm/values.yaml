@@ -1,8 +1,5 @@
 global:
-  imageRegistry: ""
-  imagePullSecrets: []
-  deploymentFlavor: "openshift"
-  pullPolicy: "IfNotPresent"
+  cloudProvider: {}
   tracing: {}
   metrics: {}
   environment: ''
@@ -25,6 +22,11 @@ serviceUrls:
   jobManager: ""
   heartbeatManager: ""
   polygonPartsManager: ""
+
+cloudProvider:
+  dockerRegistryUrl: 'my-registry-url.io'
+  imagePullSecretName: 'my-registry-secret'
+  flavor: openshift
 
 enabled: true
 environment: development
@@ -73,8 +75,7 @@ image:
   registry: ""
   repository: polygon-parts-worker
   tag: 'latest'
-  digest: ""
-  pullSecrets: []
+  pullPolicy: IfNotPresent
 env:
   port: 8080
   targetPort: 8080
