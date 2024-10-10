@@ -36,7 +36,6 @@ cloudProvider:
     url: ""
     prometheus:
       scrape: false
-      port:
 
 enabled: true
 environment: development
