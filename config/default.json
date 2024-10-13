@@ -48,9 +48,11 @@
     "shouldResetTimeout": true,
     "disableHttpClientLogs": true
   },
-  "permittedTypes": {
+  "jobDefinitions": {
     "tasks": {
-      "polygonParts": "polygon-parts"
+      "polygonParts": {
+        "type": "polygon-parts"
+      }
     },
     "jobs": {
       "new": {

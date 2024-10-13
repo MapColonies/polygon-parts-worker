@@ -1,6 +1,6 @@
 {{- $releaseName := .Release.Name -}}
 {{- $chartName := include "polygon-parts-worker.name" . -}}
-{{- $deploymentFlavor := include "polygon-parts-worker.deploymentFlavor" . -}}
+{{- $cloudProviderFlavor := include "polygon-parts-worker.cloudProviderFlavor" . -}}
 {{- if .Values.enabled -}}
 apiVersion: v1
 kind: Service
@@ -13,7 +13,7 @@ metadata:
     release: {{ $releaseName }}
     {{- include "polygon-parts-worker.labels" . | nindent 4 }}
 spec:
-  {{- if eq $deploymentFlavor "minikube" }}
+  {{- if eq $cloudProviderFlavor "minikube" }}
   type: NodePort
   {{- end }}
   ports:
@@ -21,7 +21,7 @@ spec:
       targetPort: {{ .Values.env.targetPort }}
       protocol: {{ .Values.env.protocol }}
       name: http
-      {{- if eq $deploymentFlavor "minikube" }}
+      {{- if eq $cloudProviderFlavor "minikube" }}
       nodePort: {{ .Values.nodePort }}
       {{- end }}
   selector:

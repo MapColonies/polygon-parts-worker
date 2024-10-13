@@ -1,11 +1,41 @@
 global:
-  imageRegistry: ""
-  imagePullSecrets: []
-  deploymentFlavor: "openshift"
-  pullPolicy: "IfNotPresent"
+  cloudProvider: {}
   tracing: {}
   metrics: {}
   environment: ''
+  jobDefinitions: {}
+  serviceUrls: {}
+
+jobDefinitions:
+  jobs:
+    new:
+      type: ""
+    update:
+      type: ""
+    swapUpdate:
+      type: ""
+  tasks:
+    polygonParts:
+      type: ""
+
+serviceUrls:
+  jobManager: ""
+  heartbeatManager: ""
+  polygonPartsManager: ""
+
+cloudProvider:
+  dockerRegistryUrl: 'my-registry-url.io'
+  imagePullSecretName: 'my-registry-secret'
+  flavor: openshift
+
+  tracing:
+    enabled: false
+    url: ""
+  metrics:
+    enabled: false
+    url: ""
+    prometheus:
+      scrape: false
 
 enabled: true
 environment: development
@@ -54,8 +84,7 @@ image:
   registry: ""
   repository: polygon-parts-worker
   tag: 'latest'
-  digest: ""
-  pullSecrets: []
+  pullPolicy: IfNotPresent
 env:
   port: 8080
   targetPort: 8080
@@ -64,18 +93,11 @@ env:
   logPrettyPrintEnabled: false
   responseCompressionEnabled: true
   requestPayloadLimit: 1mb
-  jobTypesToProcess:
-  - Ingestion_New
-  - Ingestion_Update
-  - Ingestion_Swap_Update
-  - Remove_Layer
-  taskTypeToProcess: "polygon-parts"
-  tracing:
-    enabled: false
-    url: http://localhost:55681/v1/trace
-  metrics:
-    enabled: false
-    url: http://localhost:55681/v1/metrics
+  jobManagement:
+    config:
+      dequeueIntervalMs: 3000
+      heartBeat:
+        intervalMs: 3000
 
 resources:
   enabled: true
