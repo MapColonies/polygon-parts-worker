@@ -26,15 +26,15 @@ const mockQueueClient = new QueueClient(
 const mockTracer = trace.getTracer('testingTracer')
 const mockHttpClient = new PolygonPartsManagerClient(mockLogger, mockTracer)
 
-function jobProcessorInstace(): JobProcessor {
+function jobProcessorInstance(): JobProcessor {
   return new JobProcessor(mockLogger, mockTracer, mockQueueClient, configMock);
 }
 
-function newJobHandlerInstace(): IJobHandler {
+function newJobHandlerInstance(): IJobHandler {
   return new NewJobHandler(mockLogger, mockHttpClient);
 }
 
-export { jobProcessorInstace, newJobHandlerInstace, mockHttpClient, mockDequeue, mockGetJob, configMock, mockQueueClient, mockProcessJob };
+export { jobProcessorInstance, newJobHandlerInstance, mockHttpClient, mockDequeue, mockGetJob, configMock, mockQueueClient, mockProcessJob };
 
 export type MockDequeue = jest.MockedFunction<(jobType: string, taskType: string) => Promise<ITaskResponse<unknown> | null>>;
 export type MockGetJob = jest.MockedFunction<(jobId: string) => Promise<IJobResponse<unknown, unknown>>>;

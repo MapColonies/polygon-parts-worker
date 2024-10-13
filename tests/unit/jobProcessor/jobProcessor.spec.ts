@@ -1,8 +1,8 @@
 import nock from 'nock';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
-import { jobProcessorInstace, mockProcessJob, mockQueueClient } from '../jobProcessor/jobProcessorSetup';
-import { newJobResponseMock } from '../mocks/jobsMocks';
+import { jobProcessorInstance, mockProcessJob, mockQueueClient } from '../jobProcessor/jobProcessorSetup';
+import { invalidJobResponseMock, newJobResponseMock } from '../mocks/jobsMocks';
 import { initTaskForIngestionNew } from '../mocks/tasksMocks';
 
 
@@ -22,7 +22,7 @@ describe('JobProcessor', () => {
   let jobProcessor: JobProcessor;
 
   beforeEach(() => {
-    jobProcessor = jobProcessorInstace();
+    jobProcessor = jobProcessorInstance();
     jest.clearAllMocks();
     registerDefaultConfig();
   });
@@ -35,7 +35,7 @@ describe('JobProcessor', () => {
   describe('start', () => {
     const jobManagerBaseUrl = configMock.get<string>('jobManagement.config.jobManagerBaseUrl');
     const heartbeatBaseUrl = configMock.get<string>('jobManagement.config.heartbeat.baseUrl');
-    const taskType = configMock.get<string>('permittedTyped.tasks.polygonParts');
+    const taskType = configMock.get<string>('jobDefinitions.tasks.polygonParts.type');
 
     it('should successfully fetch new poly parts task and process it', async () => {
       const jobType = 'Ingestion_New';
@@ -46,7 +46,6 @@ describe('JobProcessor', () => {
       nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(200, initTaskForIngestionNew).persist();
       nock(jobManagerBaseUrl).get(jobManagerUrlGetJobPath).query({ shouldReturnTasks: false }).reply(200, newJobResponseMock).persist();
       nock(heartbeatBaseUrl).post(heartbeatPath).reply(200, 'ok').persist();
-
 
       const resultPromise = jobProcessor.start();
       jobProcessor.stop();
@@ -71,7 +70,7 @@ describe('JobProcessor', () => {
       expect(mockProcessJob).not.toHaveBeenCalled();
     });
 
-    it('should not find  task', async () => {
+    it('should not find task', async () => {
       const jobType = 'Ingestion_New';
       const jobManagerurlPath = `/tasks/${jobType}/${taskType}/startPending`;
 
@@ -82,6 +81,22 @@ describe('JobProcessor', () => {
       const result = await resultPromise;
 
       expect(result).toBeUndefined();
+    });
+
+    it('should find task and fail to process it', async () => {
+      const jobType = 'Ingestion_New';
+      const jobManagerUrlDequeuePath = `/tasks/${jobType}/${taskType}/startPending`;
+      const jobManagerUrlGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`; //jobID
+      const heartbeatPath = `/heartbeat/${initTaskForIngestionNew.id}`; //taskID
+
+      nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(200, initTaskForIngestionNew).persist();
+      nock(jobManagerBaseUrl).get(jobManagerUrlGetJobPath).query({ shouldReturnTasks: false }).reply(200, invalidJobResponseMock).persist();
+      nock(heartbeatBaseUrl).post(heartbeatPath).reply(200, 'ok').persist();
+
+      const resultPromise = jobProcessor.start();
+      jobProcessor.stop();
+      const result = await resultPromise;
+      //todo: make process job or initHandler fail.
     });
   });
 });

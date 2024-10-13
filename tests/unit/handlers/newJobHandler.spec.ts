@@ -1,6 +1,6 @@
 import nock from 'nock';
 import { registerDefaultConfig } from '../mocks/configMock';
-import { newJobHandlerInstace } from '../jobProcessor/jobProcessorSetup';
+import { newJobHandlerInstance } from '../jobProcessor/jobProcessorSetup';
 import { invalidJobResponseMock, newJobResponseMock } from '../mocks/jobsMocks';
 import { IJobHandler } from '../../../src/common/interfaces';
 import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsManagerClient';
@@ -15,7 +15,7 @@ jest.mock<typeof import('../../../src/clients/polygonPartsManagerClient')>('../.
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 __esModule: true,
                 ...originalModule,
-                createNewPolyParts: jest.fn().mockResolvedValueOnce(undefined)
+                createPolygonParts: jest.fn().mockResolvedValueOnce(undefined)
             };
         }),
     }
@@ -23,10 +23,10 @@ jest.mock<typeof import('../../../src/clients/polygonPartsManagerClient')>('../.
 
 
 describe('NewJobHandler', () => {
-    let newJobHander: IJobHandler;
+    let newJobHandler: IJobHandler;
 
     beforeEach(() => {
-        newJobHander = newJobHandlerInstace();
+        newJobHandler = newJobHandlerInstance();
         jest.clearAllMocks();
         registerDefaultConfig();
     });
@@ -38,14 +38,14 @@ describe('NewJobHandler', () => {
 
     describe('processJob', () => {
         it('should successfully process job', async () => {
-            const processJobSpy = jest.spyOn(newJobHander, 'processJob');
-            await newJobHander.processJob(newJobResponseMock);
+            const result = await newJobHandler.processJob(newJobResponseMock);
 
-            expect(processJobSpy).toHaveBeenCalledTimes(1);
+            expect(result).toBeUndefined();
+            expect.assertions(1);
         });
 
         it('should fail on validation and throw error', async () => {
-            const result = newJobHander.processJob(invalidJobResponseMock);
+            const result = newJobHandler.processJob(invalidJobResponseMock);
 
             await expect(result).rejects.toThrow();
         });
