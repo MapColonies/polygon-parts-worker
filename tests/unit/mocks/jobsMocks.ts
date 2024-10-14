@@ -13,10 +13,30 @@ export const newJobResponseMock: IJobResponse<PolygonPartsPayload, unknown> = {
       {
         cities: ['string'],
         sensors: ['string'],
-        geometry: {
-          type: 'Polygon',
-          coordinates: [[[180, 180]]],
-        },
+        coordinates: [
+          [
+            [
+              35.096758731934955,
+              32.840683800982745
+            ],
+            [
+              35.06439307418452,
+              32.840683800982745
+            ],
+            [
+              35.06439307418452,
+              32.811336871233905
+            ],
+            [
+              35.096758731934955,
+              32.811336871233905
+            ],
+            [
+              35.096758731934955,
+              32.840683800982745
+            ]
+          ]
+        ],
         sourceId: 'string',
         countries: ['string'],
         sourceName: 'thisIsSourceNmae',
@@ -30,13 +50,13 @@ export const newJobResponseMock: IJobResponse<PolygonPartsPayload, unknown> = {
       },
     ],
   } as unknown as PolygonPartsPayload,
-  status: 'Pending' as unknown as OperationStatus,
+  status: OperationStatus.PENDING,
   percentage: 0,
   reason: '',
-  domain: 'strinsg',
+  domain: 'string',
   isCleaned: false,
   priority: 0,
-  expirationDate: '2025-09-24T13:38:04.553Z' as unknown as Date,
+  expirationDate: new Date('2025-09-24T13:38:04.553Z'),
   internalId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
   producerName: 'stringg',
   productName: 'strings',
@@ -64,8 +84,31 @@ export const invalidJobResponseMock: IJobResponse<PolygonPartsPayload, unknown> 
       {
         sensors: ['string'],
         geometry: {
-          type: 'Polygon',
-          coordinates: [[[180, 180]]],
+          coordinates: [
+            [
+              [
+                35.096758731934955,
+                32.840683800982745
+              ],
+              [
+                35.06439307418452,
+                32.840683800982745
+              ],
+              [
+                35.06439307418452,
+                32.811336871233905
+              ],
+              [
+                35.096758731934955,
+                32.811336871233905
+              ],
+              [
+                35.096758731934955,
+                32.840683800982745
+              ]
+            ]
+          ],
+          type: "Polygon"
         },
         sourceId: 'string',
         countries: ['string'],
@@ -80,15 +123,15 @@ export const invalidJobResponseMock: IJobResponse<PolygonPartsPayload, unknown> 
       },
     ],
   } as unknown as PolygonPartsPayload,
-  status: 'Pending' as unknown as OperationStatus,
+  status: OperationStatus.PENDING,
   percentage: 0,
   reason: '',
-  domain: 'strinsg',
+  domain: 'string',
   isCleaned: false,
   priority: 0,
-  expirationDate: '2025-09-24T13:38:04.553Z' as unknown as Date,
+  expirationDate: new Date('2025-09-24T13:38:04.553Z'),
   internalId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
-  producerName: 'stringg',
+  producerName: 'string',
   productName: 'strings',
   productType: 'invalidType',
   additionalIdentifiers: 'string',
