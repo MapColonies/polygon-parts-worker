@@ -16,8 +16,6 @@ describe('HandlersFactory', () => {
         registerExternalValues({
             override: [
                 { token: HANDLERS.NEW, provider: { useValue: newJobHandlerInstance() } },
-                //                { token: HANDLERS.UPDATE, provider: { useValue: mockUpdateJobHandler } },
-                //               { token: HANDLERS.SWAP, provider: { useValue: mockSwapJobHandler } },
             ],
         });
     });

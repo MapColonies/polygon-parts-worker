@@ -60,7 +60,7 @@ const registerDefaultConfig = (): void => {
       },
     },
     server: {
-      port: 8080, // Changed from string 8080 to number 8080
+      port: 8080,
       request: {
         payload: {
           limit: '1mb',
@@ -88,6 +88,9 @@ const registerDefaultConfig = (): void => {
         },
         dequeueIntervalMs: 3000,
       },
+    },
+    polygonPartsManager: {
+      baseUrl: "http://localhost:8081"
     },
     jobDefinitions: {
       tasks: {
