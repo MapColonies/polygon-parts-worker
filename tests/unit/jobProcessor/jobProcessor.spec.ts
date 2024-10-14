@@ -3,7 +3,7 @@ import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { newJobResponseMock } from '../mocks/jobsMocks';
 import { initTaskForIngestionNew } from '../mocks/tasksMocks';
-import * as handlersFactory from '../../../src/models/handlersFactory'
+import * as handlersFactory from '../../../src/models/handlersFactory';
 
 const initJobHandlerMock = jest.fn();
 
@@ -90,7 +90,7 @@ describe('JobProcessor', () => {
       const jobManagerUrlDequeuePath = `/tasks/${jobType}/${taskType}/startPending`;
       const jobManagerUrlGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`; //jobID
       const heartbeatPath = `/heartbeat/${initTaskForIngestionNew.id}`; //taskID
-      const invalidJobResponseMock = {...newJobResponseMock, jobType: 'invalidType'}
+      const invalidJobResponseMock = { ...newJobResponseMock, jobType: 'invalidType' };
       const errorMsg = 'failed to process job';
       initJobHandlerMock.mockImplementation(() => {
         return {
