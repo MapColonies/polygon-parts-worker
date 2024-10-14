@@ -1,7 +1,7 @@
 import nock from 'nock';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
-import { invalidJobResponseMock, newJobResponseMock } from '../mocks/jobsMocks';
+import { newJobResponseMock } from '../mocks/jobsMocks';
 import { initTaskForIngestionNew } from '../mocks/tasksMocks';
 import * as handlersFactory from '../../../src/models/handlersFactory'
 
@@ -90,6 +90,7 @@ describe('JobProcessor', () => {
       const jobManagerUrlDequeuePath = `/tasks/${jobType}/${taskType}/startPending`;
       const jobManagerUrlGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`; //jobID
       const heartbeatPath = `/heartbeat/${initTaskForIngestionNew.id}`; //taskID
+      const invalidJobResponseMock = {...newJobResponseMock, jobType: 'invalidType'}
       const errorMsg = 'failed to process job';
       initJobHandlerMock.mockImplementation(() => {
         return {
@@ -98,6 +99,7 @@ describe('JobProcessor', () => {
           },
         };
       });
+
       nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(200, initTaskForIngestionNew).persist();
       nock(jobManagerBaseUrl).get(jobManagerUrlGetJobPath).query({ shouldReturnTasks: false }).reply(200, invalidJobResponseMock).persist();
       nock(heartbeatBaseUrl).post(heartbeatPath).reply(200, 'ok').persist();

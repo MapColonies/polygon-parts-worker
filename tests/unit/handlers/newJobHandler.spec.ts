@@ -2,7 +2,7 @@ import nock from 'nock';
 import { ZodError } from 'zod';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { newJobHandlerInstance } from '../jobProcessor/jobProcessorSetup';
-import { invalidJobResponseMock, newJobResponseMock } from '../mocks/jobsMocks';
+import { newJobResponseMock } from '../mocks/jobsMocks';
 import { IJobHandler } from '../../../src/common/interfaces';
 
 describe('NewJobHandler', () => {
@@ -35,6 +35,7 @@ describe('NewJobHandler', () => {
 
         it('should fail on validation due to invalid productType and throw error', async () => {
             nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(200).persist();
+            const invalidJobResponseMock = {...newJobResponseMock, productType:'invalidType' }
 
             const result = newJobHandler.processJob(invalidJobResponseMock);
 
