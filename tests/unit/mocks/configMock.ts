@@ -90,26 +90,26 @@ const registerDefaultConfig = (): void => {
       },
     },
     polygonPartsManager: {
-      baseUrl: "http://localhost:8081"
+      baseUrl: 'http://localhost:8081',
     },
     jobDefinitions: {
       tasks: {
         polygonParts: {
-          type: 'polygon-parts'
-        }
+          type: 'polygon-parts',
+        },
       },
       jobs: {
         new: {
-          type: 'Ingestion_New'
+          type: 'Ingestion_New',
         },
         update: {
-          type: 'Ingestion_Update'
+          type: 'Ingestion_Update',
         },
         swapUpdate: {
-          type: 'Ingestion_Swap_Update'
-        }
-      }
-    }
+          type: 'Ingestion_Swap_Update',
+        },
+      },
+    },
   };
 
   setConfigValues(config);

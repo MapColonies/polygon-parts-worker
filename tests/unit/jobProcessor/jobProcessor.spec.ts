@@ -1,4 +1,3 @@
-
 import nock from 'nock';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
@@ -11,15 +10,15 @@ initJobHandlerMock.mockImplementation(() => {
   return {
     processJob: async () => {
       await mockProcessJob();
-    }
-  }
-})
+    },
+  };
+});
 
-jest.mock<typeof import("../../../src/models/handlersFactory")>('../../../src/models/handlersFactory', () => {
+jest.mock<typeof import('../../../src/models/handlersFactory')>('../../../src/models/handlersFactory', () => {
   return {
-    initJobHandler: initJobHandlerMock
-  }
-})
+    initJobHandler: initJobHandlerMock,
+  };
+});
 
 // eslint-disable-next-line import/first
 import { jobProcessorInstance, mockProcessJob, mockQueueClient } from '../jobProcessor/jobProcessorSetup';
@@ -60,7 +59,6 @@ describe('JobProcessor', () => {
       await expect(resultPromise).resolves.not.toThrow();
       expect(mockProcessJob).toHaveBeenCalledTimes(1);
       await mockQueueClient.heartbeatClient.stop(initTaskForIngestionNew.id);
-
     });
 
     it('should fail to fetch task', async () => {
@@ -97,10 +95,10 @@ describe('JobProcessor', () => {
       initJobHandlerMock.mockImplementation(() => {
         return {
           processJob: () => {
-            throw new Error("RAZ IS SIGMA ALPHA wolf")
-          }
-        }
-      })
+            throw new Error('RAZ IS SIGMA ALPHA wolf');
+          },
+        };
+      });
       nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(200, initTaskForIngestionNew).persist();
       nock(jobManagerBaseUrl).get(jobManagerUrlGetJobPath).query({ shouldReturnTasks: false }).reply(200, invalidJobResponseMock).persist();
       nock(heartbeatBaseUrl).post(heartbeatPath).reply(200, 'ok').persist();
