@@ -4,11 +4,15 @@ import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { trace } from '@opentelemetry/api';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
+import { IJobHandler } from '../../../src/common/interfaces';
+import { NewJobHandler } from '../../../src/models/newJobHandler';
+import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsManagerClient';
 
 const mockLogger = jsLogger({ enabled: false });
 
 const mockDequeue = jest.fn() as MockDequeue;
 const mockGetJob = jest.fn() as MockGetJob;
+const mockProcessJob = jest.fn() as MockProcessJob;
 
 registerDefaultConfig();
 const mockQueueClient = new QueueClient(
@@ -19,14 +23,22 @@ const mockQueueClient = new QueueClient(
   configMock.get<number>('jobManagement.config.heartbeat.intervalMs')
 );
 
-function jobProcessorInstace(): JobProcessor {
-  return new JobProcessor(mockLogger, trace.getTracer('testingTracer'), mockQueueClient, configMock);
+const mockTracer = trace.getTracer('testingTracer');
+const mockHttpClient = new PolygonPartsManagerClient(mockLogger, mockTracer);
+
+function jobProcessorInstance(): JobProcessor {
+  return new JobProcessor(mockLogger, mockTracer, mockQueueClient, configMock);
 }
 
-export { jobProcessorInstace, mockDequeue, mockGetJob, configMock, mockQueueClient };
+function newJobHandlerInstance(): IJobHandler {
+  return new NewJobHandler(mockLogger, mockHttpClient);
+}
+
+export { jobProcessorInstance, newJobHandlerInstance, mockHttpClient, mockDequeue, mockGetJob, configMock, mockQueueClient, mockProcessJob };
 
 export type MockDequeue = jest.MockedFunction<(jobType: string, taskType: string) => Promise<ITaskResponse<unknown> | null>>;
 export type MockGetJob = jest.MockedFunction<(jobId: string) => Promise<IJobResponse<unknown, unknown>>>;
+export type MockProcessJob = jest.MockedFunction<() => Promise<void>>;
 
 export interface JobProcessorTestContext {
   jobProcessor: JobProcessor;

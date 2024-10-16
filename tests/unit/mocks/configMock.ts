@@ -60,7 +60,7 @@ const registerDefaultConfig = (): void => {
       },
     },
     server: {
-      port: 8080, // Changed from string "8080" to number 8080
+      port: 8080,
       request: {
         payload: {
           limit: '1mb',
@@ -88,8 +88,27 @@ const registerDefaultConfig = (): void => {
         },
         dequeueIntervalMs: 3000,
       },
-      jobTypesToProcess: ['Ingestion_New', 'Ingestion_Update', 'Ingestion_Swap_Update', 'Remove_Layer'],
-      taskTypeToProcess: 'polygon-parts',
+    },
+    polygonPartsManager: {
+      baseUrl: 'http://localhost:8081',
+    },
+    jobDefinitions: {
+      tasks: {
+        polygonParts: {
+          type: 'polygon-parts',
+        },
+      },
+      jobs: {
+        new: {
+          type: 'Ingestion_New',
+        },
+        update: {
+          type: 'Ingestion_Update',
+        },
+        swapUpdate: {
+          type: 'Ingestion_Swap_Update',
+        },
+      },
     },
   };
 

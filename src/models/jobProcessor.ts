@@ -50,8 +50,8 @@ export class JobProcessor {
         this.logger.error({ msg: 'error while handling job', error: errorMsg });
         if (jobAndTask) {
           const { job, task } = jobAndTask;
-          const isResetable = true;
-          await this.queueClient.reject(job.id, task.id, isResetable, errorMsg);
+          const isResettable = true;
+          await this.queueClient.reject(job.id, task.id, isResettable, errorMsg);
         }
       }
       await setTimeoutPromise(this.dequeueIntervalMs);

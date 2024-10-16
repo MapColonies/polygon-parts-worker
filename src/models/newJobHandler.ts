@@ -16,7 +16,7 @@ export class NewJobHandler implements IJobHandler {
 
   public async processJob(job: IJobResponse<PolygonPartsPayload, unknown>): Promise<void> {
     const requestBody = {
-      productId: job.id,
+      productId: job.resourceId,
       productType: job.productType,
       catalogId: job.internalId,
       productVersion: job.version,
