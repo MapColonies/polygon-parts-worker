@@ -30,9 +30,11 @@ describe('HandlersFactory', () => {
     });
 
     it('should fail on validation and throw error', () => {
-      expect(() => {
+      const action = () => {
         initJobHandler('falseType', jobTypesToProcess);
-      }).toThrow(BadRequestError);
+      };
+
+      expect(action).toThrow(BadRequestError);
     });
   });
 });

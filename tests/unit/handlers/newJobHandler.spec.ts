@@ -1,7 +1,8 @@
 import nock from 'nock';
+import { ZodError } from 'zod';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { newJobHandlerInstance } from '../jobProcessor/jobProcessorSetup';
-import { invalidJobResponseMock, newJobResponseMock } from '../mocks/jobsMocks';
+import { newJobResponseMock } from '../mocks/jobsMocks';
 import { IJobHandler } from '../../../src/common/interfaces';
 
 describe('NewJobHandler', () => {
@@ -24,18 +25,21 @@ describe('NewJobHandler', () => {
     it('should successfully process job', async () => {
       nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(200).persist();
 
-      const result = await newJobHandler.processJob(newJobResponseMock);
+      const result = newJobHandler.processJob(newJobResponseMock);
+      const awaitedResult = await result;
 
-      expect(result).toBeUndefined();
-      expect.assertions(1);
+      expect(awaitedResult).toBeUndefined();
+      await expect(result).resolves.not.toThrow();
+      expect.assertions(2);
     });
 
-    it('should fail on validation and throw error', async () => {
+    it('should fail on validation due to invalid productType and throw error', async () => {
       nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(200).persist();
+      const invalidJobResponseMock = { ...newJobResponseMock, productType: 'invalidType' };
 
       const result = newJobHandler.processJob(invalidJobResponseMock);
 
-      await expect(result).rejects.toThrow();
+      await expect(result).rejects.toThrow(ZodError);
     });
   });
 });
