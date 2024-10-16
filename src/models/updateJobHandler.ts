@@ -5,9 +5,10 @@ import { Logger } from "@map-colonies/js-logger";
 import { BadRequestError } from "@map-colonies/error-types";
 import { IJobHandler } from "../common/interfaces";
 import { PolygonPartsManagerClient } from "../clients/polygonPartsManagerClient";
-import { SERVICES } from "../common/constants";
+import { HANDLERS, SERVICES } from "../common/constants";
 import { ingestionNewRequestBodySchema } from "../schemas/polyPartsManager.schema";
 
+const isSwapMapper = new Map([[HANDLERS.UPDATE, false], [HANDLERS.SWAP, true]]);
 
 @injectable()
 export class UpdateJobHandler implements IJobHandler {
@@ -16,11 +17,13 @@ export class UpdateJobHandler implements IJobHandler {
         @inject(PolygonPartsManagerClient) private readonly polygonPartsManager: PolygonPartsManagerClient
     ) { }
 
-    public async processJob(job: IJobResponse<PolygonPartsPayload, unknown>, isSwap?: boolean): Promise<void> {
+    public async processJob(job: IJobResponse<PolygonPartsPayload, unknown>): Promise<void> {
+        
+        const isSwap = isSwapMapper.get(job.type);
+        
         if (typeof isSwap === 'undefined') {
             throw new BadRequestError('isSwap parameter is required for update jobs');
         }
-        
         const requestBody = {
             productId: job.id,
             productType: job.productType,

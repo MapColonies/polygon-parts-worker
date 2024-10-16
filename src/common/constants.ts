@@ -1,4 +1,5 @@
 import { readPackageJsonSync } from '@map-colonies/read-pkg';
+import config from 'config';
 
 export const SERVICE_NAME = readPackageJsonSync().name ?? 'unknown_service';
 export const DEFAULT_SERVER_PORT = 80;
@@ -17,8 +18,7 @@ export const SERVICES = {
 
 /* eslint-disable @typescript-eslint/naming-convention */
 export const HANDLERS = {
-  NEW: Symbol('Ingestion_New'),
-  UPDATE: Symbol('Ingestion_Update'),
-  SWAP: Symbol('Ingestion_Swap_Update'),
-  REMOVE: Symbol('Remove_Layer'),
-} satisfies Record<string, symbol>;
+  NEW: config.get<string>('jobDefinitions.jobs.new.type'),
+  UPDATE: config.get<string>('jobDefinitions.jobs.update.type'),
+  SWAP: config.get<string>('jobDefinitions.jobs.swapUpdate.type')
+} satisfies Record<string, string>
