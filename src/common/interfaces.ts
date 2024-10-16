@@ -23,7 +23,7 @@ export interface IJobAndTaskResponse {
 }
 
 export interface IJobHandler {
-  processJob: (job: IJobResponse<PolygonPartsPayload, unknown>, isSwap? : boolean) => Promise<void>;
+  processJob: (job: IJobResponse<PolygonPartsPayload, unknown>, isSwap?: boolean) => Promise<void>;
 }
 
 export interface IPermittedJobTypes {

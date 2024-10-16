@@ -25,7 +25,6 @@ export class PolygonPartsManagerClient extends HttpClient {
     await this.post(createPolygonPartsUrl, requestBody);
   }
 
-
   @withSpanAsyncV4
   public async updatePolygonParts(requestBody: PolygonPartsPayload, isSwap: boolean): Promise<void> {
     const createPolygonPartsUrl = `/polygonParts?isSwap=${isSwap}`;

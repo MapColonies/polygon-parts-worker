@@ -20,5 +20,5 @@ export const SERVICES = {
 export const HANDLERS = {
   NEW: config.get<string>('jobDefinitions.jobs.new.type'),
   UPDATE: config.get<string>('jobDefinitions.jobs.update.type'),
-  SWAP: config.get<string>('jobDefinitions.jobs.swapUpdate.type')
-} satisfies Record<string, string>
+  SWAP: config.get<string>('jobDefinitions.jobs.swapUpdate.type'),
+} satisfies Record<string, string>;
