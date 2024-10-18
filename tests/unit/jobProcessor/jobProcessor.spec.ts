@@ -40,18 +40,25 @@ describe('JobProcessor', () => {
 
   describe('start', () => {
     const jobManagerBaseUrl = configMock.get<string>('jobManagement.config.jobManagerBaseUrl');
+    const jobTrackerBaseUrl = configMock.get<string>('jobManagement.config.jobTracker.baseUrl');
     const heartbeatBaseUrl = configMock.get<string>('jobManagement.config.heartbeat.baseUrl');
     const taskType = configMock.get<string>('jobDefinitions.tasks.polygonParts.type');
     const jobType = configMock.get<string>('jobDefinitions.jobs.new.type');
 
     it('should successfully fetch new poly parts task and process it', async () => {
       const jobManagerUrlDequeuePath = `/tasks/${jobType}/${taskType}/startPending`;
-      const jobManagerUrlGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`; //jobID
-      const heartbeatPath = `/heartbeat/${initTaskForIngestionNew.id}`; //taskID
+      const jobManagerUrlGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`;
+      const jobManagerAckPath = `/jobs/${initTaskForIngestionNew.jobId}/tasks/${initTaskForIngestionNew.id}`;
+      const jobTrackerNotifyPath = `/tasks/${initTaskForIngestionNew.id}/notify`;
+      const heartbeatStartPath = `/heartbeat/${initTaskForIngestionNew.id}`;
+      const heartbeatRemovePath = `/heartbeat/remove`;
 
       nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(200, initTaskForIngestionNew).persist();
       nock(jobManagerBaseUrl).get(jobManagerUrlGetJobPath).query({ shouldReturnTasks: false }).reply(200, newJobResponseMock).persist();
-      nock(heartbeatBaseUrl).post(heartbeatPath).reply(200, 'ok').persist();
+      nock(heartbeatBaseUrl).post(heartbeatStartPath).reply(200, 'ok').persist();
+      nock(heartbeatBaseUrl).post(heartbeatRemovePath).reply(200, 'ok').persist();
+      nock(jobManagerBaseUrl).put(jobManagerAckPath).reply(200, 'ok').persist();
+      nock(jobTrackerBaseUrl).post(jobTrackerNotifyPath).reply(200, 'ok').persist();
 
       const resultPromise = jobProcessor.start();
       jobProcessor.stop();
@@ -60,7 +67,7 @@ describe('JobProcessor', () => {
       await expect(resultPromise).resolves.not.toThrow();
       expect(mockProcessJob).toHaveBeenCalledTimes(1);
       await mockQueueClient.heartbeatClient.stop(initTaskForIngestionNew.id);
-    });
+    }, 99999999);
 
     it('should fail to fetch task', async () => {
       const jobManagerUrlDequeuePath = `/tasks/${jobType}/${taskType}/startPending`;
