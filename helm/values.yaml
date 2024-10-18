@@ -22,6 +22,7 @@ serviceUrls:
   jobManager: ""
   heartbeatManager: ""
   polygonPartsManager: ""
+  jobTracker: ""
 
 cloudProvider:
   dockerRegistryUrl: 'my-registry-url.io'
