@@ -37,14 +37,12 @@ export class JobProcessor {
 
     while (this.isRunning) {
       let jobAndTask: IJobAndTaskResponse | undefined;
-      let task: ITaskResponse<unknown> | undefined;
       try {
         this.logger.debug({ msg: 'fetching next job' });
         jobAndTask = await this.getJobAndTask();
 
         if (jobAndTask) {
-          const { job } = jobAndTask;
-          task = jobAndTask.task;
+          const { task, job } = jobAndTask;
           this.logger.info({ msg: 'processing job', jobId: job.id });
           const jobHandler = initJobHandler(job.type, this.jobTypesToProcess);
           await jobHandler.processJob(job);
@@ -59,8 +57,8 @@ export class JobProcessor {
           await this.queueClient.reject(job.id, task.id, isResettable, errorMsg);
         }
       } finally {
-        if (task) {
-          await this.jobTrackerClient.notifyOnFinishedTask(task.id);
+        if (jobAndTask) {
+          await this.jobTrackerClient.notifyOnFinishedTask(jobAndTask.task.id);
         }
       }
       await setTimeoutPromise(this.dequeueIntervalMs);
