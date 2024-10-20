@@ -24,6 +24,7 @@ data:
   JOB_MANAGER_BASE_URL: {{ $serviceUrls.jobManager | quote}}
   HEARTBEAT_BASE_URL: {{ $serviceUrls.heartbeatManager | quote}}
   POLYGON_PARTS_MANAGER_BASE_URL: {{ $serviceUrls.polygonPartsManager | quote}}
+  JOB_TRACKER_BASE_URL: {{ $serviceUrls.jobTracker | quote}}
   HEARTBEAT_INTERVAL_MS: {{ .Values.env.jobManagement.config.heartBeat.intervalMs | quote }}
   DEQUEUE_INTERVAL_MS: {{ .Values.env.jobManagement.config.dequeueIntervalMs | quote }}
   POLYGON_PARTS_TASK_TYPE: {{ $jobDefinitions.tasks.polygonParts.type }}
