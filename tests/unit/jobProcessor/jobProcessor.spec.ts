@@ -67,7 +67,7 @@ describe('JobProcessor', () => {
       await expect(resultPromise).resolves.not.toThrow();
       expect(mockProcessJob).toHaveBeenCalledTimes(1);
       await mockQueueClient.heartbeatClient.stop(initTaskForIngestionNew.id);
-    }, 99999999);
+    });
 
     it('should fail to fetch task', async () => {
       const jobManagerUrlDequeuePath = `/tasks/${jobType}/${taskType}/startPending`;
