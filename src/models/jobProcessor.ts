@@ -58,7 +58,9 @@ export class JobProcessor {
         }
       } finally {
         if (jobAndTask) {
-          await this.jobTrackerClient.notifyOnFinishedTask(jobAndTask.task.id);
+          const taskId =jobAndTask.task.id
+          this.logger.info({ msg: 'notifying job tracker on task finished', taskId: taskId });
+          await this.jobTrackerClient.notifyOnFinishedTask(taskId);
         }
       }
       await setTimeoutPromise(this.dequeueIntervalMs);
