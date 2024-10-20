@@ -12,6 +12,7 @@ import { tracing } from './common/tracing';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
 import { IJobManagerConfig } from './common/interfaces';
 import { NewJobHandler } from './models/newJobHandler';
+import { UpdateJobHandler } from './models/updateJobHandler';
 
 const queueClientFactory = (container: DependencyContainer): QueueClient => {
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
@@ -49,8 +50,8 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     { token: SERVICES.METER, provider: { useValue: OtelMetrics.getMeterProvider().getMeter(SERVICE_NAME) } },
     { token: SERVICES.QUEUE_CLIENT, provider: { useFactory: instancePerContainerCachingFactory(queueClientFactory) } },
     { token: HANDLERS.NEW, provider: { useClass: NewJobHandler } },
-    { token: HANDLERS.UPDATE, provider: { useClass: NewJobHandler } },
-    { token: HANDLERS.SWAP, provider: { useClass: NewJobHandler } },
+    { token: HANDLERS.UPDATE, provider: { useClass: UpdateJobHandler } },
+    { token: HANDLERS.SWAP, provider: { useClass: UpdateJobHandler } },
     {
       token: 'onSignal',
       provider: {

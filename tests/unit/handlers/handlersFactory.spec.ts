@@ -5,6 +5,7 @@ import { NewJobHandler } from '../../../src/models/newJobHandler';
 import { configMock } from '../mocks/configMock';
 import { registerExternalValues } from '../../../src/containerConfig';
 import { newJobHandlerInstance } from '../jobProcessor/jobProcessorSetup';
+import { UpdateJobHandler } from '../../../src/models/updateJobHandler';
 
 describe('HandlersFactory', () => {
   const ingestionNew = configMock.get<string>('jobDefinitions.jobs.new.type');
@@ -23,10 +24,22 @@ describe('HandlersFactory', () => {
   });
 
   describe('initJobHandler', () => {
-    it('should successfully return new job handler', () => {
+    it('should successfully return new job handler for new type', () => {
       const handlerResult = initJobHandler(ingestionNew, jobTypesToProcess);
 
       expect(handlerResult).toBeInstanceOf(NewJobHandler);
+    });
+
+    it('should successfully return update job handler for update type', () => {
+      const handlerResult = initJobHandler(ingestionUpdate, jobTypesToProcess);
+
+      expect(handlerResult).toBeInstanceOf(UpdateJobHandler);
+    });
+
+    it('should successfully return update job handler for swap type', () => {
+      const handlerResult = initJobHandler(ingestionSwapUpdate, jobTypesToProcess);
+
+      expect(handlerResult).toBeInstanceOf(UpdateJobHandler);
     });
 
     it('should fail on validation and throw error', () => {

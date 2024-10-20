@@ -7,6 +7,7 @@ import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { IJobHandler } from '../../../src/common/interfaces';
 import { NewJobHandler } from '../../../src/models/newJobHandler';
 import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsManagerClient';
+import { UpdateJobHandler } from '../../../src/models/updateJobHandler';
 
 const mockLogger = jsLogger({ enabled: false });
 
@@ -34,7 +35,21 @@ function newJobHandlerInstance(): IJobHandler {
   return new NewJobHandler(mockLogger, mockHttpClient);
 }
 
-export { jobProcessorInstance, newJobHandlerInstance, mockHttpClient, mockDequeue, mockGetJob, configMock, mockQueueClient, mockProcessJob };
+function updateJobHandlerInstance(): IJobHandler {
+  return new UpdateJobHandler(mockLogger, mockHttpClient);
+}
+
+export {
+  jobProcessorInstance,
+  newJobHandlerInstance,
+  updateJobHandlerInstance,
+  mockHttpClient,
+  mockDequeue,
+  mockGetJob,
+  configMock,
+  mockQueueClient,
+  mockProcessJob,
+};
 
 export type MockDequeue = jest.MockedFunction<(jobType: string, taskType: string) => Promise<ITaskResponse<unknown> | null>>;
 export type MockGetJob = jest.MockedFunction<(jobId: string) => Promise<IJobResponse<unknown, unknown>>>;
