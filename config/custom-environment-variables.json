@@ -43,6 +43,9 @@
         "baseUrl": "HEARTBEAT_BASE_URL",
         "intervalMs": "HEARTBEAT_INTERVAL_MS"
       },
+      "jobTracker": {
+        "baseUrl": "JOB_TRACKER_BASE_URL"
+      },
       "dequeueIntervalMs": "DEQUEUE_INTERVAL_MS"
     }
   },

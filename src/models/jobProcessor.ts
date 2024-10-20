@@ -7,6 +7,7 @@ import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { PolygonPartsPayload } from '@map-colonies/mc-model-types';
 import { SERVICES } from '../common/constants';
 import { IConfig, IJobAndTaskResponse, IPermittedJobTypes } from '../common/interfaces';
+import { JobTrackerClient } from '../clients/jobTrackerClient';
 import { initJobHandler } from './handlersFactory';
 
 @injectable()
@@ -19,7 +20,8 @@ export class JobProcessor {
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.TRACER) public readonly tracer: Tracer,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
-    @inject(SERVICES.CONFIG) private readonly config: IConfig
+    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    @inject(JobTrackerClient) private readonly jobTrackerClient: JobTrackerClient
   ) {
     this.dequeueIntervalMs = this.config.get<number>('jobManagement.config.dequeueIntervalMs');
     this.taskTypeToProcess = this.config.get<string>('jobDefinitions.tasks.polygonParts.type');
@@ -40,10 +42,11 @@ export class JobProcessor {
         jobAndTask = await this.getJobAndTask();
 
         if (jobAndTask) {
-          const { job } = jobAndTask;
+          const { task, job } = jobAndTask;
           this.logger.info({ msg: 'processing job', jobId: job.id });
           const jobHandler = initJobHandler(job.type, this.jobTypesToProcess);
           await jobHandler.processJob(job);
+          await this.queueClient.ack(job.id, task.id);
         }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'something went wrong';
@@ -52,6 +55,12 @@ export class JobProcessor {
           const { job, task } = jobAndTask;
           const isResettable = true;
           await this.queueClient.reject(job.id, task.id, isResettable, errorMsg);
+        }
+      } finally {
+        if (jobAndTask) {
+          const taskId = jobAndTask.task.id;
+          this.logger.info({ msg: 'notifying job tracker on task finished', taskId: taskId });
+          await this.jobTrackerClient.notifyOnFinishedTask(taskId);
         }
       }
       await setTimeoutPromise(this.dequeueIntervalMs);

@@ -86,6 +86,9 @@ const registerDefaultConfig = (): void => {
           baseUrl: 'http://heart-beat',
           intervalMs: 3000,
         },
+        jobTracker: {
+          baseUrl: 'http://localhost:8082',
+        },
         dequeueIntervalMs: 3000,
       },
     },
