@@ -1,12 +1,12 @@
 import { inject, injectable } from 'tsyringe';
-import { partSchema, PolygonPartsPayload } from '@map-colonies/mc-model-types';
+import { PolygonPartsPayload } from '@map-colonies/mc-model-types';
 import { IJobResponse } from '@map-colonies/mc-priority-queue';
 import { Logger } from '@map-colonies/js-logger';
 import { BadRequestError } from '@map-colonies/error-types';
 import { IJobHandler } from '../common/interfaces';
 import { PolygonPartsManagerClient } from '../clients/polygonPartsManagerClient';
 import { HANDLERS, SERVICES } from '../common/constants';
-import { ingestionNewRequestBodySchema } from '../schemas/polyPartsManager.schema';
+import { validateJob } from '../common/validation';
 
 const isSwapMapper = new Map([
   [HANDLERS.UPDATE, false],
@@ -27,21 +27,10 @@ export class UpdateJobHandler implements IJobHandler {
       throw new BadRequestError(`jobType invalid ${job.type}, isSwap parameter is required for update jobs`);
     }
 
-    const requestBody = {
-      productId: job.resourceId,
-      productType: job.productType,
-      catalogId: job.internalId,
-      productVersion: job.version,
-      partsData: job.parameters.partsData,
-    };
-
     try {
-      requestBody.partsData.forEach((part) => {
-        partSchema.parse(part);
-      });
-      const validatedRequestBody: PolygonPartsPayload = ingestionNewRequestBodySchema.parse(requestBody);
-
+      const validatedRequestBody: PolygonPartsPayload = validateJob(job);
       this.logger.info('creating update polygon part', validatedRequestBody, isSwap);
+
       await this.polygonPartsManager.updatePolygonParts(validatedRequestBody, isSwap);
     } catch (error) {
       this.logger.error({ msg: 'error while processing job', error });
