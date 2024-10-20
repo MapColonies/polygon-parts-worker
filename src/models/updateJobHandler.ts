@@ -23,7 +23,7 @@ export class UpdateJobHandler implements IJobHandler {
   public async processJob(job: IJobResponse<PolygonPartsPayload, unknown>): Promise<void> {
     const isSwap = isSwapMapper.get(job.type);
 
-    if (!isSwap) {
+    if (isSwap === undefined) {
       throw new BadRequestError(`jobType invalid ${job.type}, isSwap parameter is required for update jobs`);
     }
 
