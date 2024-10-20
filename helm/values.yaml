@@ -29,14 +29,14 @@ cloudProvider:
   imagePullSecretName: 'my-registry-secret'
   flavor: openshift
 
-  tracing:
-    enabled: false
-    url: ""
-  metrics:
-    enabled: false
-    url: ""
-    prometheus:
-      scrape: false
+tracing:
+  enabled: false
+  url: ""
+metrics:
+  enabled: false
+  url: ""
+  prometheus:
+    scrape: false
 
 enabled: true
 environment: development
