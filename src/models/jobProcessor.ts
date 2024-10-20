@@ -1,7 +1,7 @@
 import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import { Logger } from '@map-colonies/js-logger';
 import { inject, injectable } from 'tsyringe';
-import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import { ITaskResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { PolygonPartsPayload } from '@map-colonies/mc-model-types';
@@ -37,16 +37,18 @@ export class JobProcessor {
 
     while (this.isRunning) {
       let jobAndTask: IJobAndTaskResponse | undefined;
+      let task: ITaskResponse<unknown> | undefined;
       try {
         this.logger.debug({ msg: 'fetching next job' });
         jobAndTask = await this.getJobAndTask();
 
         if (jobAndTask) {
-          const { job, task } = jobAndTask;
+          const { job } = jobAndTask;
+          task = jobAndTask.task;
           this.logger.info({ msg: 'processing job', jobId: job.id });
           const jobHandler = initJobHandler(job.type, this.jobTypesToProcess);
           await jobHandler.processJob(job);
-          await this.notifyOnSuccess(job.id, task.id);
+          await this.queueClient.ack(job.id, task.id);
         }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'something went wrong';
@@ -55,6 +57,10 @@ export class JobProcessor {
           const { job, task } = jobAndTask;
           const isResettable = true;
           await this.queueClient.reject(job.id, task.id, isResettable, errorMsg);
+        }
+      } finally {
+        if (task) {
+          await this.jobTrackerClient.notifyOnFinishedTask(task.id);
         }
       }
       await setTimeoutPromise(this.dequeueIntervalMs);
@@ -83,10 +89,5 @@ export class JobProcessor {
   public stop(): void {
     this.logger.info({ msg: 'stopping polling' });
     this.isRunning = false;
-  }
-
-  private async notifyOnSuccess(jobId: string, taskId: string): Promise<void> {
-    await this.queueClient.ack(jobId, taskId);
-    await this.jobTrackerClient.notifyOnFinishedTask(taskId);
   }
 }
