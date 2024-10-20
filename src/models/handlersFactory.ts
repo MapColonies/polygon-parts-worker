@@ -12,7 +12,7 @@ export function initJobHandler(jobHandlerType: string, permittedTypes: IPermitte
     case permittedTypes.ingestionUpdate:
       return container.resolve<UpdateJobHandler>(HANDLERS.UPDATE);
     case permittedTypes.ingestionSwapUpdate:
-      return container.resolve<UpdateJobHandler>(HANDLERS.UPDATE);
+      return container.resolve<UpdateJobHandler>(HANDLERS.SWAP);
   }
   throw new BadRequestError(`${jobHandlerType} job type is invalid`);
 }
