@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/MapColonies/polygon-parts-worker/compare/v1.2.1...v1.3.0) (2024-10-20)
+
+
+### Features
+
+* implement update ([8d22d10](https://github.com/MapColonies/polygon-parts-worker/commit/8d22d10cf168b52779f68bf3ce5a1c1ce0629a60))
+* notify job tracker and ack  on task finish ([117e50a](https://github.com/MapColonies/polygon-parts-worker/commit/117e50a259cfe686bf9284a721876fae4e31a694))
+
+
+### Bug Fixes
+
+* lint errors ([9f2eb18](https://github.com/MapColonies/polygon-parts-worker/commit/9f2eb189ce0fb9dfc7ebf9d4a961241a445f09b7))
+* pr comments ([82971f3](https://github.com/MapColonies/polygon-parts-worker/commit/82971f373e0b649408cbf1f37390cffbe3c430fb))
+* revert suggestion, ([bf5e2a5](https://github.com/MapColonies/polygon-parts-worker/commit/bf5e2a5989664642b5a44e9eef254e42362cfc53))
+* small bug fixes in update process ([37370bc](https://github.com/MapColonies/polygon-parts-worker/commit/37370bc5da3059b69f59fc73fd5a67de94c4c9b3))
+
 ### [1.2.1](https://github.com/MapColonies/polygon-parts-worker/compare/v1.2.0...v1.2.1) (2024-10-10)
 
 
