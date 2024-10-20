@@ -1,7 +1,7 @@
 import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import { Logger } from '@map-colonies/js-logger';
 import { inject, injectable } from 'tsyringe';
-import { ITaskResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { PolygonPartsPayload } from '@map-colonies/mc-model-types';
@@ -58,7 +58,7 @@ export class JobProcessor {
         }
       } finally {
         if (jobAndTask) {
-          const taskId =jobAndTask.task.id
+          const taskId = jobAndTask.task.id;
           this.logger.info({ msg: 'notifying job tracker on task finished', taskId: taskId });
           await this.jobTrackerClient.notifyOnFinishedTask(taskId);
         }
