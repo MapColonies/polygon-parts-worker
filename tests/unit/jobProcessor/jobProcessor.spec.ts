@@ -22,7 +22,7 @@ jest.mock<typeof handlersFactory>('../../../src/models/handlersFactory', () => {
 });
 
 // eslint-disable-next-line import/first
-import { jobProcessorInstance, mockProcessJob, mockQueueClient } from '../jobProcessor/jobProcessorSetup';
+import { jobProcessorInstance, mockProcessJob, mockQueueClient, mockJobTrackerClient } from '../jobProcessor/jobProcessorSetup';
 
 describe('JobProcessor', () => {
   let jobProcessor: JobProcessor;
@@ -59,13 +59,17 @@ describe('JobProcessor', () => {
       nock(heartbeatBaseUrl).post(heartbeatRemovePath).reply(200, 'ok').persist();
       nock(jobManagerBaseUrl).put(jobManagerAckPath).reply(200, 'ok').persist();
       nock(jobTrackerBaseUrl).post(jobTrackerNotifyPath).reply(200, 'ok').persist();
+      const ackSpy = jest.spyOn(mockQueueClient, 'ack');
+      const notifyOnFinishedTaskSpy = jest.spyOn(mockJobTrackerClient, 'notifyOnFinishedTask');
 
       const resultPromise = jobProcessor.start();
       jobProcessor.stop();
 
-      expect.assertions(2);
+      expect.assertions(4);
       await expect(resultPromise).resolves.not.toThrow();
       expect(mockProcessJob).toHaveBeenCalledTimes(1);
+      expect(ackSpy).toHaveBeenCalledTimes(1);
+      expect(notifyOnFinishedTaskSpy).toHaveBeenCalledTimes(1);
       await mockQueueClient.heartbeatClient.stop(initTaskForIngestionNew.id);
     });
 
