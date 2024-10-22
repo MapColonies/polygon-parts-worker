@@ -39,7 +39,7 @@ function updateJobHandlerInstance(): IJobHandler {
   return new UpdateJobHandler(mockLogger, mockPolygonPartsClient);
 }
 
-export { jobProcessorInstance, newJobHandlerInstance, updateJobHandlerInstance, configMock, mockQueueClient, mockProcessJob };
+export { jobProcessorInstance, newJobHandlerInstance, updateJobHandlerInstance, configMock, mockQueueClient, mockProcessJob, mockJobTrackerClient };
 
 export type MockDequeue = jest.MockedFunction<(jobType: string, taskType: string) => Promise<ITaskResponse<unknown> | null>>;
 export type MockGetJob = jest.MockedFunction<(jobId: string) => Promise<IJobResponse<unknown, unknown>>>;
