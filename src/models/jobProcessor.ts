@@ -46,7 +46,8 @@ export class JobProcessor {
           this.logger.info({ msg: 'processing job', jobId: job.id });
           const jobHandler = initJobHandler(job.type, this.jobTypesToProcess);
           await jobHandler.processJob(job);
-          await this.queueClient.ack(job.id, task.id);
+          this.logger.info({ msg: 'notifying job tracker and job manager on task finished', taskId: task.id });
+          await this.notifyOnSuccess(job.id, task.id);
         }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'something went wrong';
@@ -55,12 +56,6 @@ export class JobProcessor {
           const { job, task } = jobAndTask;
           const isResettable = true;
           await this.queueClient.reject(job.id, task.id, isResettable, errorMsg);
-        }
-      } finally {
-        if (jobAndTask) {
-          const taskId = jobAndTask.task.id;
-          this.logger.info({ msg: 'notifying job tracker on task finished', taskId: taskId });
-          await this.jobTrackerClient.notifyOnFinishedTask(taskId);
         }
       }
       await setTimeoutPromise(this.dequeueIntervalMs);
@@ -89,5 +84,10 @@ export class JobProcessor {
   public stop(): void {
     this.logger.info({ msg: 'stopping polling' });
     this.isRunning = false;
+  }
+
+  private async notifyOnSuccess(jobId: string, taskId: string): Promise<void> {
+    await this.queueClient.ack(jobId, taskId);
+    await this.jobTrackerClient.notifyOnFinishedTask(taskId);
   }
 }
