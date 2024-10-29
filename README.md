@@ -133,6 +133,12 @@ Example structure for config/default.json:
       }
     }
     
+## Supported Environment Variables
+| Variable Name	  | Description  |
+| ------------ | ------------ |
+| jobDefinitions  | supported task and job types  |
+|  jobManagement-heartbeat-intervalMs | interval in Miliseconds for task's heartbeat  |
+| jobManagement-dequeueIntervalMs  | pooling loop delay time between pools  |
 
 ## Run Locally
 
