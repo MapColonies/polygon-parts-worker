@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/MapColonies/polygon-parts-worker/compare/v1.3.3...v1.4.0) (2024-10-29)
+
+
+### Features
+
+* upgrade mc models ([9c05286](https://github.com/MapColonies/polygon-parts-worker/commit/9c05286290685f171912aff3aed42a7c7206cb53))
+
 ### [1.3.3](https://github.com/MapColonies/polygon-parts-worker/compare/v1.3.2...v1.3.3) (2024-10-22)
 
 
