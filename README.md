@@ -134,31 +134,31 @@ Example structure for config/default.json:
     }
     
 ## Supported Environment Variables
-| Variable Name                         | Description                                                   |
-|---------------------------------------|---------------------------------------------------------------|
-| `TELEMETRY_SERVICE_NAME`              | Service name for telemetry use
-| `TELEMETRY_HOST_NAME`                 | Url for the telemetry service.                          |
-| `TELEMETRY_SERVICE_VERSION`           | Version of the telemetry service.                            |
-| `LOG_LEVEL`                           | Logging level for the application (e.g., `info`, `debug`).  |
-| `LOG_PRETTY_PRINT_ENABLED`            | Enable or disable pretty printing for logs (boolean).       |
-| `TELEMETRY_TRACING_ENABLED`           | Enable or disable tracing (boolean).                         |
-| `TELEMETRY_TRACING_URL`               | URL for the tracing service.                                 |
-| `TELEMETRY_METRICS_ENABLED`           | Enable or disable metrics collection (boolean).              |
-| `TELEMETRY_METRICS_URL`               | URL for the metrics service.                                 |
-| `TELEMETRY_METRICS_INTERVAL`          | Interval (in milliseconds) for sending metrics data.        |
-| `SERVER_PORT`                         | Port on which the server listens for incoming requests.     |
-| `REQUEST_PAYLOAD_LIMIT`               | Maximum payload limit for incoming requests.                 |
-| `RESPONSE_COMPRESSION_ENABLED`        | Enable or disable response compression (boolean).            |
-| `JOB_MANAGER_BASE_URL`                | Base URL of the Job-Manager service.                         |
-| `HEARTBEAT_BASE_URL`                  | Base URL for the heartbeat service.                          |
-| `HEARTBEAT_INTERVAL_MS`               | Interval (in milliseconds) for heartbeat checks.            |
-| `JOB_TRACKER_BASE_URL`                | Base URL of the Job Tracker service.                         |
-| `DEQUEUE_INTERVAL_MS`                 | Interval (in milliseconds) for dequeuing jobs.              |
-| `POLYGON_PARTS_MANAGER_BASE_URL`      | Base URL of the Polygon Parts Manager service.               |
-| `POLYGON_PARTS_TASK_TYPE`             | Type for polygon parts tasks.                                |
-| `INGESTION_NEW_JOB_TYPE`              | Job type for new ingestion jobs.                             |
-| `INGESTION_UPDATE_JOB_TYPE`           | Job type for update ingestion jobs.                          |
-| `INGESTION_SWAP_UPDATE_JOB_TYPE`      | Job type for swap update ingestion jobs.                     |
+| Variable Name                         | Description                                                   | Default Value                                   |
+|---------------------------------------|---------------------------------------------------------------|------------------------------------------------|
+| `TELEMETRY_SERVICE_NAME`              | Name of the telemetry service.                                | (not set)                                      |
+| `TELEMETRY_HOST_NAME`                 | Hostname for the telemetry service.                          | (not set)                                      |
+| `TELEMETRY_SERVICE_VERSION`           | Version of the telemetry service.                            | (not set)                                      |
+| `LOG_LEVEL`                           | Logging level for the application (e.g., `info`, `debug`, `warn`, `error`, `fatal`).  | info`                |
+| `LOG_PRETTY_PRINT_ENABLED`            | Enable or disable pretty printing for logs (boolean).       | `false`                                        |
+| `TELEMETRY_TRACING_ENABLED`           | Enable or disable tracing (boolean).                         | `false`                                        |
+| `TELEMETRY_TRACING_URL`               | URL for the tracing service.                                 | `http://localhost:4318/v1/traces`             |
+| `TELEMETRY_METRICS_ENABLED`           | Enable or disable metrics collection (boolean).              | `false`                                        |
+| `TELEMETRY_METRICS_URL`               | URL for the metrics service.                                 | `http://localhost:4318/v1/metrics`            |
+| `TELEMETRY_METRICS_INTERVAL`          | Interval (in seconds) for sending metrics data.             | `5`                                            |
+| `SERVER_PORT`                         | Port on which the server listens for incoming requests.     | `8080`                                         |
+| `REQUEST_PAYLOAD_LIMIT`               | Maximum payload limit for incoming requests.                 | `1mb`                                          |
+| `RESPONSE_COMPRESSION_ENABLED`        | Enable or disable response compression (boolean).            | `true`                                         |
+| `JOB_MANAGER_BASE_URL`                | Base URL of the Job-Manager service.                         | `http://localhost:8080`                        |
+| `HEARTBEAT_BASE_URL`                  | Base URL for the heartbeat service.                          | `http://localhost:8083`                        |
+| `HEARTBEAT_INTERVAL_MS`               | Interval (in milliseconds) for heartbeat checks.            | `3000`                                         |
+| `JOB_TRACKER_BASE_URL`                | Base URL of the Job Tracker service.                         | `http://localhost:8082`                        |
+| `DEQUEUE_INTERVAL_MS`                 | Interval (in milliseconds) for dequeuing jobs.              | `3000`                                         |
+| `POLYGON_PARTS_MANAGER_BASE_URL`      | Base URL of the Polygon Parts Manager service.               | `http://localhost:8081`                        |
+| `POLYGON_PARTS_TASK_TYPE`             | Type for polygon parts tasks.                                | `polygon-parts`                                |
+| `INGESTION_NEW_JOB_TYPE`              | Job type for new ingestion jobs.                             | `Ingestion_New`                                |
+| `INGESTION_UPDATE_JOB_TYPE`           | Job type for update ingestion jobs.                          | `Ingestion_Update`                             |
+| `INGESTION_SWAP_UPDATE_JOB_TYPE`      | Job type for swap update ingestion jobs.                     | `Ingestion_Swap_Update`                        |
 
 ## Run Locally
 
