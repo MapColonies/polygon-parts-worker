@@ -134,11 +134,31 @@ Example structure for config/default.json:
     }
     
 ## Supported Environment Variables
-| Variable Name	  | Description  |
-| ------------ | ------------ |
-| jobDefinitions  | supported task and job types  |
-|  jobManagement-heartbeat-intervalMs | interval in Miliseconds for task's heartbeat  |
-| jobManagement-dequeueIntervalMs  | pooling loop delay time between pools  |
+| Variable Name                         | Description                                                   |
+|---------------------------------------|---------------------------------------------------------------|
+| `TELEMETRY_SERVICE_NAME`              | Service name for telemetry use
+| `TELEMETRY_HOST_NAME`                 | Url for the telemetry service.                          |
+| `TELEMETRY_SERVICE_VERSION`           | Version of the telemetry service.                            |
+| `LOG_LEVEL`                           | Logging level for the application (e.g., `info`, `debug`).  |
+| `LOG_PRETTY_PRINT_ENABLED`            | Enable or disable pretty printing for logs (boolean).       |
+| `TELEMETRY_TRACING_ENABLED`           | Enable or disable tracing (boolean).                         |
+| `TELEMETRY_TRACING_URL`               | URL for the tracing service.                                 |
+| `TELEMETRY_METRICS_ENABLED`           | Enable or disable metrics collection (boolean).              |
+| `TELEMETRY_METRICS_URL`               | URL for the metrics service.                                 |
+| `TELEMETRY_METRICS_INTERVAL`          | Interval (in milliseconds) for sending metrics data.        |
+| `SERVER_PORT`                         | Port on which the server listens for incoming requests.     |
+| `REQUEST_PAYLOAD_LIMIT`               | Maximum payload limit for incoming requests.                 |
+| `RESPONSE_COMPRESSION_ENABLED`        | Enable or disable response compression (boolean).            |
+| `JOB_MANAGER_BASE_URL`                | Base URL of the Job-Manager service.                         |
+| `HEARTBEAT_BASE_URL`                  | Base URL for the heartbeat service.                          |
+| `HEARTBEAT_INTERVAL_MS`               | Interval (in milliseconds) for heartbeat checks.            |
+| `JOB_TRACKER_BASE_URL`                | Base URL of the Job Tracker service.                         |
+| `DEQUEUE_INTERVAL_MS`                 | Interval (in milliseconds) for dequeuing jobs.              |
+| `POLYGON_PARTS_MANAGER_BASE_URL`      | Base URL of the Polygon Parts Manager service.               |
+| `POLYGON_PARTS_TASK_TYPE`             | Type for polygon parts tasks.                                |
+| `INGESTION_NEW_JOB_TYPE`              | Job type for new ingestion jobs.                             |
+| `INGESTION_UPDATE_JOB_TYPE`           | Job type for update ingestion jobs.                          |
+| `INGESTION_SWAP_UPDATE_JOB_TYPE`      | Job type for swap update ingestion jobs.                     |
 
 ## Run Locally
 
