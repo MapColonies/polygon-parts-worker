@@ -3,6 +3,7 @@ import { ZodError } from 'zod';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { newJobHandlerInstance } from '../jobProcessor/jobProcessorSetup';
 import { newJobResponseMock } from '../mocks/jobsMocks';
+import { polygonPartsEntity } from '../mocks/jobProcessorResponseMock';
 import { IJobHandler } from '../../../src/common/interfaces';
 
 describe('NewJobHandler', () => {
@@ -23,12 +24,12 @@ describe('NewJobHandler', () => {
 
   describe('processJob', () => {
     it('should successfully process job', async () => {
-      nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(200).persist();
+      nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(200, polygonPartsEntity).persist();
 
       const result = newJobHandler.processJob(newJobResponseMock);
       const awaitedResult = await result;
 
-      expect(awaitedResult).toBeUndefined();
+      expect(awaitedResult).toStrictEqual(polygonPartsEntity);
       await expect(result).resolves.not.toThrow();
       expect.assertions(2);
     });

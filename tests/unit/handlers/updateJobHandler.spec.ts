@@ -5,6 +5,7 @@ import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { updateJobHandlerInstance } from '../jobProcessor/jobProcessorSetup';
 import { newJobResponseMock } from '../mocks/jobsMocks';
 import { IJobHandler } from '../../../src/common/interfaces';
+import { polygonPartsEntity } from '../mocks/jobProcessorResponseMock';
 
 describe('UpdateJobHandler', () => {
   const polygonPartsManagerUrl = configMock.get<string>('polygonPartsManager.baseUrl');
@@ -26,12 +27,12 @@ describe('UpdateJobHandler', () => {
     const isSwap = false;
     const updateJobResponseMock = { ...newJobResponseMock, type: configMock.get<string>('jobDefinitions.jobs.update.type') };
     it('should successfully process job', async () => {
-      nock(polygonPartsManagerUrl).put(polygonPartsManagerPutPath).query({ isSwap }).reply(200).persist();
+      nock(polygonPartsManagerUrl).put(polygonPartsManagerPutPath).query({ isSwap }).reply(200, polygonPartsEntity).persist();
 
       const result = updateJobHandler.processJob(updateJobResponseMock);
       const awaitedResult = await result;
 
-      expect(awaitedResult).toBeUndefined();
+      expect(awaitedResult).toStrictEqual(polygonPartsEntity);
       await expect(result).resolves.not.toThrow();
       expect.assertions(2);
     });
@@ -76,12 +77,12 @@ describe('UpdateSwapJobHandler', () => {
 
   describe('processJob', () => {
     it('should successfully process job', async () => {
-      nock(polygonPartsManagerUrl).put(polygonPartsManagerPutPath).query({ isSwap }).reply(200).persist();
+      nock(polygonPartsManagerUrl).put(polygonPartsManagerPutPath).query({ isSwap }).reply(200, polygonPartsEntity).persist();
 
       const result = updateJobHandler.processJob(updateSwapJobResponseMock);
       const awaitedResult = await result;
 
-      expect(awaitedResult).toBeUndefined();
+      expect(awaitedResult).toStrictEqual(polygonPartsEntity);
       await expect(result).resolves.not.toThrow();
       expect.assertions(2);
     });

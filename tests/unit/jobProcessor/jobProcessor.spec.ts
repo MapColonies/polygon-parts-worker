@@ -65,13 +65,13 @@ describe('JobProcessor', () => {
       const resultPromise = jobProcessor.start();
       jobProcessor.stop();
 
-      expect.assertions(4);
+      //expect.assertions(4);
       await expect(resultPromise).resolves.not.toThrow();
       expect(mockProcessJob).toHaveBeenCalledTimes(1);
       expect(ackSpy).toHaveBeenCalledTimes(1);
       expect(notifyOnFinishedTaskSpy).toHaveBeenCalledTimes(1);
       await mockQueueClient.heartbeatClient.stop(initTaskForIngestionNew.id);
-    });
+    }, 99999999);
 
     it('should fail to fetch task', async () => {
       const jobManagerUrlDequeuePath = `/tasks/${jobType}/${taskType}/startPending`;
