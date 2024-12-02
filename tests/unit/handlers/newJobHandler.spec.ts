@@ -4,6 +4,7 @@ import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { newJobHandlerInstance } from '../jobProcessor/jobProcessorSetup';
 import { newJobResponseMock } from '../mocks/jobsMocks';
 import { IJobHandler } from '../../../src/common/interfaces';
+import { polygonPartsEntity } from '../mocks/jobProcessorResponseMock';
 
 describe('NewJobHandler', () => {
   const polygonPartsManagerUrl = configMock.get<string>('polygonPartsManager.baseUrl');
@@ -23,23 +24,23 @@ describe('NewJobHandler', () => {
 
   describe('processJob', () => {
     it('should successfully process job', async () => {
-      nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(200).persist();
+      nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(200, polygonPartsEntity).persist();
 
-      const result = newJobHandler.processJob(newJobResponseMock);
-      const awaitedResult = await result;
+      const response = await newJobHandler.processJob(newJobResponseMock);
 
-      expect(awaitedResult).toBeUndefined();
-      await expect(result).resolves.not.toThrow();
-      expect.assertions(2);
+      expect(response).toStrictEqual(polygonPartsEntity);
+      expect.assertions(1);
     });
 
     it('should fail on validation due to invalid productType and throw error', async () => {
       nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(200).persist();
       const invalidJobResponseMock = { ...newJobResponseMock, productType: 'invalidType' };
 
-      const result = newJobHandler.processJob(invalidJobResponseMock);
+      const action = async () => {
+        await newJobHandler.processJob(invalidJobResponseMock);
+      };
 
-      await expect(result).rejects.toThrow(ZodError);
+      await expect(action()).rejects.toThrow(ZodError);
     });
   });
 });

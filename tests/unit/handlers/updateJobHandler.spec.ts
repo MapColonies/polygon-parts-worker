@@ -5,6 +5,7 @@ import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { updateJobHandlerInstance } from '../jobProcessor/jobProcessorSetup';
 import { newJobResponseMock } from '../mocks/jobsMocks';
 import { IJobHandler } from '../../../src/common/interfaces';
+import { polygonPartsEntity } from '../mocks/jobProcessorResponseMock';
 
 describe('UpdateJobHandler', () => {
   const polygonPartsManagerUrl = configMock.get<string>('polygonPartsManager.baseUrl');
@@ -26,32 +27,34 @@ describe('UpdateJobHandler', () => {
     const isSwap = false;
     const updateJobResponseMock = { ...newJobResponseMock, type: configMock.get<string>('jobDefinitions.jobs.update.type') };
     it('should successfully process job', async () => {
-      nock(polygonPartsManagerUrl).put(polygonPartsManagerPutPath).query({ isSwap }).reply(200).persist();
+      nock(polygonPartsManagerUrl).put(polygonPartsManagerPutPath).query({ isSwap }).reply(200, polygonPartsEntity).persist();
 
-      const result = updateJobHandler.processJob(updateJobResponseMock);
-      const awaitedResult = await result;
+      const response = await updateJobHandler.processJob(updateJobResponseMock);
 
-      expect(awaitedResult).toBeUndefined();
-      await expect(result).resolves.not.toThrow();
-      expect.assertions(2);
+      expect(response).toStrictEqual(polygonPartsEntity);
+      expect.assertions(1);
     });
 
     it('should fail on validation due to invalid productType and throw error', async () => {
       nock(polygonPartsManagerUrl).put(polygonPartsManagerPutPath).query({ isSwap }).reply(200).persist();
       const invalidJobResponseMock = { ...updateJobResponseMock, productType: 'invalidType' };
 
-      const result = updateJobHandler.processJob(invalidJobResponseMock);
+      const action = async () => {
+        await updateJobHandler.processJob(invalidJobResponseMock);
+      };
 
-      await expect(result).rejects.toThrow(ZodError);
+      await expect(action()).rejects.toThrow(ZodError);
     });
 
     it('should fail isSwap is not defined', async () => {
       nock(polygonPartsManagerUrl).put(polygonPartsManagerPutPath).query({ isSwap }).reply(200).persist();
       const invalidJobResponseMock = { ...updateJobResponseMock, type: 'invalidType' };
 
-      const result = updateJobHandler.processJob(invalidJobResponseMock);
+      const action = async () => {
+        await updateJobHandler.processJob(invalidJobResponseMock);
+      };
 
-      await expect(result).rejects.toThrow(BadRequestError);
+      await expect(action()).rejects.toThrow(BadRequestError);
     });
   });
 });
@@ -76,23 +79,23 @@ describe('UpdateSwapJobHandler', () => {
 
   describe('processJob', () => {
     it('should successfully process job', async () => {
-      nock(polygonPartsManagerUrl).put(polygonPartsManagerPutPath).query({ isSwap }).reply(200).persist();
+      nock(polygonPartsManagerUrl).put(polygonPartsManagerPutPath).query({ isSwap }).reply(200, polygonPartsEntity).persist();
 
-      const result = updateJobHandler.processJob(updateSwapJobResponseMock);
-      const awaitedResult = await result;
+      const response = await updateJobHandler.processJob(updateSwapJobResponseMock);
 
-      expect(awaitedResult).toBeUndefined();
-      await expect(result).resolves.not.toThrow();
-      expect.assertions(2);
+      expect(response).toStrictEqual(polygonPartsEntity);
+      expect.assertions(1);
     });
 
     it('should fail on validation due to invalid productType and throw error', async () => {
       nock(polygonPartsManagerUrl).put(polygonPartsManagerPutPath).query({ isSwap }).reply(200).persist();
       const invalidJobResponseMock = { ...updateSwapJobResponseMock, productType: 'invalidType' };
 
-      const result = updateJobHandler.processJob(invalidJobResponseMock);
+      const action = async () => {
+        await updateJobHandler.processJob(invalidJobResponseMock);
+      };
 
-      await expect(result).rejects.toThrow(ZodError);
+      await expect(action()).rejects.toThrow(ZodError);
     });
   });
 });
