@@ -19,11 +19,11 @@ export interface IHeartbeatConfig {
 
 export interface IJobAndTaskResponse {
   task: ITaskResponse<unknown>;
-  job: JobProfile;
+  job: JobResponse;
 }
 
 export interface IJobHandler {
-  processJob: (job: JobProfile) => Promise<PolygonPartsEntityName>;
+  processJob: (job: JobResponse) => Promise<PolygonPartsEntityName>;
 }
 
 export interface IPermittedJobTypes {
@@ -39,4 +39,4 @@ export interface JobParams {
   additionalParams: Record<string, unknown>;
 }
 
-export type JobProfile = IJobResponse<JobParams, unknown>;
+export type JobResponse = IJobResponse<JobParams, unknown>;

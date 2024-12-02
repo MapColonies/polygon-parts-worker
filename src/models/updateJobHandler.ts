@@ -2,7 +2,7 @@ import { inject, injectable } from 'tsyringe';
 import { PolygonPartsEntityName, PolygonPartsPayload } from '@map-colonies/mc-model-types';
 import { Logger } from '@map-colonies/js-logger';
 import { BadRequestError } from '@map-colonies/error-types';
-import { IJobHandler, JobProfile } from '../common/interfaces';
+import { IJobHandler, JobResponse } from '../common/interfaces';
 import { PolygonPartsManagerClient } from '../clients/polygonPartsManagerClient';
 import { HANDLERS, SERVICES } from '../common/constants';
 import { validateJob } from '../common/validation';
@@ -19,7 +19,7 @@ export class UpdateJobHandler implements IJobHandler {
     @inject(PolygonPartsManagerClient) private readonly polygonPartsManager: PolygonPartsManagerClient
   ) {}
 
-  public async processJob(job: JobProfile): Promise<PolygonPartsEntityName> {
+  public async processJob(job: JobResponse): Promise<PolygonPartsEntityName> {
     const isSwap = isSwapMapper.get(job.type);
 
     if (isSwap === undefined) {

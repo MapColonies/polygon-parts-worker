@@ -1,7 +1,7 @@
 import { inject, injectable } from 'tsyringe';
 import { PolygonPartsEntityName, PolygonPartsPayload } from '@map-colonies/mc-model-types';
 import { Logger } from '@map-colonies/js-logger';
-import { IJobHandler, JobProfile } from '../common/interfaces';
+import { IJobHandler, JobResponse } from '../common/interfaces';
 import { PolygonPartsManagerClient } from '../clients/polygonPartsManagerClient';
 import { SERVICES } from '../common/constants';
 import { validateJob } from '../common/validation';
@@ -13,7 +13,7 @@ export class NewJobHandler implements IJobHandler {
     @inject(PolygonPartsManagerClient) private readonly polygonPartsManager: PolygonPartsManagerClient
   ) {}
 
-  public async processJob(job: JobProfile): Promise<PolygonPartsEntityName> {
+  public async processJob(job: JobResponse): Promise<PolygonPartsEntityName> {
     try {
       const validatedRequestBody: PolygonPartsPayload = validateJob(job);
       this.logger.info('creating new polygon part', validatedRequestBody);

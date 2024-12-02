@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 import { ProductType, Transparency } from '@map-colonies/mc-model-types';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
-import { JobParams, JobProfile } from '../../../src/common/interfaces';
+import { JobParams, JobResponse } from '../../../src/common/interfaces';
 
-const newJobResponseMock: JobProfile = {
+const newJobResponseMock: JobResponse = {
   id: '321d495f-e6e4-45cc-b301-4ebc4e894f03',
   resourceId: 'polygonPartsTest7',
   version: '1.0',

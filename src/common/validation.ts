@@ -1,8 +1,8 @@
 import { partSchema, PolygonPartsPayload } from '@map-colonies/mc-model-types';
 import { ingestionNewRequestBodySchema } from '../schemas/polyPartsManager.schema';
-import { JobProfile } from './interfaces';
+import { JobResponse } from './interfaces';
 
-export function validateJob(job: JobProfile): PolygonPartsPayload {
+export function validateJob(job: JobResponse): PolygonPartsPayload {
   const requestBody = {
     productId: job.resourceId,
     productType: job.productType,

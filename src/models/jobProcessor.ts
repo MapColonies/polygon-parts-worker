@@ -6,7 +6,7 @@ import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { PolygonPartsEntityName } from '@map-colonies/mc-model-types';
 import { SERVICES } from '../common/constants';
-import { IConfig, IJobAndTaskResponse, IPermittedJobTypes, JobParams, JobProfile } from '../common/interfaces';
+import { IConfig, IJobAndTaskResponse, IPermittedJobTypes, JobParams, JobResponse } from '../common/interfaces';
 import { JobTrackerClient } from '../clients/jobTrackerClient';
 import { initJobHandler } from './handlersFactory';
 
@@ -96,7 +96,7 @@ export class JobProcessor {
     await this.jobTrackerClient.notifyOnFinishedTask(taskId);
   }
 
-  private updateAdditionalParams(job: JobProfile, polygonPartsEntity: PolygonPartsEntityName): IUpdateJobBody<JobParams> {
+  private updateAdditionalParams(job: JobResponse, polygonPartsEntity: PolygonPartsEntityName): IUpdateJobBody<JobParams> {
     const newAdditionalParameters = { ...job.parameters.additionalParams, ...polygonPartsEntity };
     const newParameters = { ...job.parameters, additionalParams: { ...newAdditionalParameters } };
     return { parameters: newParameters };
