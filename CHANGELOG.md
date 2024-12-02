@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.1](https://github.com/MapColonies/polygon-parts-worker/compare/v1.4.0...v1.4.1) (2024-12-02)
+
+
+### Bug Fixes
+
+* jobParams and entityName ([86e751a](https://github.com/MapColonies/polygon-parts-worker/commit/86e751a1e7b423ee6fb8e97cce508eff36d3c0c3))
+* pr changes ([9b7ebaa](https://github.com/MapColonies/polygon-parts-worker/commit/9b7ebaadd56d7962900b8c538826627abbed7d7c))
+* pr changes ([3137a8b](https://github.com/MapColonies/polygon-parts-worker/commit/3137a8bd5f217eb626c408c6f4dca899e7cd115e))
+
 ## [1.4.0](https://github.com/MapColonies/polygon-parts-worker/compare/v1.3.3...v1.4.0) (2024-10-29)
 
 
