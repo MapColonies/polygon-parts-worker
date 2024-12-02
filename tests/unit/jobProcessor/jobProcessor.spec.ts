@@ -1,7 +1,7 @@
 import nock from 'nock';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
-import { newJobResponseMock } from '../mocks/jobsMocks';
+import { newJobResponseMock, updatedJobRequest } from '../mocks/jobsMocks';
 import { initTaskForIngestionNew } from '../mocks/tasksMocks';
 import * as handlersFactory from '../../../src/models/handlersFactory';
 
@@ -10,7 +10,7 @@ const initJobHandlerMock = jest.fn();
 initJobHandlerMock.mockImplementation(() => {
   return {
     processJob: async () => {
-      await mockProcessJob();
+      return mockProcessJob();
     },
   };
 });
@@ -50,27 +50,24 @@ describe('JobProcessor', () => {
       const jobManagerUrlGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`;
       const jobManagerAckPath = `/jobs/${initTaskForIngestionNew.jobId}/tasks/${initTaskForIngestionNew.id}`;
       const jobTrackerNotifyPath = `/tasks/${initTaskForIngestionNew.id}/notify`;
-      const heartbeatStartPath = `/heartbeat/${initTaskForIngestionNew.id}`;
-      const heartbeatRemovePath = `/heartbeat/remove`;
 
       nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(200, initTaskForIngestionNew).persist();
       nock(jobManagerBaseUrl).get(jobManagerUrlGetJobPath).query({ shouldReturnTasks: false }).reply(200, newJobResponseMock).persist();
-      nock(heartbeatBaseUrl).post(heartbeatStartPath).reply(200, 'ok').persist();
-      nock(heartbeatBaseUrl).post(heartbeatRemovePath).reply(200, 'ok').persist();
+      nock(jobManagerBaseUrl).put(jobManagerUrlGetJobPath, JSON.stringify(updatedJobRequest)).reply(200).persist();
       nock(jobManagerBaseUrl).put(jobManagerAckPath).reply(200, 'ok').persist();
       nock(jobTrackerBaseUrl).post(jobTrackerNotifyPath).reply(200, 'ok').persist();
+
       const ackSpy = jest.spyOn(mockQueueClient, 'ack');
       const notifyOnFinishedTaskSpy = jest.spyOn(mockJobTrackerClient, 'notifyOnFinishedTask');
 
       const resultPromise = jobProcessor.start();
       jobProcessor.stop();
 
-      expect.assertions(4);
       await expect(resultPromise).resolves.not.toThrow();
       expect(mockProcessJob).toHaveBeenCalledTimes(1);
       expect(ackSpy).toHaveBeenCalledTimes(1);
       expect(notifyOnFinishedTaskSpy).toHaveBeenCalledTimes(1);
-      await mockQueueClient.heartbeatClient.stop(initTaskForIngestionNew.id);
+      expect.assertions(4);
     });
 
     it('should fail to fetch task', async () => {

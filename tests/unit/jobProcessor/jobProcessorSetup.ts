@@ -2,6 +2,7 @@ import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import jsLogger from '@map-colonies/js-logger';
 import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { trace } from '@opentelemetry/api';
+import { PolygonPartsEntityName } from '@map-colonies/mc-model-types';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { IJobHandler } from '../../../src/common/interfaces';
@@ -9,10 +10,11 @@ import { NewJobHandler } from '../../../src/models/newJobHandler';
 import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsManagerClient';
 import { UpdateJobHandler } from '../../../src/models/updateJobHandler';
 import { JobTrackerClient } from '../../../src/clients/jobTrackerClient';
+import { polygonPartsEntity } from '../mocks/jobProcessorResponseMock';
 
 const mockLogger = jsLogger({ enabled: false });
 
-const mockProcessJob = jest.fn() as MockProcessJob;
+const mockProcessJob = (jest.fn() as MockProcessJob).mockResolvedValue(polygonPartsEntity);
 
 registerDefaultConfig();
 const mockQueueClient = new QueueClient(
@@ -24,8 +26,8 @@ const mockQueueClient = new QueueClient(
 );
 
 const mockTracer = trace.getTracer('testingTracer');
-const mockPolygonPartsClient = new PolygonPartsManagerClient(mockLogger, mockTracer);
-const mockJobTrackerClient = new JobTrackerClient(mockLogger, mockTracer);
+const mockPolygonPartsClient = new PolygonPartsManagerClient(mockLogger, configMock, mockTracer);
+const mockJobTrackerClient = new JobTrackerClient(mockLogger, configMock, mockTracer);
 
 function jobProcessorInstance(): JobProcessor {
   return new JobProcessor(mockLogger, mockTracer, mockQueueClient, configMock, mockJobTrackerClient);
@@ -43,7 +45,7 @@ export { jobProcessorInstance, newJobHandlerInstance, updateJobHandlerInstance, 
 
 export type MockDequeue = jest.MockedFunction<(jobType: string, taskType: string) => Promise<ITaskResponse<unknown> | null>>;
 export type MockGetJob = jest.MockedFunction<(jobId: string) => Promise<IJobResponse<unknown, unknown>>>;
-export type MockProcessJob = jest.MockedFunction<() => Promise<void>>;
+export type MockProcessJob = jest.MockedFunction<() => Promise<PolygonPartsEntityName>>;
 
 export interface JobProcessorTestContext {
   jobProcessor: JobProcessor;

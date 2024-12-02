@@ -1,40 +1,66 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
-import { PolygonPartsPayload } from '@map-colonies/mc-model-types';
-import { IJobResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
+import { ProductType, Transparency } from '@map-colonies/mc-model-types';
+import { OperationStatus } from '@map-colonies/mc-priority-queue';
+import { JobParams, JobProfile } from '../../../src/common/interfaces';
 
-export const newJobResponseMock: IJobResponse<PolygonPartsPayload, unknown> = {
+const newJobResponseMock: JobProfile = {
   id: '321d495f-e6e4-45cc-b301-4ebc4e894f03',
   resourceId: 'polygonPartsTest7',
   version: '1.0',
   type: 'Ingestion_New',
   description: 'polygonPart job for test',
   parameters: {
+    metadata: {
+      srs: '4326',
+      grid: '2x1',
+      region: ['hkjhjk'],
+      srsName: 'WGS84GEO',
+      catalogId: 'a4f05d9e-01ff-4418-b819-8869cab6ee5d',
+      productId: 'hkhjk',
+      displayPath: '2b549bc0-0381-492a-8f55-28a19cd98e38',
+      productName: 'hjkhjk',
+      productType: ProductType.ORTHOPHOTO,
+      producerName: 'IDFMU',
+      tileMimeType: 'image/png',
+      transparency: Transparency.TRANSPARENT,
+      classification: '5',
+      tileOutputFormat: 'PNG',
+      layerRelativePath: 'a4f05d9e-01ff-4418-b819-8869cab6ee5d/2b549bc0-0381-492a-8f55-28a19cd98e38',
+    },
     partsData: [
       {
-        cities: ['string'],
-        sensors: ['string'],
-        coordinates: [
-          [
-            [35.096758731934955, 32.840683800982745],
-            [35.06439307418452, 32.840683800982745],
-            [35.06439307418452, 32.811336871233905],
-            [35.096758731934955, 32.811336871233905],
-            [35.096758731934955, 32.840683800982745],
+        sensors: ['jkljkl'],
+        sourceId: 'dghfghfg',
+        footprint: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [34.48728335834858, 31.531266394350354],
+              [34.48727176862647, 31.53023901883512],
+              [34.48762525514584, 31.530456349213623],
+              [34.48847130484714, 31.530910765642957],
+              [34.488013510830655, 31.531547932783027],
+              [34.48728335834858, 31.531266394350354],
+            ],
           ],
-        ],
-        sourceId: 'string',
-        countries: ['Israel'],
-        sourceName: 'thisIsSourceName',
-        description: 'string',
-        resolutionMeter: 78271.52,
-        resolutionDegree: 0.703125,
-        imagingTimeEndUTC: '2024-09-24T14:06:43.706Z' as unknown as Date,
-        imagingTimeBeginUTC: '2024-09-24T14:06:43.706Z' as unknown as Date,
-        sourceResolutionMeter: 78271.52,
-        horizontalAccuracyCE90: 4000,
+        },
+        sourceName: 'dhgfhg',
+        resolutionMeter: 0.037,
+        resolutionDegree: 3.35276126861572e-7,
+        imagingTimeEndUTC: new Date('2024-11-19T13:31:00.000Z'),
+        imagingTimeBeginUTC: new Date('2024-11-17T13:31:00.000Z'),
+        sourceResolutionMeter: 70000,
+        horizontalAccuracyCE90: 49,
       },
     ],
-  } as unknown as PolygonPartsPayload,
+    inputFiles: {
+      fileNames: ['sample_2.5cm_geo.gpkg'],
+      originDirectory: 'test_dir',
+    },
+    additionalParams: {
+      jobTrackerServiceURL: 'http://raster-core-dev-job-tracker-service',
+    },
+  } as JobParams,
   status: OperationStatus.PENDING,
   percentage: 0,
   reason: '',
@@ -57,3 +83,14 @@ export const newJobResponseMock: IJobResponse<PolygonPartsPayload, unknown> = {
   created: '2024-09-25T08:19:26.156Z',
   updated: '2024-09-25T08:19:26.156Z',
 };
+
+const updatedAdditionalParams = { ...newJobResponseMock.parameters.additionalParams, polygonPartsEntityName: 'blue_marble_orthophoto' };
+
+const updatedJobRequest = {
+  parameters: {
+    ...newJobResponseMock.parameters,
+    additionalParams: updatedAdditionalParams,
+  },
+};
+
+export { updatedJobRequest, newJobResponseMock };

@@ -1,15 +1,19 @@
 import { HttpClient, IHttpRetryConfig } from '@map-colonies/mc-utils';
 import { inject, injectable } from 'tsyringe';
-import config from 'config';
 import { Logger } from '@map-colonies/js-logger';
 import { Tracer } from '@opentelemetry/api';
-import { PolygonPartsPayload } from '@map-colonies/mc-model-types';
+import { PolygonPartsPayload, PolygonPartsEntityName } from '@map-colonies/mc-model-types';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { SERVICES } from '../common/constants';
+import { IConfig } from '../common/interfaces';
 
 @injectable()
 export class PolygonPartsManagerClient extends HttpClient {
-  public constructor(@inject(SERVICES.LOGGER) protected readonly logger: Logger, @inject(SERVICES.TRACER) public readonly tracer: Tracer) {
+  public constructor(
+    @inject(SERVICES.LOGGER) protected readonly logger: Logger,
+    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    @inject(SERVICES.TRACER) public readonly tracer: Tracer
+  ) {
     super(
       logger,
       config.get<string>('polygonPartsManager.baseUrl'),
@@ -20,14 +24,14 @@ export class PolygonPartsManagerClient extends HttpClient {
   }
 
   @withSpanAsyncV4
-  public async createPolygonParts(requestBody: PolygonPartsPayload): Promise<void> {
+  public async createPolygonParts(requestBody: PolygonPartsPayload): Promise<PolygonPartsEntityName> {
     const createPolygonPartsUrl = `/polygonParts`;
-    await this.post(createPolygonPartsUrl, requestBody);
+    return this.post(createPolygonPartsUrl, requestBody);
   }
 
   @withSpanAsyncV4
-  public async updatePolygonParts(requestBody: PolygonPartsPayload, isSwap: boolean): Promise<void> {
+  public async updatePolygonParts(requestBody: PolygonPartsPayload, isSwap: boolean): Promise<PolygonPartsEntityName> {
     const createPolygonPartsUrl = `/polygonParts?isSwap=${isSwap}`;
-    await this.put(createPolygonPartsUrl, requestBody);
+    return this.put(createPolygonPartsUrl, requestBody);
   }
 }

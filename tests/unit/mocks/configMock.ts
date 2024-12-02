@@ -87,7 +87,7 @@ const registerDefaultConfig = (): void => {
           intervalMs: 3000,
         },
         jobTracker: {
-          baseUrl: 'http://localhost:8082',
+          baseUrl: 'http://job-tracker',
         },
         dequeueIntervalMs: 3000,
       },
