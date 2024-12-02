@@ -26,12 +26,14 @@ export class PolygonPartsManagerClient extends HttpClient {
   @withSpanAsyncV4
   public async createPolygonParts(requestBody: PolygonPartsPayload): Promise<PolygonPartsEntityName> {
     const createPolygonPartsUrl = `/polygonParts`;
-    return await this.post(createPolygonPartsUrl, requestBody);
+    const response = await this.post<PolygonPartsEntityName>(createPolygonPartsUrl, requestBody);
+    return response;
   }
 
   @withSpanAsyncV4
   public async updatePolygonParts(requestBody: PolygonPartsPayload, isSwap: boolean): Promise<PolygonPartsEntityName> {
     const createPolygonPartsUrl = `/polygonParts?isSwap=${isSwap}`;
-    return await this.put(createPolygonPartsUrl, requestBody);
+    const response = await this.put<PolygonPartsEntityName>(createPolygonPartsUrl, requestBody);
+    return response;
   }
 }
