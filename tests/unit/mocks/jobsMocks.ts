@@ -93,4 +93,8 @@ const updatedJobRequest = {
   },
 };
 
-export { updatedJobRequest, newJobResponseMock };
+const failTaskRequest = {
+  status: OperationStatus.FAILED,
+};
+
+export { updatedJobRequest, newJobResponseMock, failTaskRequest };

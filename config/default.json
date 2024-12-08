@@ -68,5 +68,8 @@
         "type": "Ingestion_Swap_Update"
       }
     }
+  },
+  "polygonPartsWorker": {
+    "maxTaskAttempts": 3
   }
 }

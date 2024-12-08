@@ -1,8 +1,8 @@
 import nock from 'nock';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
-import { newJobResponseMock, updatedJobRequest } from '../mocks/jobsMocks';
-import { initTaskForIngestionNew } from '../mocks/tasksMocks';
+import { failTaskRequest, newJobResponseMock, updatedJobRequest } from '../mocks/jobsMocks';
+import { initTaskForIngestionNew, reachedMaxAttemptsTask } from '../mocks/tasksMocks';
 import * as handlersFactory from '../../../src/models/handlersFactory';
 
 const initJobHandlerMock = jest.fn();
@@ -45,7 +45,7 @@ describe('JobProcessor', () => {
     const taskType = configMock.get<string>('jobDefinitions.tasks.polygonParts.type');
     const jobType = configMock.get<string>('jobDefinitions.jobs.new.type');
 
-    it('should successfully fetch new poly parts task and process it', async () => {
+    it('should successfully fetch new polygon-parts task and process it', async () => {
       const jobManagerUrlDequeuePath = `/tasks/${jobType}/${taskType}/startPending`;
       const jobManagerUrlGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`;
       const jobManagerAckPath = `/jobs/${initTaskForIngestionNew.jobId}/tasks/${initTaskForIngestionNew.id}`;
@@ -70,6 +70,32 @@ describe('JobProcessor', () => {
       expect.assertions(4);
     });
 
+    it('should fail when polygon-parts task reached max attempts', async () => {
+      const jobManagerUrlDequeuePath = `/tasks/${jobType}/${taskType}/startPending`;
+      const jobManagerUrlGetJobPath = `/jobs/${reachedMaxAttemptsTask.jobId}`;
+      const jobManagerRejectPath = `/jobs/${reachedMaxAttemptsTask.jobId}/tasks/${reachedMaxAttemptsTask.id}`;
+      const jobTrackerNotifyPath = `/tasks/${reachedMaxAttemptsTask.id}/notify`;
+
+      nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(200, reachedMaxAttemptsTask).persist();
+      nock(jobManagerBaseUrl).get(jobManagerUrlGetJobPath).query({ shouldReturnTasks: false }).reply(200, newJobResponseMock).persist();
+      nock(jobManagerBaseUrl).put(jobManagerRejectPath, JSON.stringify(failTaskRequest)).reply(200).persist();
+      nock(jobTrackerBaseUrl).post(jobTrackerNotifyPath).reply(200, 'ok').persist();
+
+      const ackSpy = jest.spyOn(mockQueueClient, 'ack');
+      const rejectSpy = jest.spyOn(mockQueueClient, 'reject');
+      const notifyOnFinishedTaskSpy = jest.spyOn(mockJobTrackerClient, 'notifyOnFinishedTask');
+
+      const resultPromise = jobProcessor.start();
+      jobProcessor.stop();
+
+      await expect(resultPromise).resolves.not.toThrow();
+      expect(mockProcessJob).toHaveBeenCalledTimes(0);
+      expect(ackSpy).toHaveBeenCalledTimes(0);
+      expect(rejectSpy).toHaveBeenCalledWith(reachedMaxAttemptsTask.jobId, reachedMaxAttemptsTask.id, false);
+      expect(rejectSpy).toHaveBeenCalledTimes(1);
+      expect(notifyOnFinishedTaskSpy).toHaveBeenCalledTimes(1);
+      expect.assertions(6);
+    });
     it('should fail to fetch task', async () => {
       const jobManagerUrlDequeuePath = `/tasks/${jobType}/${taskType}/startPending`;
 

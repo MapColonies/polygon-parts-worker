@@ -69,5 +69,11 @@
         "type": "INGESTION_SWAP_UPDATE_JOB_TYPE"
       }
     }
+  },
+  "polygonPartsWorker": {
+    "maxTaskAttempts": {
+      "__name": "MAX_TASK_ATTEMPTS",
+      "__format": "number"
+    }
   }
 }
