@@ -22,3 +22,8 @@ export const initTaskForIngestionNew: ITaskResponse<IPollingTaskParameters> = {
   created: '2024-07-21T10:59:23.510Z',
   updated: '2024-07-24T07:43:10.528Z',
 };
+
+export const reachedMaxAttemptsTask: ITaskResponse<IPollingTaskParameters> = {
+  ...initTaskForIngestionNew,
+  attempts: 3,
+};
