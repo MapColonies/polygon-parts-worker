@@ -48,9 +48,9 @@
   "httpRetry": {
     "attempts": 5,
     "delay": "exponential",
-    "shouldResetTimeout": true,
-    "disableHttpClientLogs": true
+    "shouldResetTimeout": true
   },
+  "disableHttpClientLogs": false,
   "jobDefinitions": {
     "tasks": {
       "maxAttempts": 3,

@@ -73,5 +73,20 @@
         "type": "INGESTION_SWAP_UPDATE_JOB_TYPE"
       }
     }
+  },
+  "httpRetry": {
+    "attempts": {
+      "__name": "HTTP_RETRY_ATTEMPTS",
+      "__format": "number"
+    },
+    "delay": "HTTP_RETRY_DELAY",
+    "shouldResetTimeout": {
+      "__name": "HTTP_RETRY_RESET_TIMEOUT",
+      "__format": "boolean"
+    }
+  },
+  "disableHttpClientLogs": {
+    "__name": "DISABLE_HTTP_CLIENT_LOGS",
+    "__format": "boolean"
   }
 }
