@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.1](https://github.com/MapColonies/polygon-parts-worker/compare/v1.5.0...v1.5.1) (2024-12-09)
+
+
+### Bug Fixes
+
+* numeric in config map ([b8fc6f1](https://github.com/MapColonies/polygon-parts-worker/commit/b8fc6f1d26fdea476b19f2cb5d8f73727b30c9eb))
+
 ## [1.5.0](https://github.com/MapColonies/polygon-parts-worker/compare/v1.4.1...v1.5.0) (2024-12-09)
 
 
