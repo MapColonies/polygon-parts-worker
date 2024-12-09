@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/MapColonies/polygon-parts-worker/compare/v1.4.1...v1.5.0) (2024-12-09)
+
+
+### Features
+
+* turn tasks to failed when reached max attempts ([e45c930](https://github.com/MapColonies/polygon-parts-worker/commit/e45c930753fdf2d54f97fb89e9b4f7e6ab0058b0))
+
+
+### Bug Fixes
+
+* add helm ([c81a427](https://github.com/MapColonies/polygon-parts-worker/commit/c81a42736d5fdf48a7126c7b1d44b3e53a7c26f2))
+* add values to global ([186084a](https://github.com/MapColonies/polygon-parts-worker/commit/186084a241d921e72b5f03492fa2158c3e77b65b))
+* pr changes ([a6f6291](https://github.com/MapColonies/polygon-parts-worker/commit/a6f6291069ed5295288ecd93f095a97ffd226f56))
+
 ### [1.4.1](https://github.com/MapColonies/polygon-parts-worker/compare/v1.4.0...v1.4.1) (2024-12-02)
 
 
