@@ -19,7 +19,7 @@ export class PolygonPartsManagerClient extends HttpClient {
       config.get<string>('polygonPartsManager.baseUrl'),
       'PolygonPartsManager',
       config.get<IHttpRetryConfig>('httpRetry'),
-      config.get<boolean>('httpRetry.disableHttpClientLogs')
+      config.get<boolean>('disableHttpClientLogs')
     );
   }
 

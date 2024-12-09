@@ -95,6 +95,11 @@ env:
   logPrettyPrintEnabled: false
   responseCompressionEnabled: true
   requestPayloadLimit: 1mb
+  disableHttpClientLogs: false     
+  httpRetry:
+    attempts: 5
+    delay: exponential
+    resetTimeout: true
   jobManagement:
     config:
       dequeueIntervalMs: 3000
