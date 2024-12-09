@@ -54,6 +54,10 @@
   },
   "jobDefinitions": {
     "tasks": {
+      "maxAttempts": {
+        "__name": "MAX_ATTEMPTS",
+        "__format": "number"
+      },
       "polygonParts": {
         "type": "POLYGON_PARTS_TASK_TYPE"
       }
