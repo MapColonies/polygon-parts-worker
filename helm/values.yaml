@@ -15,7 +15,7 @@ jobDefinitions:
     swapUpdate:
       type: ""
   tasks:
-    maxAttempts: 
+    maxAttempts: 3
     polygonParts:
       type: ""
 
