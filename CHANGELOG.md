@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.3](https://github.com/MapColonies/polygon-parts-worker/compare/v1.5.2...v1.5.3) (2024-12-09)
+
+
+### Bug Fixes
+
+* helm prometheus annotations indentation ([3b5901c](https://github.com/MapColonies/polygon-parts-worker/commit/3b5901c842969ffe916db4ed1379077d1fe8c8fd))
+
 ### [1.5.2](https://github.com/MapColonies/polygon-parts-worker/compare/v1.5.1...v1.5.2) (2024-12-09)
 
 
