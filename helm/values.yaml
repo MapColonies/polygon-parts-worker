@@ -94,6 +94,7 @@ env:
   logPrettyPrintEnabled: false
   responseCompressionEnabled: true
   requestPayloadLimit: 1mb
+  maxTaskAttempts: 3
   jobManagement:
     config:
       dequeueIntervalMs: 3000
