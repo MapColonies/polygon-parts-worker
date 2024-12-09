@@ -53,6 +53,7 @@
   },
   "jobDefinitions": {
     "tasks": {
+      "maxAttempts": 3,
       "polygonParts": {
         "type": "polygon-parts"
       }
@@ -68,8 +69,5 @@
         "type": "Ingestion_Swap_Update"
       }
     }
-  },
-  "polygonPartsWorker": {
-    "maxTaskAttempts": 3
   }
 }

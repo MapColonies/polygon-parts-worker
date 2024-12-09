@@ -31,7 +31,7 @@ export class JobProcessor {
     const ingestionUpdate = this.config.get<string>('jobDefinitions.jobs.update.type');
     const ingestionSwapUpdate = this.config.get<string>('jobDefinitions.jobs.swapUpdate.type');
     this.jobTypesToProcess = { ingestionNew, ingestionUpdate, ingestionSwapUpdate };
-    this.maxTaskAttempts = this.config.get<number>('polygonPartsWorker.maxTaskAttempts');
+    this.maxTaskAttempts = this.config.get<number>('jobDefinitions.tasks.maxAttempts');
   }
 
   @withSpanAsyncV4
