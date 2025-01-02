@@ -21,4 +21,5 @@ export const HANDLERS = {
   NEW: config.get<string>('jobDefinitions.jobs.new.type'),
   UPDATE: config.get<string>('jobDefinitions.jobs.update.type'),
   SWAP: config.get<string>('jobDefinitions.jobs.swapUpdate.type'),
+  EXPORT: config.get<string>('jobDefinitions.jobs.export.type'),
 } satisfies Record<string, string>;

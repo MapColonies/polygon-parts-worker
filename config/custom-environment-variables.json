@@ -71,6 +71,9 @@
       },
       "swapUpdate": {
         "type": "INGESTION_SWAP_UPDATE_JOB_TYPE"
+      },
+      "export": {
+        "type": "EXPORT_JOB_TYPE"
       }
     }
   },

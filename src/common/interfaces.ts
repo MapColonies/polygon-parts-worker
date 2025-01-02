@@ -23,13 +23,14 @@ export interface IJobAndTaskResponse {
 }
 
 export interface IJobHandler {
-  processJob: (job: JobResponse) => Promise<PolygonPartsEntityName>;
+  processJob: (job: JobResponse) => Promise<PolygonPartsEntityName | void>;
 }
 
 export interface IPermittedJobTypes {
   ingestionNew: string;
   ingestionUpdate: string;
   ingestionSwapUpdate: string;
+  exportJob: string;
 }
 
 export interface JobParams {

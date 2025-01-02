@@ -4,6 +4,7 @@ import { IJobHandler, IPermittedJobTypes } from '../common/interfaces';
 import { HANDLERS } from '../common/constants';
 import { NewJobHandler } from './newJobHandler';
 import { UpdateJobHandler } from './updateJobHandler';
+import { ExportJobHandler } from './exportJobHandler';
 
 export function initJobHandler(jobHandlerType: string, permittedTypes: IPermittedJobTypes): IJobHandler {
   switch (jobHandlerType) {
@@ -13,6 +14,8 @@ export function initJobHandler(jobHandlerType: string, permittedTypes: IPermitte
       return container.resolve<UpdateJobHandler>(HANDLERS.UPDATE);
     case permittedTypes.ingestionSwapUpdate:
       return container.resolve<UpdateJobHandler>(HANDLERS.SWAP);
+    case permittedTypes.exportJob:
+      return container.resolve<ExportJobHandler>(HANDLERS.EXPORT);
   }
   throw new BadRequestError(`${jobHandlerType} job type is invalid`);
 }

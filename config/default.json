@@ -17,7 +17,7 @@
   },
   "jobManagement": {
     "config": {
-      "jobManagerBaseUrl": "http://http://localhost:8080",
+      "jobManagerBaseUrl": "http://localhost:8080",
       "heartbeat": {
         "baseUrl": "http://localhost:8083",
         "intervalMs": 3000
@@ -30,6 +30,9 @@
   },
   "polygonPartsManager": {
     "baseUrl": "http://localhost:8081"
+  },
+  "geoserverApi": {
+    "baseUrl": "http://localhost:8084"
   },
   "server": {
     "port": "8080",
@@ -67,6 +70,9 @@
       },
       "swapUpdate": {
         "type": "Ingestion_Swap_Update"
+      },
+      "export": {
+        "type": "export"
       }
     }
   }

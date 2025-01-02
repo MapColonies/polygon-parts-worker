@@ -30,7 +30,8 @@ export class JobProcessor {
     const ingestionNew = this.config.get<string>('jobDefinitions.jobs.new.type');
     const ingestionUpdate = this.config.get<string>('jobDefinitions.jobs.update.type');
     const ingestionSwapUpdate = this.config.get<string>('jobDefinitions.jobs.swapUpdate.type');
-    this.jobTypesToProcess = { ingestionNew, ingestionUpdate, ingestionSwapUpdate };
+    const exportJob = this.config.get<string>('jobDefinitions.jobs.export.type');
+    this.jobTypesToProcess = { ingestionNew, ingestionUpdate, ingestionSwapUpdate, exportJob };
     this.maxTaskAttempts = this.config.get<number>('jobDefinitions.tasks.maxAttempts');
   }
 
@@ -49,11 +50,13 @@ export class JobProcessor {
           this.logger.info({ msg: 'processing job', jobId: job.id });
           await this.checkTaskAttempts(task);
           const jobHandler = initJobHandler(job.type, this.jobTypesToProcess);
-          const polygonPartsEntity: PolygonPartsEntityName = await jobHandler.processJob(job);
+          const polygonPartsEntity: PolygonPartsEntityName | void = await jobHandler.processJob(job);
 
-          const updatedJobParams: IUpdateJobBody<JobParams> = this.updateAdditionalParams(job, polygonPartsEntity);
-          this.logger.info({ msg: 'updating additionalParams for job', jobId: job.id });
-          await this.queueClient.jobManagerClient.updateJob(job.id, updatedJobParams);
+          if (polygonPartsEntity) {
+            const updatedJobParams: IUpdateJobBody<JobParams> = this.updateAdditionalParams(job, polygonPartsEntity);
+            this.logger.info({ msg: 'updating additionalParams for job', jobId: job.id });
+            await this.queueClient.jobManagerClient.updateJob(job.id, updatedJobParams);
+          }
 
           this.logger.info({ msg: 'notifying job tracker and job manager on task finished', taskId: task.id });
           await this.notifyOnSuccess(job.id, task.id);
