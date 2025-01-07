@@ -1,5 +1,6 @@
-import { InputFiles, PolygonPart, PolygonPartsEntityName } from '@map-colonies/mc-model-types';
+import { InputFiles, PolygonPart } from '@map-colonies/mc-model-types';
 import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
+import { FeatureCollection } from 'geojson';
 
 export interface IConfig {
   get: <T>(setting: string) => T;
@@ -19,11 +20,11 @@ export interface IHeartbeatConfig {
 
 export interface IJobAndTaskResponse {
   task: ITaskResponse<unknown>;
-  job: JobResponse;
+  job: IJobResponse<unknown, unknown>;
 }
 
-export interface IJobHandler {
-  processJob: (job: JobResponse) => Promise<PolygonPartsEntityName | void>;
+export interface IJobHandler<TJobParams = unknown> {
+  processJob: (job: IJobResponse<TJobParams, unknown>) => Promise<void>;
 }
 
 export interface IPermittedJobTypes {
@@ -40,4 +41,21 @@ export interface JobParams {
   additionalParams: Record<string, unknown>;
 }
 
-export type JobResponse = IJobResponse<JobParams, unknown>;
+export interface ExportJobParams {
+  additionalParams: {
+    fileNamesTemplates: {
+      dataURI: string;
+      metadataURI: string;
+    };
+    relativeDirectoryPath: string;
+    packageRelativePath: string;
+  };
+  exportInputParams: {
+    roi: FeatureCollection;
+    crs: 'EPSG:4326';
+    callbacks?: {
+      url: string;
+      roi: FeatureCollection;
+    }[];
+  };
+}

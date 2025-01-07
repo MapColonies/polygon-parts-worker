@@ -1,15 +1,13 @@
-import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import jsLogger from '@map-colonies/js-logger';
-import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
-import { trace } from '@opentelemetry/api';
 import { PolygonPartsEntityName } from '@map-colonies/mc-model-types';
-import { JobProcessor } from '../../../src/models/jobProcessor';
-import { configMock, registerDefaultConfig } from '../mocks/configMock';
-import { IJobHandler } from '../../../src/common/interfaces';
-import { NewJobHandler } from '../../../src/models/newJobHandler';
-import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsManagerClient';
-import { UpdateJobHandler } from '../../../src/models/updateJobHandler';
+import { IJobResponse, ITaskResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import { trace } from '@opentelemetry/api';
 import { JobTrackerClient } from '../../../src/clients/jobTrackerClient';
+import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsManagerClient';
+import { JobProcessor } from '../../../src/models/jobProcessor';
+import { NewJobHandler } from '../../../src/models/newJobHandler';
+import { UpdateJobHandler } from '../../../src/models/updateJobHandler';
+import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { polygonPartsEntity } from '../mocks/jobProcessorResponseMock';
 
 const mockLogger = jsLogger({ enabled: false });
@@ -33,15 +31,15 @@ function jobProcessorInstance(): JobProcessor {
   return new JobProcessor(mockLogger, mockTracer, mockQueueClient, configMock, mockJobTrackerClient);
 }
 
-function newJobHandlerInstance(): IJobHandler {
-  return new NewJobHandler(mockLogger, mockPolygonPartsClient);
+function newJobHandlerInstance(): NewJobHandler {
+  return new NewJobHandler(mockLogger, mockQueueClient, mockPolygonPartsClient);
 }
 
-function updateJobHandlerInstance(): IJobHandler {
-  return new UpdateJobHandler(mockLogger, mockPolygonPartsClient);
+function updateJobHandlerInstance(): UpdateJobHandler {
+  return new UpdateJobHandler(mockLogger, mockQueueClient, mockPolygonPartsClient);
 }
 
-export { jobProcessorInstance, newJobHandlerInstance, updateJobHandlerInstance, configMock, mockQueueClient, mockProcessJob, mockJobTrackerClient };
+export { configMock, jobProcessorInstance, mockJobTrackerClient, mockProcessJob, mockQueueClient, newJobHandlerInstance, updateJobHandlerInstance };
 
 export type MockDequeue = jest.MockedFunction<(jobType: string, taskType: string) => Promise<ITaskResponse<unknown> | null>>;
 export type MockGetJob = jest.MockedFunction<(jobId: string) => Promise<IJobResponse<unknown, unknown>>>;
