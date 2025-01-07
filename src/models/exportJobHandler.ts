@@ -3,7 +3,7 @@ import { Logger } from '@map-colonies/js-logger';
 import { IJobResponse } from '@map-colonies/mc-priority-queue';
 import ogr2ogr from 'ogr2ogr';
 import { inject, injectable } from 'tsyringe';
-import { GeoserverClient } from '../clients/geoserverApiClient';
+import { GeoserverClient } from '../clients/geoserverClient';
 import { SERVICES } from '../common/constants';
 import { ExportJobParams, IConfig, IJobHandler } from '../common/interfaces';
 

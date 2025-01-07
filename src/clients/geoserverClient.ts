@@ -13,7 +13,7 @@ export class GeoserverClient extends HttpClient {
     @inject(SERVICES.CONFIG) private readonly config: IConfig,
     @inject(SERVICES.TRACER) public readonly tracer: Tracer
   ) {
-    super(logger, config.get<string>('geoserverApi.baseUrl'), 'GeoserverApi');
+    super(logger, config.get<string>('geoserver.baseUrl'), 'Geoserver');
   }
 
   @withSpanAsyncV4

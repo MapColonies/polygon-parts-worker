@@ -53,6 +53,9 @@
     "baseUrl": "POLYGON_PARTS_MANAGER_BASE_URL"
   },
   "gpkgsLocation": "GPKGS_LOCATION",
+  "geoserver": {
+    "baseUrl": "GEOSERVER_BASE_URL"
+  },
   "jobDefinitions": {
     "tasks": {
       "maxAttempts": {
