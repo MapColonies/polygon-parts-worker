@@ -34,7 +34,7 @@ export interface IPermittedJobTypes {
   exportJob: string;
 }
 
-export interface JobParams {
+export interface IngestionJobParams {
   metadata: Record<string, unknown>;
   partsData: PolygonPart[];
   inputFiles: InputFiles;

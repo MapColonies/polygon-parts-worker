@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 import { ProductType, Transparency } from '@map-colonies/mc-model-types';
 import { IJobResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
-import { JobParams } from '../../../src/common/interfaces';
+import { IngestionJobParams } from '../../../src/common/interfaces';
 
-const newJobResponseMock: IJobResponse<JobParams, unknown> = {
+const newJobResponseMock: IJobResponse<IngestionJobParams, unknown> = {
   id: '321d495f-e6e4-45cc-b301-4ebc4e894f03',
   resourceId: 'polygonPartsTest7',
   version: '1.0',
@@ -60,7 +60,7 @@ const newJobResponseMock: IJobResponse<JobParams, unknown> = {
     additionalParams: {
       jobTrackerServiceURL: 'http://raster-core-dev-job-tracker-service',
     },
-  } as JobParams,
+  } as IngestionJobParams,
   status: OperationStatus.PENDING,
   percentage: 0,
   reason: '',

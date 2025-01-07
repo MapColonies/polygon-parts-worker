@@ -7,7 +7,7 @@ import { inject, injectable } from 'tsyringe';
 import { JobTrackerClient } from '../clients/jobTrackerClient';
 import { SERVICES } from '../common/constants';
 import { ReachedMaxTaskAttemptsError } from '../common/errors';
-import { IConfig, IJobAndTaskResponse, IPermittedJobTypes, JobParams } from '../common/interfaces';
+import { IConfig, IJobAndTaskResponse, IPermittedJobTypes, IngestionJobParams } from '../common/interfaces';
 import { initJobHandler } from './handlersFactory';
 
 @injectable()
@@ -80,7 +80,7 @@ export class JobProcessor {
       const task = await this.queueClient.dequeue(jobType, this.taskTypeToProcess);
       if (task) {
         this.logger.info({ msg: `getting task's job ${task.id}`, task });
-        const job = await this.queueClient.jobManagerClient.getJob<JobParams, unknown>(task.jobId);
+        const job = await this.queueClient.jobManagerClient.getJob<IngestionJobParams, unknown>(task.jobId);
         return { task, job } as IJobAndTaskResponse;
       }
     }
