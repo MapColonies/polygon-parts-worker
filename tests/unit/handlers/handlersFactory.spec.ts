@@ -11,7 +11,8 @@ describe('HandlersFactory', () => {
   const ingestionNew = configMock.get<string>('jobDefinitions.jobs.new.type');
   const ingestionUpdate = configMock.get<string>('jobDefinitions.jobs.update.type');
   const ingestionSwapUpdate = configMock.get<string>('jobDefinitions.jobs.swapUpdate.type');
-  const jobTypesToProcess = { ingestionNew, ingestionUpdate, ingestionSwapUpdate };
+  const exportJob = configMock.get<string>('jobDefinitions.jobs.export.type');
+  const jobTypesToProcess = { ingestionNew, ingestionUpdate, ingestionSwapUpdate, exportJob };
 
   beforeEach(() => {
     registerExternalValues({
