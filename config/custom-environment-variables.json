@@ -52,6 +52,7 @@
   "polygonPartsManager": {
     "baseUrl": "POLYGON_PARTS_MANAGER_BASE_URL"
   },
+  "gpkgsLocation": "GPKGS_LOCATION",
   "jobDefinitions": {
     "tasks": {
       "maxAttempts": {

@@ -31,6 +31,7 @@
   "polygonPartsManager": {
     "baseUrl": "http://localhost:8081"
   },
+  "gpkgsLocation": "/app/tiles_outputs/gpkgs",
   "geoserverApi": {
     "baseUrl": "http://localhost:8084"
   },
