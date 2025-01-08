@@ -96,6 +96,9 @@ const registerDefaultConfig = (): void => {
       baseUrl: 'http://localhost:8081',
     },
     gpkgsLocation: '/app/tiles_outputs/gpkgs',
+    geoserver: {
+      baseUrl: 'http://localhost:8084',
+    },
     jobDefinitions: {
       tasks: {
         polygonParts: {

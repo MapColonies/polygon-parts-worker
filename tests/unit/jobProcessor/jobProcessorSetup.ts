@@ -9,6 +9,8 @@ import { NewJobHandler } from '../../../src/models/newJobHandler';
 import { UpdateJobHandler } from '../../../src/models/updateJobHandler';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { polygonPartsEntity } from '../mocks/jobProcessorResponseMock';
+import { ExportJobHandler } from '../../../src/models/exportJobHandler';
+import { GeoserverClient } from '../../../src/clients/geoserverClient';
 
 const mockLogger = jsLogger({ enabled: false });
 
@@ -26,6 +28,7 @@ const mockQueueClient = new QueueClient(
 const mockTracer = trace.getTracer('testingTracer');
 const mockPolygonPartsClient = new PolygonPartsManagerClient(mockLogger, configMock, mockTracer);
 const mockJobTrackerClient = new JobTrackerClient(mockLogger, configMock, mockTracer);
+const mockGeoserverClient = new GeoserverClient(mockLogger, configMock, mockTracer);
 
 function jobProcessorInstance(): JobProcessor {
   return new JobProcessor(mockLogger, mockTracer, mockQueueClient, configMock, mockJobTrackerClient);
@@ -39,7 +42,20 @@ function updateJobHandlerInstance(): UpdateJobHandler {
   return new UpdateJobHandler(mockLogger, mockQueueClient, mockPolygonPartsClient);
 }
 
-export { configMock, jobProcessorInstance, mockJobTrackerClient, mockProcessJob, mockQueueClient, newJobHandlerInstance, updateJobHandlerInstance };
+function exportJobHandlerInstance(): ExportJobHandler {
+  return new ExportJobHandler(mockLogger, configMock, mockGeoserverClient);
+}
+
+export {
+  configMock,
+  jobProcessorInstance,
+  mockJobTrackerClient,
+  mockProcessJob,
+  mockQueueClient,
+  newJobHandlerInstance,
+  updateJobHandlerInstance,
+  exportJobHandlerInstance,
+};
 
 export type MockDequeue = jest.MockedFunction<(jobType: string, taskType: string) => Promise<ITaskResponse<unknown> | null>>;
 export type MockGetJob = jest.MockedFunction<(jobId: string) => Promise<IJobResponse<unknown, unknown>>>;
