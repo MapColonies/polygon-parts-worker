@@ -1,4 +1,4 @@
-FROM node:20 as build
+FROM node:20 AS build
 
 WORKDIR /tmp/buildApp
 
@@ -9,7 +9,7 @@ COPY . .
 RUN npm run build
 
 # Production stage with GDAL setup
-FROM node:20.3.1-alpine3.17 as production
+FROM node:20.3.1-alpine3.17 AS production
 
 # Install GDAL and dependencies for Alpine
 RUN apk add --no-cache gdal
