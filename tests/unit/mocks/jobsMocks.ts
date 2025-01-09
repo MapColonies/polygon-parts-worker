@@ -105,7 +105,7 @@ const exportJobResponseMock: IJobResponse<ExportJobParams, unknown> = {
         dataURI: 'test1-source.gpkg',
         metadataURI: 'test1-source.json',
       },
-      packageRelativePath: 'dcb0cb4ae42344616d0de9d47fa4b90c/test1-source.gpkg',
+      packageRelativePath: 'dcb0cb4ae42344616d0de9d47fa4b90c/test.gpkg',
       relativeDirectoryPath: 'dcb0cb4ae42344616d0de9d47fa4b90c',
     },
     exportInputParams: {
@@ -159,17 +159,6 @@ const exportJobResponseMock: IJobResponse<ExportJobParams, unknown> = {
   updated: '2025-01-02T14:00:02.826Z',
 };
 
-const invalidGpkgExportJobMock: IJobResponse<ExportJobParams, unknown> = {
-  ...exportJobResponseMock,
-  parameters: {
-    ...exportJobResponseMock.parameters,
-    additionalParams: {
-      ...exportJobResponseMock.parameters.additionalParams,
-      packageRelativePath: 'a9f3b7c6d8e24511b2c4d7f8e9a0b123/invalid.gpkg',
-    },
-  },
-};
-
 const nonExistentGpkgExportJobMock: IJobResponse<ExportJobParams, unknown> = {
   ...exportJobResponseMock,
   parameters: {
@@ -190,6 +179,5 @@ export {
   newJobResponseMock,
   exportJobResponseMock,
   failTaskRequest,
-  invalidGpkgExportJobMock,
   nonExistentGpkgExportJobMock as nonExistingGpkgExportJobMock,
 };
