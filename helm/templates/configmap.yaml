@@ -31,6 +31,7 @@ data:
   INGESTION_NEW_JOB_TYPE: {{ $jobDefinitions.jobs.new.type }}
   INGESTION_UPDATE_JOB_TYPE: {{ $jobDefinitions.jobs.update.type }}
   INGESTION_SWAP_UPDATE_JOB_TYPE: {{ $jobDefinitions.jobs.swapUpdate.type }}
+  EXPORT_JOB_TYPE: {{ $jobDefinitions.jobs.export.type }}
   MAX_ATTEMPTS: {{ $jobDefinitions.tasks.maxAttempts | quote }}
   npm_config_cache: /tmp/
   HTTP_RETRY_ATTEMPTS: {{ .Values.env.httpRetry.attempts | quote }}
