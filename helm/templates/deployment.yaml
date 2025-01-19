@@ -5,6 +5,7 @@
 {{- $cloudProviderDockerRegistryUrl := include "polygon-parts-worker.cloudProviderDockerRegistryUrl" . -}}
 {{- $cloudProviderImagePullSecretName := include "polygon-parts-worker.cloudProviderImagePullSecretName" . -}}
 {{- $imageTag := include "polygon-parts-worker.tag" . -}}
+{{- $fs := (include "common.fs.merged" .) | fromYaml }}
 {{- if .Values.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -68,6 +69,8 @@ spec:
               name: root-ca
               subPath: {{ quote .Values.caKey }}
             {{- end }}
+            - name: internal-storage
+              mountPath: /app/tiles_outputs  
             {{- if .Values.extraVolumeMounts -}}
               {{ toYaml .Values.extraVolumeMounts | nindent 12 }}
             {{- end }}
@@ -107,7 +110,7 @@ spec:
             httpGet:
               path: {{ .Values.readinessProbe.path }}
               port: {{ .Values.env.targetPort }}
-          {{- end }}        
+          {{- end }}     
           {{- if .Values.resources.enabled }}
           resources:
             {{- toYaml .Values.resources.value | nindent 12 }}
@@ -124,6 +127,9 @@ spec:
           secret:
             secretName: {{ .Values.caSecretName }}
         {{- end }}
+        - name: internal-storage
+          persistentVolumeClaim:
+            claimName: {{ $fs.internalPvc.name }}
         {{- if .Values.extraVolumes -}}
           {{ tpl (toYaml .Values.extraVolumes) . | nindent 8 }}
         {{- end }}

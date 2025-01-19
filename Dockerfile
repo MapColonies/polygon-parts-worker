@@ -11,6 +11,7 @@ RUN npm run build
 # Production stage with GDAL setup
 FROM node:20.3.1-alpine3.17 AS production
 
+RUN apk add dumb-init
 # Install GDAL and dependencies for Alpine
 RUN apk add --no-cache gdal
 

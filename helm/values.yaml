@@ -5,6 +5,7 @@ global:
   environment: ''
   jobDefinitions: {}
   serviceUrls: {}
+  storage: {}
 
 jobDefinitions:
   jobs:
@@ -26,6 +27,13 @@ serviceUrls:
   heartbeatManager: ""
   polygonPartsManager: ""
   jobTracker: ""
+  geoserverUrl: ""
+
+storage:
+  fs: 
+    internalPvc:
+      name: "internal-pvc-nfs"
+      gpkgSubPath: "gpkgs"
 
 cloudProvider:
   dockerRegistryUrl: 'my-registry-url.io'
