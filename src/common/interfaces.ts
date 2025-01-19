@@ -1,6 +1,5 @@
 import { InputFiles, PolygonPart } from '@map-colonies/mc-model-types';
 import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
-import { FeatureCollection } from 'geojson';
 
 export interface IConfig {
   get: <T>(setting: string) => T;
@@ -39,23 +38,4 @@ export interface IngestionJobParams {
   partsData: PolygonPart[];
   inputFiles: InputFiles;
   additionalParams: Record<string, unknown>;
-}
-
-export interface ExportJobParams {
-  additionalParams: {
-    fileNamesTemplates: {
-      dataURI: string;
-      metadataURI: string;
-    };
-    relativeDirectoryPath: string;
-    packageRelativePath: string;
-  };
-  exportInputParams: {
-    roi: FeatureCollection;
-    crs: 'EPSG:4326';
-    callbacks?: {
-      url: string;
-      roi: FeatureCollection;
-    }[];
-  };
 }

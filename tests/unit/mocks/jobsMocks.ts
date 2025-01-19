@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 import { ProductType, Transparency } from '@map-colonies/mc-model-types';
 import { IJobResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
-import { ExportJobParams, IngestionJobParams } from '../../../src/common/interfaces';
+import { ExportJobParameters } from '@map-colonies/raster-shared';
+import { IngestionJobParams } from '../../../src/common/interfaces';
 
 const newJobResponseMock: IJobResponse<IngestionJobParams, unknown> = {
   id: '321d495f-e6e4-45cc-b301-4ebc4e894f03',
@@ -93,7 +94,7 @@ const updatedJobRequest = {
   },
 };
 
-const exportJobResponseMock: IJobResponse<ExportJobParams, unknown> = {
+const exportJobResponseMock: IJobResponse<ExportJobParameters, unknown> = {
   id: '70c29b11-1bfd-4e43-a76a-ca3ab5d7b511',
   resourceId: 'SOME_NAME',
   version: '1.0',
@@ -107,6 +108,9 @@ const exportJobResponseMock: IJobResponse<ExportJobParams, unknown> = {
       },
       packageRelativePath: 'dcb0cb4ae42344616d0de9d47fa4b90c/test.gpkg',
       relativeDirectoryPath: 'dcb0cb4ae42344616d0de9d47fa4b90c',
+      gpkgEstimatedSize: 1111,
+      outputFormatStrategy: 'mixed',
+      targetFormat: 'JPEG',
     },
     exportInputParams: {
       crs: 'EPSG:4326',
@@ -133,7 +137,7 @@ const exportJobResponseMock: IJobResponse<ExportJobParams, unknown> = {
           },
         ],
       },
-      callbacks: [],
+      callbackUrls: [],
     },
   },
   status: OperationStatus.IN_PROGRESS,
@@ -159,7 +163,7 @@ const exportJobResponseMock: IJobResponse<ExportJobParams, unknown> = {
   updated: '2025-01-02T14:00:02.826Z',
 };
 
-const nonExistentGpkgExportJobMock: IJobResponse<ExportJobParams, unknown> = {
+const nonExistentGpkgExportJobMock: IJobResponse<ExportJobParameters, unknown> = {
   ...exportJobResponseMock,
   parameters: {
     ...exportJobResponseMock.parameters,

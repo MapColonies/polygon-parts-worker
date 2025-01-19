@@ -3,12 +3,13 @@ import { Logger } from '@map-colonies/js-logger';
 import { IJobResponse } from '@map-colonies/mc-priority-queue';
 import ogr2ogr from 'ogr2ogr';
 import { inject, injectable } from 'tsyringe';
+import { ExportJobParameters } from '@map-colonies/raster-shared';
 import { GeoserverClient } from '../clients/geoserverClient';
 import { SERVICES } from '../common/constants';
-import { ExportJobParams, IConfig, IJobHandler } from '../common/interfaces';
+import { IConfig, IJobHandler } from '../common/interfaces';
 
 @injectable()
-export class ExportJobHandler implements IJobHandler<ExportJobParams> {
+export class ExportJobHandler implements IJobHandler<ExportJobParameters> {
   private readonly gpkgsLocation: string;
 
   public constructor(
@@ -19,7 +20,7 @@ export class ExportJobHandler implements IJobHandler<ExportJobParams> {
     this.gpkgsLocation = config.get<string>('gpkgsLocation');
   }
 
-  public async processJob(job: IJobResponse<ExportJobParams, unknown>): Promise<void> {
+  public async processJob(job: IJobResponse<ExportJobParameters, unknown>): Promise<void> {
     try {
       const layer = `${job.resourceId}-${job.productType}`;
       const features = await this.geoserverClient.getFeatures(layer);
