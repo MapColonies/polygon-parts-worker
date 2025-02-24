@@ -85,6 +85,7 @@ caKey: 'ca.crt'
 image:
   registry: ""
   repository: polygon-parts-worker
+  # If commented, appVersion will be taken. See: _helpers.tpl
   tag: 'latest'
   pullPolicy: IfNotPresent
 env:
