@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.4](https://github.com/MapColonies/polygon-parts-worker/compare/v1.5.3...v1.5.4) (2025-02-24)
+
+
+### Bug Fixes
+
+* removing max_old_space_size from Dockerfile ([5e34edc](https://github.com/MapColonies/polygon-parts-worker/commit/5e34edc4b7204a1c031b6c0c6dcf92ecfa98aa03))
+
 ### [1.5.3](https://github.com/MapColonies/polygon-parts-worker/compare/v1.5.2...v1.5.3) (2024-12-09)
 
 
