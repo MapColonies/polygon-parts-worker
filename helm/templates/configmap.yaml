@@ -25,7 +25,6 @@ data:
   {{ end }}
   JOB_MANAGER_BASE_URL: {{ $serviceUrls.jobManager | quote}}
   HEARTBEAT_BASE_URL: {{ $serviceUrls.heartbeatManager | quote}}
-  GEOSERVER_BASE_URL: {{ $serviceUrls.geoserverUrl | quote}}
   POLYGON_PARTS_MANAGER_BASE_URL: {{ $serviceUrls.polygonPartsManager | quote}}
   JOB_TRACKER_BASE_URL: {{ $serviceUrls.jobTracker | quote}}
   HEARTBEAT_INTERVAL_MS: {{ .Values.env.jobManagement.config.heartBeat.intervalMs | quote }}

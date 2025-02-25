@@ -27,7 +27,6 @@ serviceUrls:
   heartbeatManager: ""
   polygonPartsManager: ""
   jobTracker: ""
-  geoserverUrl: ""
 
 storage:
   fs: 

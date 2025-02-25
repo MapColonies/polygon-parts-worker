@@ -2,8 +2,9 @@ import { HttpClient, IHttpRetryConfig } from '@map-colonies/mc-utils';
 import { inject, injectable } from 'tsyringe';
 import { Logger } from '@map-colonies/js-logger';
 import { Tracer } from '@opentelemetry/api';
-import { PolygonPartsPayload, PolygonPartsEntityName } from '@map-colonies/mc-model-types';
+import { PolygonPartsPayload, PolygonPartsEntityName, ProductType } from '@map-colonies/mc-model-types';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
+import { RoiFeatureCollection } from '@map-colonies/raster-shared';
 import { SERVICES } from '../common/constants';
 import { IConfig } from '../common/interfaces';
 
@@ -34,6 +35,13 @@ export class PolygonPartsManagerClient extends HttpClient {
   public async updatePolygonParts(requestBody: PolygonPartsPayload, isSwap: boolean): Promise<PolygonPartsEntityName> {
     const createPolygonPartsUrl = `/polygonParts?isSwap=${isSwap}`;
     const response = await this.put<PolygonPartsEntityName>(createPolygonPartsUrl, requestBody);
+    return response;
+  }
+
+  @withSpanAsyncV4
+  public async findPolygonParts(productId: string, productType: ProductType, roi: RoiFeatureCollection): Promise<Record<string, unknown>> {
+    const findPartsUrl = `/polygonParts/${productId.toLowerCase()}_${productType.toLowerCase()}/find`;
+    const response = await this.post<Record<string, unknown>>(findPartsUrl, roi, { shouldClip: true });
     return response;
   }
 }

@@ -2,6 +2,7 @@ import path from 'path';
 import nock from 'nock';
 import ogr2ogr from 'ogr2ogr';
 import fsMock from 'mock-fs';
+import { ProductType } from '@map-colonies/mc-model-types';
 import { ExportJobHandler } from '../../../src/models/exportJobHandler';
 import { exportJobHandlerInstance } from '../jobProcessor/jobProcessorSetup';
 import { configMock, init } from '../mocks/configMock';
@@ -12,11 +13,7 @@ jest.mock('ogr2ogr');
 
 describe('ExportJobHandler', () => {
   const gpkgLocation = configMock.get<string>('gpkgsLocation');
-  const geoserverUrl = configMock.get<string>('geoserver.baseUrl');
-  const geoserverGetFeaturesPath = `/geoserver/wfs`;
-  const geoserverGetFeaturesParams = (layer: string) => {
-    return { service: 'wfs', version: '2.0.0', request: 'GetFeature', typeNames: `polygonParts:${layer}`, outputFormat: 'json' };
-  };
+  const polygonPartsUrl = configMock.get<string>('polygonPartsManager.baseUrl');
 
   let exportJobHandler: ExportJobHandler;
 
@@ -42,10 +39,11 @@ describe('ExportJobHandler', () => {
 
   describe('processJob', () => {
     it('should successfully process job and merge features into gpkg', async () => {
-      const geoserverGetFeaturesNock = nock(geoserverUrl)
-        .get(geoserverGetFeaturesPath)
-        .query(geoserverGetFeaturesParams(`${exportJobResponseMock.resourceId}-${exportJobResponseMock.productType}`))
-        .reply(200, mockGeoJsonFeature);
+      const productType = exportJobResponseMock.productType as ProductType;
+      const resourceId = exportJobResponseMock.resourceId;
+      const roi = exportJobResponseMock.parameters.exportInputParams.roi;
+      const findPartsUrl = `/polygonParts/${resourceId.toLowerCase()}_${productType.toLowerCase()}/find?shouldClip=true`;
+      const geoserverGetFeaturesNock = nock(polygonPartsUrl).post(findPartsUrl, JSON.stringify(roi)).reply(200, mockGeoJsonFeature);
 
       await exportJobHandler.processJob(exportJobResponseMock);
 
@@ -60,17 +58,11 @@ describe('ExportJobHandler', () => {
     });
 
     it('should fail on gpkg does not exist when given a path to a gpkg that does not exist', async () => {
-      const geoserverGetFeaturesNock = nock(geoserverUrl)
-        .get(geoserverGetFeaturesPath)
-        .query(geoserverGetFeaturesParams(`${nonExistingGpkgExportJobMock.resourceId}-${nonExistingGpkgExportJobMock.productType}`))
-        .reply(200, mockGeoJsonFeature);
-
       const action = async () => {
         await exportJobHandler.processJob(nonExistingGpkgExportJobMock);
       };
 
       await expect(action()).rejects.toThrow();
-      expect(geoserverGetFeaturesNock.isDone()).toBeTruthy();
     });
   });
 });

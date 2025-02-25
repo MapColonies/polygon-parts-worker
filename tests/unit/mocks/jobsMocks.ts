@@ -133,6 +133,7 @@ const exportJobResponseMock: IJobResponse<ExportJobParameters, unknown> = {
             },
             properties: {
               maxResolutionDeg: 0.703125,
+              minResolutionDeg: 0.703125,
             },
           },
         ],
