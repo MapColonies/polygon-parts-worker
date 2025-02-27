@@ -70,7 +70,7 @@
         "type": "Ingestion_Swap_Update"
       },
       "export": {
-        "type": "export"
+        "type": "Export"
       }
     }
   }
