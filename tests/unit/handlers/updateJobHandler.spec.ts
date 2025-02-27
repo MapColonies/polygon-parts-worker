@@ -1,16 +1,17 @@
+import { BadRequestError } from '@map-colonies/error-types';
 import nock from 'nock';
 import { ZodError } from 'zod';
-import { BadRequestError } from '@map-colonies/error-types';
-import { configMock, registerDefaultConfig } from '../mocks/configMock';
+import { UpdateJobHandler } from '../../../src/models/updateJobHandler';
 import { updateJobHandlerInstance } from '../jobProcessor/jobProcessorSetup';
+import { configMock, registerDefaultConfig } from '../mocks/configMock';
+import { getUpdatedJobParams, polygonPartsEntity } from '../mocks/jobProcessorResponseMock';
 import { newJobResponseMock } from '../mocks/jobsMocks';
-import { IJobHandler } from '../../../src/common/interfaces';
-import { polygonPartsEntity } from '../mocks/jobProcessorResponseMock';
 
 describe('UpdateJobHandler', () => {
   const polygonPartsManagerUrl = configMock.get<string>('polygonPartsManager.baseUrl');
   const polygonPartsManagerPutPath = `/polygonParts`;
-  let updateJobHandler: IJobHandler;
+  const jobManagerUrl = configMock.get<string>('jobManagement.config.jobManagerBaseUrl');
+  let updateJobHandler: UpdateJobHandler;
 
   beforeEach(() => {
     updateJobHandler = updateJobHandlerInstance();
@@ -27,11 +28,13 @@ describe('UpdateJobHandler', () => {
     const isSwap = false;
     const updateJobResponseMock = { ...newJobResponseMock, type: configMock.get<string>('jobDefinitions.jobs.update.type') };
     it('should successfully process job', async () => {
+      const updatedParams = getUpdatedJobParams(newJobResponseMock, polygonPartsEntity);
       nock(polygonPartsManagerUrl).put(polygonPartsManagerPutPath).query({ isSwap }).reply(200, polygonPartsEntity).persist();
+      const updateJobNock = nock(jobManagerUrl).put(`/jobs/${newJobResponseMock.id}`, JSON.stringify(updatedParams)).reply(200);
 
-      const response = await updateJobHandler.processJob(updateJobResponseMock);
+      await updateJobHandler.processJob(updateJobResponseMock);
 
-      expect(response).toStrictEqual(polygonPartsEntity);
+      expect(updateJobNock.isDone()).toBeTruthy();
       expect.assertions(1);
     });
 
@@ -64,7 +67,8 @@ describe('UpdateSwapJobHandler', () => {
   const polygonPartsManagerPutPath = `/polygonParts`;
   const isSwap = true;
   const updateSwapJobResponseMock = { ...newJobResponseMock, type: configMock.get<string>('jobDefinitions.jobs.swapUpdate.type') };
-  let updateJobHandler: IJobHandler;
+  const jobManagerUrl = configMock.get<string>('jobManagement.config.jobManagerBaseUrl');
+  let updateJobHandler: UpdateJobHandler;
 
   beforeEach(() => {
     updateJobHandler = updateJobHandlerInstance();
@@ -79,11 +83,13 @@ describe('UpdateSwapJobHandler', () => {
 
   describe('processJob', () => {
     it('should successfully process job', async () => {
+      const updatedParams = getUpdatedJobParams(newJobResponseMock, polygonPartsEntity);
       nock(polygonPartsManagerUrl).put(polygonPartsManagerPutPath).query({ isSwap }).reply(200, polygonPartsEntity).persist();
+      const updateJobNock = nock(jobManagerUrl).put(`/jobs/${newJobResponseMock.id}`, JSON.stringify(updatedParams)).reply(200);
 
-      const response = await updateJobHandler.processJob(updateSwapJobResponseMock);
+      await updateJobHandler.processJob(updateSwapJobResponseMock);
 
-      expect(response).toStrictEqual(polygonPartsEntity);
+      expect(updateJobNock.isDone()).toBeTruthy();
       expect.assertions(1);
     });
 

@@ -1,4 +1,4 @@
-import { InputFiles, PolygonPart, PolygonPartsEntityName } from '@map-colonies/mc-model-types';
+import { InputFiles, PolygonPart } from '@map-colonies/mc-model-types';
 import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 
 export interface IConfig {
@@ -19,24 +19,23 @@ export interface IHeartbeatConfig {
 
 export interface IJobAndTaskResponse {
   task: ITaskResponse<unknown>;
-  job: JobResponse;
+  job: IJobResponse<unknown, unknown>;
 }
 
-export interface IJobHandler {
-  processJob: (job: JobResponse) => Promise<PolygonPartsEntityName>;
+export interface IJobHandler<TJobParams = unknown> {
+  processJob: (job: IJobResponse<TJobParams, unknown>) => Promise<void>;
 }
 
 export interface IPermittedJobTypes {
   ingestionNew: string;
   ingestionUpdate: string;
   ingestionSwapUpdate: string;
+  exportJob: string;
 }
 
-export interface JobParams {
+export interface IngestionJobParams {
   metadata: Record<string, unknown>;
   partsData: PolygonPart[];
   inputFiles: InputFiles;
   additionalParams: Record<string, unknown>;
 }
-
-export type JobResponse = IJobResponse<JobParams, unknown>;

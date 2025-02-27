@@ -95,6 +95,7 @@ const registerDefaultConfig = (): void => {
     polygonPartsManager: {
       baseUrl: 'http://localhost:8081',
     },
+    gpkgsLocation: '/app/tiles_outputs/gpkgs',
     jobDefinitions: {
       tasks: {
         polygonParts: {
@@ -110,6 +111,9 @@ const registerDefaultConfig = (): void => {
         },
         swapUpdate: {
           type: 'Ingestion_Swap_Update',
+        },
+        export: {
+          type: 'Export',
         },
       },
     },

@@ -52,6 +52,7 @@
   "polygonPartsManager": {
     "baseUrl": "POLYGON_PARTS_MANAGER_BASE_URL"
   },
+  "gpkgsLocation": "GPKGS_LOCATION",
   "jobDefinitions": {
     "tasks": {
       "maxAttempts": {
@@ -71,6 +72,9 @@
       },
       "swapUpdate": {
         "type": "INGESTION_SWAP_UPDATE_JOB_TYPE"
+      },
+      "export": {
+        "type": "EXPORT_JOB_TYPE"
       }
     }
   },
