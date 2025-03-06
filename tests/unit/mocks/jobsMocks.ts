@@ -104,13 +104,13 @@ const exportJobResponseMock: IJobResponse<ExportJobParameters, unknown> = {
     additionalParams: {
       fileNamesTemplates: {
         dataURI: 'test1-source.gpkg',
-        metadataURI: 'test1-source.json',
       },
       packageRelativePath: 'dcb0cb4ae42344616d0de9d47fa4b90c/test.gpkg',
       relativeDirectoryPath: 'dcb0cb4ae42344616d0de9d47fa4b90c',
       gpkgEstimatedSize: 1111,
       outputFormatStrategy: 'mixed',
       targetFormat: 'JPEG',
+      jobTrackerServiceURL: 'jobTrackerUrl',
     },
     exportInputParams: {
       crs: 'EPSG:4326',
@@ -164,7 +164,7 @@ const exportJobResponseMock: IJobResponse<ExportJobParameters, unknown> = {
   updated: '2025-01-02T14:00:02.826Z',
 };
 
-const nonExistentGpkgExportJobMock: IJobResponse<ExportJobParameters, unknown> = {
+const nonExistingGpkgExportJobMock: IJobResponse<ExportJobParameters, unknown> = {
   ...exportJobResponseMock,
   parameters: {
     ...exportJobResponseMock.parameters,
@@ -179,10 +179,4 @@ const failTaskRequest = {
   status: OperationStatus.FAILED,
 };
 
-export {
-  updatedJobRequest,
-  newJobResponseMock,
-  exportJobResponseMock,
-  failTaskRequest,
-  nonExistentGpkgExportJobMock as nonExistingGpkgExportJobMock,
-};
+export { updatedJobRequest, newJobResponseMock, exportJobResponseMock, failTaskRequest, nonExistingGpkgExportJobMock };

@@ -3,7 +3,6 @@ FROM node:20 AS build
 WORKDIR /tmp/buildApp
 
 COPY ./package*.json ./
-#COPY ./src/map-colonies-raster-shared-1.0.3.tgz ./src/map-colonies-raster-shared-1.0.3.tgz
 
 RUN npm install
 COPY . .
@@ -22,7 +21,6 @@ ENV SERVER_PORT=8080
 WORKDIR /usr/src/app
 
 COPY --chown=node:node package*.json ./
-#COPY --chown=node:node ./src/map-colonies-raster-shared-1.0.3.tgz ./src/map-colonies-raster-shared-1.0.3.tgz
 
 
 
@@ -33,4 +31,4 @@ COPY --chown=node:node ./config ./config
 
 USER node
 EXPOSE 8080
-CMD ["dumb-init", "node", "--max_old_space_size=512", "--require", "./common/tracing.js", "./index.js"]
+CMD ["dumb-init", "node", "--require", "./common/tracing.js", "./index.js"]

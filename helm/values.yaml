@@ -32,7 +32,8 @@ storage:
   fs: 
     internalPvc:
       name: "internal-pvc-nfs"
-      gpkgSubPath: "gpkgs"
+      gpkgSubPath: ""
+      outputPath: ""
 
 cloudProvider:
   dockerRegistryUrl: 'my-registry-url.io'
