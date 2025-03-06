@@ -1,14 +1,13 @@
 import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import { Logger } from '@map-colonies/js-logger';
-import { inject, injectable } from 'tsyringe';
-import { ITaskResponse, IUpdateJobBody, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
-import { Tracer } from '@opentelemetry/api';
+import { ITaskResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
-import { PolygonPartsEntityName } from '@map-colonies/mc-model-types';
-import { SERVICES } from '../common/constants';
-import { IConfig, IJobAndTaskResponse, IPermittedJobTypes, JobParams, JobResponse } from '../common/interfaces';
+import { Tracer } from '@opentelemetry/api';
+import { inject, injectable } from 'tsyringe';
 import { JobTrackerClient } from '../clients/jobTrackerClient';
+import { SERVICES } from '../common/constants';
 import { ReachedMaxTaskAttemptsError } from '../common/errors';
+import { IConfig, IJobAndTaskResponse, IPermittedJobTypes } from '../common/interfaces';
 import { initJobHandler } from './handlersFactory';
 
 @injectable()
@@ -30,7 +29,8 @@ export class JobProcessor {
     const ingestionNew = this.config.get<string>('jobDefinitions.jobs.new.type');
     const ingestionUpdate = this.config.get<string>('jobDefinitions.jobs.update.type');
     const ingestionSwapUpdate = this.config.get<string>('jobDefinitions.jobs.swapUpdate.type');
-    this.jobTypesToProcess = { ingestionNew, ingestionUpdate, ingestionSwapUpdate };
+    const exportJob = this.config.get<string>('jobDefinitions.jobs.export.type');
+    this.jobTypesToProcess = { ingestionNew, ingestionUpdate, ingestionSwapUpdate, exportJob };
     this.maxTaskAttempts = this.config.get<number>('jobDefinitions.tasks.maxAttempts');
   }
 
@@ -49,11 +49,7 @@ export class JobProcessor {
           this.logger.info({ msg: 'processing job', jobId: job.id });
           await this.checkTaskAttempts(task);
           const jobHandler = initJobHandler(job.type, this.jobTypesToProcess);
-          const polygonPartsEntity: PolygonPartsEntityName = await jobHandler.processJob(job);
-
-          const updatedJobParams: IUpdateJobBody<JobParams> = this.updateAdditionalParams(job, polygonPartsEntity);
-          this.logger.info({ msg: 'updating additionalParams for job', jobId: job.id });
-          await this.queueClient.jobManagerClient.updateJob(job.id, updatedJobParams);
+          await jobHandler.processJob(job);
 
           this.logger.info({ msg: 'notifying job tracker and job manager on task finished', taskId: task.id });
           await this.notifyOnSuccess(job.id, task.id);
@@ -84,7 +80,7 @@ export class JobProcessor {
       const task = await this.queueClient.dequeue(jobType, this.taskTypeToProcess);
       if (task) {
         this.logger.info({ msg: `getting task's job ${task.id}`, task });
-        const job = await this.queueClient.jobManagerClient.getJob<JobParams, unknown>(task.jobId);
+        const job = await this.queueClient.jobManagerClient.getJob<unknown, unknown>(task.jobId);
         return { task, job } as IJobAndTaskResponse;
       }
     }
@@ -98,12 +94,6 @@ export class JobProcessor {
   private async notifyOnSuccess(jobId: string, taskId: string): Promise<void> {
     await this.queueClient.ack(jobId, taskId);
     await this.jobTrackerClient.notifyOnFinishedTask(taskId);
-  }
-
-  private updateAdditionalParams(job: JobResponse, polygonPartsEntity: PolygonPartsEntityName): IUpdateJobBody<JobParams> {
-    const newAdditionalParameters = { ...job.parameters.additionalParams, ...polygonPartsEntity };
-    const newParameters = { ...job.parameters, additionalParams: { ...newAdditionalParameters } };
-    return { parameters: newParameters };
   }
 
   private async checkTaskAttempts(task: ITaskResponse<unknown>): Promise<void> {

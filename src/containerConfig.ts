@@ -13,6 +13,7 @@ import { InjectionObject, registerDependencies } from './common/dependencyRegist
 import { IJobManagerConfig } from './common/interfaces';
 import { NewJobHandler } from './models/newJobHandler';
 import { UpdateJobHandler } from './models/updateJobHandler';
+import { ExportJobHandler } from './models/exportJobHandler';
 
 const queueClientFactory = (container: DependencyContainer): QueueClient => {
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
@@ -52,6 +53,7 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     { token: HANDLERS.NEW, provider: { useClass: NewJobHandler } },
     { token: HANDLERS.UPDATE, provider: { useClass: UpdateJobHandler } },
     { token: HANDLERS.SWAP, provider: { useClass: UpdateJobHandler } },
+    { token: HANDLERS.EXPORT, provider: { useClass: ExportJobHandler } },
     {
       token: 'onSignal',
       provider: {

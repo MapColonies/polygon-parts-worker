@@ -2,6 +2,8 @@
 {{- $metrics := (include "common.metrics.merged" .) | fromYaml }}
 {{- $serviceUrls := (include "common.serviceUrls.merged" .) | fromYaml }}
 {{- $jobDefinitions := (include "common.jobDefinitions.merged" .) | fromYaml }}
+{{- $fs := (include "common.fs.merged" .) | fromYaml }}
+{{ $gpkgLocation := (printf "%s%s" $fs.internalPvc.outputPath $fs.internalPvc.gpkgSubPath) }}
 
 {{- if .Values.enabled -}}
 apiVersion: v1
@@ -31,7 +33,9 @@ data:
   INGESTION_NEW_JOB_TYPE: {{ $jobDefinitions.jobs.new.type }}
   INGESTION_UPDATE_JOB_TYPE: {{ $jobDefinitions.jobs.update.type }}
   INGESTION_SWAP_UPDATE_JOB_TYPE: {{ $jobDefinitions.jobs.swapUpdate.type }}
+  EXPORT_JOB_TYPE: {{ $jobDefinitions.jobs.export.type }}
   MAX_ATTEMPTS: {{ $jobDefinitions.tasks.maxAttempts | quote }}
+  GPKGS_LOCATION: {{ $gpkgLocation | quote }}
   npm_config_cache: /tmp/
   HTTP_RETRY_ATTEMPTS: {{ .Values.env.httpRetry.attempts | quote }}
   HTTP_RETRY_DELAY: {{ .Values.env.httpRetry.delay | quote }}

@@ -1,8 +1,9 @@
-import { partSchema, PolygonPartsPayload } from '@map-colonies/mc-model-types';
+import { IJobResponse } from '@map-colonies/mc-priority-queue';
+import { PolygonPartsPayload, partSchema } from '@map-colonies/raster-shared';
 import { ingestionNewRequestBodySchema } from '../schemas/polyPartsManager.schema';
-import { JobResponse } from './interfaces';
+import { IngestionJobParams } from './interfaces';
 
-export function validateJob(job: JobResponse): PolygonPartsPayload {
+export function validateIngestionJob(job: IJobResponse<IngestionJobParams, unknown>): PolygonPartsPayload {
   const requestBody = {
     productId: job.resourceId,
     productType: job.productType,
