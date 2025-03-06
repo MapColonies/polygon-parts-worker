@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/MapColonies/polygon-parts-worker/compare/v1.5.4...v1.6.0) (2025-03-06)
+
+
+### Features
+
+* added basic export support ([a5914d4](https://github.com/MapColonies/polygon-parts-worker/commit/a5914d4cffc05313a48e2f22bee7f368aa063aac))
+* added writing to mount support ([1d5db5d](https://github.com/MapColonies/polygon-parts-worker/commit/1d5db5d1f1fe6cc7de04af7b240d9d1952386b5d))
+* update helm and docker ([4bfdd8c](https://github.com/MapColonies/polygon-parts-worker/commit/4bfdd8c0324726ab1595ddd329ecb507197e9e9a))
+* use polygonParts find for export ([5e8e888](https://github.com/MapColonies/polygon-parts-worker/commit/5e8e8888d0edc2c3341fce4d11f552b4416c53d4))
+* use raster-shared locally ([d7c7b8a](https://github.com/MapColonies/polygon-parts-worker/commit/d7c7b8a0faf568679bd0ff5f8f9f4805b1ec7bc4))
+
+
+### Bug Fixes
+
+* export job type ([8b4d56d](https://github.com/MapColonies/polygon-parts-worker/commit/8b4d56d404566777c6f88da6e9d6cfa075643d0f))
+* interfaces types ([b22bb52](https://github.com/MapColonies/polygon-parts-worker/commit/b22bb52d30b0fb2c2a6d0a968e6b54e5d48de332))
+* pr changes ([a0e3499](https://github.com/MapColonies/polygon-parts-worker/commit/a0e34997b451fb1eb17f46d69e87908b202e6bbc))
+* tests ([5aa9a0f](https://github.com/MapColonies/polygon-parts-worker/commit/5aa9a0fdbcee4603f1e9e9fbde2c117371866dac))
+* tests and raster-shared imports ([45df3d1](https://github.com/MapColonies/polygon-parts-worker/commit/45df3d1dc54ebd9f5282058d4967bfd121e59230))
+
 ### [1.5.4](https://github.com/MapColonies/polygon-parts-worker/compare/v1.5.3...v1.5.4) (2025-02-24)
 
 
