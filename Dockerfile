@@ -31,4 +31,6 @@ COPY --chown=node:node ./config ./config
 
 USER node
 EXPOSE 8080
+
 CMD ["dumb-init", "node", "--require", "./common/tracing.js", "./index.js"]
+
