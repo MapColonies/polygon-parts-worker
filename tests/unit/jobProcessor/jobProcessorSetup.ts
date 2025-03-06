@@ -1,7 +1,7 @@
 import jsLogger from '@map-colonies/js-logger';
-import { PolygonPartsEntityName } from '@map-colonies/mc-model-types';
 import { IJobResponse, ITaskResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { trace } from '@opentelemetry/api';
+import { PolygonPartsEntityName } from '@map-colonies/raster-shared';
 import { JobTrackerClient } from '../../../src/clients/jobTrackerClient';
 import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsManagerClient';
 import { JobProcessor } from '../../../src/models/jobProcessor';
