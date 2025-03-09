@@ -1,7 +1,7 @@
 import jsLogger from '@map-colonies/js-logger';
 import { IJobResponse, ITaskResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { trace } from '@opentelemetry/api';
-import { PolygonPartsEntityName } from '@map-colonies/raster-shared';
+import { PolygonPartsEntityNameObject } from '@map-colonies/raster-shared';
 import { JobTrackerClient } from '../../../src/clients/jobTrackerClient';
 import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsManagerClient';
 import { JobProcessor } from '../../../src/models/jobProcessor';
@@ -57,7 +57,7 @@ export {
 
 export type MockDequeue = jest.MockedFunction<(jobType: string, taskType: string) => Promise<ITaskResponse<unknown> | null>>;
 export type MockGetJob = jest.MockedFunction<(jobId: string) => Promise<IJobResponse<unknown, unknown>>>;
-export type MockProcessJob = jest.MockedFunction<() => Promise<PolygonPartsEntityName>>;
+export type MockProcessJob = jest.MockedFunction<() => Promise<PolygonPartsEntityNameObject>>;
 
 export interface JobProcessorTestContext {
   jobProcessor: JobProcessor;

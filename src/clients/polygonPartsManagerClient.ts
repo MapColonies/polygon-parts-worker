@@ -3,7 +3,7 @@ import { inject, injectable } from 'tsyringe';
 import { Logger } from '@map-colonies/js-logger';
 import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
-import { RasterProductTypes, RoiFeatureCollection, PolygonPartsEntityName, PolygonPartsPayload } from '@map-colonies/raster-shared';
+import { RasterProductTypes, RoiFeatureCollection, PolygonPartsPayload, PolygonPartsEntityNameObject } from '@map-colonies/raster-shared';
 import { SERVICES } from '../common/constants';
 import { IConfig } from '../common/interfaces';
 
@@ -24,16 +24,16 @@ export class PolygonPartsManagerClient extends HttpClient {
   }
 
   @withSpanAsyncV4
-  public async createPolygonParts(requestBody: PolygonPartsPayload): Promise<PolygonPartsEntityName> {
+  public async createPolygonParts(requestBody: PolygonPartsPayload): Promise<PolygonPartsEntityNameObject> {
     const createPolygonPartsUrl = `/polygonParts`;
-    const response = await this.post<PolygonPartsEntityName>(createPolygonPartsUrl, requestBody);
+    const response = await this.post<PolygonPartsEntityNameObject>(createPolygonPartsUrl, requestBody);
     return response;
   }
 
   @withSpanAsyncV4
-  public async updatePolygonParts(requestBody: PolygonPartsPayload, isSwap: boolean): Promise<PolygonPartsEntityName> {
+  public async updatePolygonParts(requestBody: PolygonPartsPayload, isSwap: boolean): Promise<PolygonPartsEntityNameObject> {
     const createPolygonPartsUrl = `/polygonParts?isSwap=${isSwap}`;
-    const response = await this.put<PolygonPartsEntityName>(createPolygonPartsUrl, requestBody);
+    const response = await this.put<PolygonPartsEntityNameObject>(createPolygonPartsUrl, requestBody);
     return response;
   }
 
