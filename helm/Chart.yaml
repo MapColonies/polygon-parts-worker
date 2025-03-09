@@ -2,5 +2,5 @@ apiVersion: v2
 name: polygon-parts-worker
 description: A Helm chart for polygon-parts-worker
 type: application
-version: 1.6.0
-appVersion: 1.6.0
+version: 1.6.1
+appVersion: 1.6.1
