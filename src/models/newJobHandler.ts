@@ -1,7 +1,7 @@
 import { inject, injectable } from 'tsyringe';
 import { IJobResponse, IUpdateJobBody, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { Logger } from '@map-colonies/js-logger';
-import { PolygonPartsEntityName, PolygonPartsPayload } from '@map-colonies/raster-shared';
+import { PolygonPartsEntityNameObject, PolygonPartsPayload } from '@map-colonies/raster-shared';
 import { IJobHandler, IngestionJobParams } from '../common/interfaces';
 import { PolygonPartsManagerClient } from '../clients/polygonPartsManagerClient';
 import { SERVICES } from '../common/constants';
@@ -33,9 +33,9 @@ export class NewJobHandler implements IJobHandler<IngestionJobParams> {
 
   private updateAdditionalParams(
     job: IJobResponse<IngestionJobParams, unknown>,
-    polygonPartsEntity: PolygonPartsEntityName
+    polygonPartsEntity: PolygonPartsEntityNameObject
   ): IUpdateJobBody<IngestionJobParams> {
-    const newAdditionalParameters = { ...job.parameters.additionalParams, polygonPartsEntity };
+    const newAdditionalParameters = { ...job.parameters.additionalParams, ...polygonPartsEntity };
     const newParameters = { ...job.parameters, additionalParams: { ...newAdditionalParameters } };
     return { parameters: newParameters };
   }
