@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.7.0](https://github.com/MapColonies/polygon-parts-worker/compare/v1.6.2...v1.7.0) (2025-03-10)
+
+
+### Bug Fixes
+
+* get entity name from export job parameters ([8a8fa01](https://github.com/MapColonies/polygon-parts-worker/commit/8a8fa01e39e1aa4bb5ce9d27879bc9e57833dd29))
+
 ### [1.6.2](https://github.com/MapColonies/polygon-parts-worker/compare/v1.6.1...v1.6.2) (2025-03-10)
 
 
