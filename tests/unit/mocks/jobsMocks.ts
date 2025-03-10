@@ -111,6 +111,7 @@ const exportJobResponseMock: IJobResponse<ExportJobParameters, unknown> = {
       outputFormatStrategy: 'mixed',
       targetFormat: 'JPEG',
       jobTrackerServiceURL: 'jobTrackerUrl',
+      polygonPartsEntityName: 'some_name_orthophoto',
     },
     exportInputParams: {
       crs: 'EPSG:4326',
