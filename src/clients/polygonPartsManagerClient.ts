@@ -3,7 +3,7 @@ import { inject, injectable } from 'tsyringe';
 import { Logger } from '@map-colonies/js-logger';
 import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
-import { RasterProductTypes, RoiFeatureCollection, PolygonPartsPayload, PolygonPartsEntityNameObject } from '@map-colonies/raster-shared';
+import { RoiFeatureCollection, PolygonPartsPayload, PolygonPartsEntityNameObject, PolygonPartsEntityName } from '@map-colonies/raster-shared';
 import { SERVICES } from '../common/constants';
 import { IConfig } from '../common/interfaces';
 
@@ -38,8 +38,7 @@ export class PolygonPartsManagerClient extends HttpClient {
   }
 
   @withSpanAsyncV4
-  public async findPolygonParts(productId: string, productType: RasterProductTypes, roi: RoiFeatureCollection): Promise<Record<string, unknown>> {
-    const polygonPartsEntityName = `${productId.toLowerCase()}_${productType.toLowerCase()}`;
+  public async findPolygonParts(polygonPartsEntityName: PolygonPartsEntityName, roi: RoiFeatureCollection): Promise<Record<string, unknown>> {
     const findPartsUrl = `/polygonParts/${polygonPartsEntityName}/find`;
     const response = await this.post<Record<string, unknown>>(findPartsUrl, roi, { shouldClip: true });
     return response;

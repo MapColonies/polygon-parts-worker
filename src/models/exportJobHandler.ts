@@ -3,7 +3,7 @@ import { Logger } from '@map-colonies/js-logger';
 import { IJobResponse } from '@map-colonies/mc-priority-queue';
 import ogr2ogr from 'ogr2ogr';
 import { inject, injectable } from 'tsyringe';
-import { ExportJobParameters, RasterProductTypes } from '@map-colonies/raster-shared';
+import { ExportJobParameters } from '@map-colonies/raster-shared';
 import { SERVICES } from '../common/constants';
 import { IConfig, IJobHandler } from '../common/interfaces';
 import { PolygonPartsManagerClient } from '../clients/polygonPartsManagerClient';
@@ -30,7 +30,8 @@ export class ExportJobHandler implements IJobHandler<ExportJobParameters> {
 
       const layer = `${job.resourceId}-${job.productType}`;
       const roi = job.parameters.exportInputParams.roi;
-      const features = await this.polygonPartsManagerClient.findPolygonParts(job.resourceId, job.productType as RasterProductTypes, roi);
+      const polygonPartsEntityName = job.parameters.additionalParams.polygonPartsEntityName;
+      const features = await this.polygonPartsManagerClient.findPolygonParts(polygonPartsEntityName, roi);
 
       this.logger.debug({ msg: `retrieved features: `, features });
       await ogr2ogr(features, {
