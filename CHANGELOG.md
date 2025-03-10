@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.6.2](https://github.com/MapColonies/polygon-parts-worker/compare/v1.6.1...v1.6.2) (2025-03-10)
+
+
+### Bug Fixes
+
+* gpkg location path template ([f1d5523](https://github.com/MapColonies/polygon-parts-worker/commit/f1d55232bc827e8ab62866568c1eb8e259d356eb))
+
 ### [1.6.1](https://github.com/MapColonies/polygon-parts-worker/compare/v1.6.0...v1.6.1) (2025-03-09)
 
 
