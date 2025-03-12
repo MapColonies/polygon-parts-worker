@@ -13,8 +13,7 @@ FROM node:20.3.1-alpine3.17 AS production
 
 RUN apk add dumb-init
 # Install GDAL and dependencies for Alpine
-RUN apk add --no-cache gdal
-
+RUN apk add --no-cache gdal gdal-tools proj-util
 ENV NODE_ENV=production
 ENV SERVER_PORT=8080
 
