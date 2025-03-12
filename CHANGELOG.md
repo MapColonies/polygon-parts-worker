@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.7.1](https://github.com/MapColonies/polygon-parts-worker/compare/v1.7.0...v1.7.1) (2025-03-12)
+
+
+### Bug Fixes
+
+* install gdaltools within dockerfile inorder to support ogr2ogr ([#26](https://github.com/MapColonies/polygon-parts-worker/issues/26)) ([4f48ebc](https://github.com/MapColonies/polygon-parts-worker/commit/4f48ebc0e230de6dfa867c17f4f5e6761c079b27))
+
 ## [1.7.0](https://github.com/MapColonies/polygon-parts-worker/compare/v1.6.2...v1.7.0) (2025-03-10)
 
 
