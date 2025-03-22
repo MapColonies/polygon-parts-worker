@@ -5,7 +5,7 @@ import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { RoiFeatureCollection, PolygonPartsPayload, PolygonPartsEntityNameObject, PolygonPartsEntityName } from '@map-colonies/raster-shared';
 import { SERVICES } from '../common/constants';
-import { IConfig } from '../common/interfaces';
+import { FindPolygonPartsResponse, IConfig } from '../common/interfaces';
 
 @injectable()
 export class PolygonPartsManagerClient extends HttpClient {
@@ -38,9 +38,9 @@ export class PolygonPartsManagerClient extends HttpClient {
   }
 
   @withSpanAsyncV4
-  public async findPolygonParts(polygonPartsEntityName: PolygonPartsEntityName, roi: RoiFeatureCollection): Promise<Record<string, unknown>> {
+  public async findPolygonParts(polygonPartsEntityName: PolygonPartsEntityName, roi: RoiFeatureCollection): Promise<FindPolygonPartsResponse> {
     const findPartsUrl = `/polygonParts/${polygonPartsEntityName}/find`;
-    const response = await this.post<Record<string, unknown>>(findPartsUrl, roi, { shouldClip: true });
+    const response = await this.post<FindPolygonPartsResponse>(findPartsUrl, roi, { shouldClip: true });
     return response;
   }
 }

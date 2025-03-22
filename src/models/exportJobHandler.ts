@@ -7,6 +7,7 @@ import { ExportJobParameters } from '@map-colonies/raster-shared';
 import { SERVICES } from '../common/constants';
 import { IConfig, IJobHandler } from '../common/interfaces';
 import { PolygonPartsManagerClient } from '../clients/polygonPartsManagerClient';
+import { addFeatureIds, manipulateFeatures } from '../utils/utils';
 
 @injectable()
 export class ExportJobHandler implements IJobHandler<ExportJobParameters> {
@@ -29,12 +30,14 @@ export class ExportJobHandler implements IJobHandler<ExportJobParameters> {
       }
 
       const layer = `${job.resourceId}-${job.productType}`;
-      const roi = job.parameters.exportInputParams.roi;
+      const roi = addFeatureIds(job.parameters.exportInputParams.roi);
       const polygonPartsEntityName = job.parameters.additionalParams.polygonPartsEntityName;
+
       const features = await this.polygonPartsManagerClient.findPolygonParts(polygonPartsEntityName, roi);
+      const modifiedFeature = manipulateFeatures(features, roi) as unknown as Record<string, unknown>;
 
       this.logger.debug({ msg: `retrieved features: `, features });
-      await ogr2ogr(features, {
+      await ogr2ogr(modifiedFeature, {
         format: 'GPKG',
         destination: packageLocation,
         options: ['-nln', `${layer}_features`, '-append'],
