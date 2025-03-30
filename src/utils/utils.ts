@@ -1,6 +1,13 @@
 import { RoiFeatureCollection } from '@map-colonies/raster-shared';
 import { v4 as uuidv4 } from 'uuid';
+import { degreesPerPixelToZoomLevel, zoomLevelToResolutionMeter } from '@map-colonies/mc-utils';
 import { FindPolygonPartsResponse, FindPolygonPartsResponseWithoutRequestFeatureId } from '../common/interfaces';
+
+const calculateResMeterFromDegree = (resolutionDegree: number): number => {
+  const resDegreeZoomLevel = degreesPerPixelToZoomLevel(resolutionDegree);
+  const resMeter = zoomLevelToResolutionMeter(resDegreeZoomLevel) as number;
+  return resMeter;
+};
 
 export const addFeatureIds = (roi: RoiFeatureCollection): RoiFeatureCollection => {
   roi.features.forEach((feature) => {
@@ -24,11 +31,15 @@ export const manipulateFeatures = (
       throw new Error(`Feature: ${requestFeatureId} doesnt have set maxResolutionDegree`);
     }
 
+    const resolutionDegree = Math.max(featureResolution, maxResolution);
+    const resolutionMeter = calculateResMeterFromDegree(resolutionDegree);
+
     return {
       ...feature,
       properties: {
         ...restProperties,
-        resolutionDegree: Math.max(featureResolution, maxResolution),
+        resolutionDegree: resolutionDegree,
+        resolutionMeter: resolutionMeter,
       },
     };
   });

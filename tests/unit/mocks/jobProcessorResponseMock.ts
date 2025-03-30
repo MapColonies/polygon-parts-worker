@@ -45,7 +45,7 @@ const mockGeoJsonFeature: FindPolygonPartsResponse = {
         imagingTimeBeginUTC: '2024-01-28T13:47:43.427Z',
         imagingTimeEndUTC: '2024-01-28T13:47:43.427Z',
         resolutionDegree: 0.703125,
-        resolutionMeter: 8000,
+        resolutionMeter: 78271.52,
         sourceResolutionMeter: 8000,
         horizontalAccuracyCE90: 10,
         sensors: ['string'],
