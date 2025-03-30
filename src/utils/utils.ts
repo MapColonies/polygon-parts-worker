@@ -18,17 +18,17 @@ export const manipulateFeatures = (
   const updatedFeatures = findFeaturesResponse.features.map((feature) => {
     const { requestFeatureId, ...restProperties } = feature.properties; // Extract & omit requestFeatureId
     const featureResolution = feature.properties.resolutionDegree;
-    const maxResolution = featureIdToMaxResolution.has(requestFeatureId) ? featureIdToMaxResolution.get(requestFeatureId) : undefined;
 
-    if (!maxResolution) {
-      throw new Error('Handle No ');
+    const maxResolution = featureIdToMaxResolution.get(requestFeatureId);
+    if (maxResolution === undefined) {
+      throw new Error(`Feature: ${requestFeatureId} doesnt have set maxResolutionDegree`);
     }
 
     return {
       ...feature,
       properties: {
         ...restProperties,
-        resolutionDegree: Math.min(featureResolution, maxResolution),
+        resolutionDegree: Math.max(featureResolution, maxResolution),
       },
     };
   });

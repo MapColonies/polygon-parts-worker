@@ -2,14 +2,19 @@ import path from 'path';
 import nock from 'nock';
 import ogr2ogr from 'ogr2ogr';
 import fsMock from 'mock-fs';
+import { v4 as uuidv4 } from 'uuid';
 import { ProductType } from '@map-colonies/mc-model-types';
 import { ExportJobHandler } from '../../../src/models/exportJobHandler';
 import { exportJobHandlerInstance } from '../jobProcessor/jobProcessorSetup';
 import { configMock, init } from '../mocks/configMock';
-import { mockGeoJsonFeature } from '../mocks/jobProcessorResponseMock';
+import { mockGeoJsonFeature, modifiedGeoJsonFeature } from '../mocks/jobProcessorResponseMock';
 import { exportJobResponseMock, nonExistingGpkgExportJobMock } from '../mocks/jobsMocks';
+import { addFeatureIds } from '../../../src/utils/utils';
 
 jest.mock('ogr2ogr');
+jest.mock('uuid', () => ({
+  v4: jest.fn(),
+}));
 
 describe('ExportJobHandler', () => {
   const gpkgLocation = configMock.get<string>('gpkgsLocation');
@@ -33,6 +38,7 @@ describe('ExportJobHandler', () => {
 
   afterEach(() => {
     jest.clearAllTimers();
+    jest.resetAllMocks();
     nock.cleanAll();
     fsMock.restore();
   });
@@ -41,7 +47,8 @@ describe('ExportJobHandler', () => {
     it('should successfully process job and merge features into gpkg', async () => {
       const productType = exportJobResponseMock.productType as ProductType;
       const resourceId = exportJobResponseMock.resourceId;
-      const roi = exportJobResponseMock.parameters.exportInputParams.roi;
+      (uuidv4 as jest.Mock).mockReturnValue(mockGeoJsonFeature.features[0].properties.requestFeatureId);
+      const roi = addFeatureIds(exportJobResponseMock.parameters.exportInputParams.roi);
       const findPartsUrl = `/polygonParts/${resourceId.toLowerCase()}_${productType.toLowerCase()}/find?shouldClip=true`;
       const geoserverGetFeaturesNock = nock(polygonPartsUrl).post(findPartsUrl, JSON.stringify(roi)).reply(200, mockGeoJsonFeature);
 
@@ -49,11 +56,26 @@ describe('ExportJobHandler', () => {
 
       expect(geoserverGetFeaturesNock.isDone()).toBeTruthy();
       expect(ogr2ogr).toHaveBeenCalledTimes(1);
-      expect(ogr2ogr).toHaveBeenCalledWith(mockGeoJsonFeature, {
+      expect(ogr2ogr).toHaveBeenCalledWith(modifiedGeoJsonFeature, {
         format: 'GPKG',
         destination: `${gpkgLocation}/${exportJobResponseMock.parameters.additionalParams.packageRelativePath}`,
         options: ['-nln', `${exportJobResponseMock.resourceId}-${exportJobResponseMock.productType}_features`, '-append'],
       });
+      expect.assertions(3);
+    });
+
+    it('should throw error when there is a requestFeatureId in the find response than was not in the requested roi', async () => {
+      const productType = exportJobResponseMock.productType as ProductType;
+      const resourceId = exportJobResponseMock.resourceId;
+      const roi = addFeatureIds(exportJobResponseMock.parameters.exportInputParams.roi);
+      const findPartsUrl = `/polygonParts/${resourceId.toLowerCase()}_${productType.toLowerCase()}/find?shouldClip=true`;
+      const geoserverGetFeaturesNock = nock(polygonPartsUrl).post(findPartsUrl, JSON.stringify(roi)).reply(200, mockGeoJsonFeature);
+
+      const action = async () => exportJobHandler.processJob(exportJobResponseMock);
+      await expect(action()).rejects.toThrow(Error);
+
+      expect(geoserverGetFeaturesNock.isDone()).toBeTruthy();
+      expect(ogr2ogr).toHaveBeenCalledTimes(0);
       expect.assertions(3);
     });
 
