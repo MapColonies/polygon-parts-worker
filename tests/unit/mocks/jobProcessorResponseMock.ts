@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 import { IJobResponse, IUpdateJobBody } from '@map-colonies/mc-priority-queue';
 import { PolygonPartsEntityNameObject, RasterProductTypes } from '@map-colonies/raster-shared';
-import { FindPolygonPartsResponse, FindPolygonPartsResponseWithoutRequestFeatureId, IngestionJobParams } from '../../../src/common/interfaces';
+import { IngestionJobParams } from '../../../src/common/interfaces';
 
 const polygonPartsEntity: PolygonPartsEntityNameObject = { polygonPartsEntityName: 'blue_marble_orthophoto' };
 
@@ -15,7 +15,7 @@ const getUpdatedJobParams = (
   return { parameters: newParameters };
 };
 
-const mockGeoJsonFeature: FindPolygonPartsResponse = {
+const mockGeoJsonFeature = {
   type: 'FeatureCollection',
   features: [
     {
@@ -35,6 +35,7 @@ const mockGeoJsonFeature: FindPolygonPartsResponse = {
       },
       properties: {
         id: '35444846-507b-4de4-b7f3-d0e434b01b21',
+        partId: '35444846-507b-4de4-b7f3-d0e434b09999',
         catalogId: '8b867544-2dab-43a1-be6e-f23ec83c19b4',
         productId: 'SOME_NAME',
         productType: RasterProductTypes.ORTHOPHOTO,
@@ -59,7 +60,7 @@ const mockGeoJsonFeature: FindPolygonPartsResponse = {
 };
 const { requestFeatureId, ...filteredProperties } = mockGeoJsonFeature.features[0].properties;
 
-const modifiedGeoJsonFeature: FindPolygonPartsResponseWithoutRequestFeatureId = {
+const modifiedGeoJsonFeature = {
   ...mockGeoJsonFeature,
   features: [
     {
