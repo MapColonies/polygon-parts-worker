@@ -59,7 +59,7 @@ describe('ExportJobHandler', () => {
       expect(ogr2ogr).toHaveBeenCalledWith(modifiedGeoJsonFeature, {
         format: 'GPKG',
         destination: `${gpkgLocation}/${exportJobResponseMock.parameters.additionalParams.packageRelativePath}`,
-        options: ['-nln', `${exportJobResponseMock.resourceId}-${exportJobResponseMock.productType}_features`, '-append'],
+        options: ['-nln', `${exportJobResponseMock.resourceId}-${exportJobResponseMock.productType}_features`, '-overwrite'],
       });
       expect.assertions(3);
     });
