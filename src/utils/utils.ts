@@ -1,7 +1,7 @@
 import { RoiFeatureCollection } from '@map-colonies/raster-shared';
 import { v4 as uuidv4 } from 'uuid';
 import { degreesPerPixelToZoomLevel, zoomLevelToResolutionMeter } from '@map-colonies/mc-utils';
-import { FindPolygonPartsResponse, FindPolygonPartsResponseWithoutRequestFeatureId } from '../common/interfaces';
+import { FindPolygonPartsResponse, ExportPolygonPartsResponse } from '../common/interfaces';
 
 const calculateResMeterFromDegree = (resolutionDegree: number): number => {
   const resDegreeZoomLevel = degreesPerPixelToZoomLevel(resolutionDegree);
@@ -16,10 +16,7 @@ export const addFeatureIds = (roi: RoiFeatureCollection): RoiFeatureCollection =
   return roi;
 };
 
-export const manipulateFeatures = (
-  findFeaturesResponse: FindPolygonPartsResponse,
-  roi: RoiFeatureCollection
-): FindPolygonPartsResponseWithoutRequestFeatureId => {
+export const manipulateFeatures = (findFeaturesResponse: FindPolygonPartsResponse, roi: RoiFeatureCollection): ExportPolygonPartsResponse => {
   const featureIdToMaxResolution = new Map(roi.features.map((feature) => [feature.id, feature.properties.maxResolutionDeg]));
 
   const updatedFeatures = findFeaturesResponse.features.map((feature) => {

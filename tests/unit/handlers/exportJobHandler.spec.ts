@@ -64,7 +64,7 @@ describe('ExportJobHandler', () => {
       expect.assertions(3);
     });
 
-    it('should throw error when there is a requestFeatureId in the find response than was not in the requested roi', async () => {
+    it('should throw error when there is a requestFeatureId in the find response that was not in the requested roi', async () => {
       const productType = exportJobResponseMock.productType as ProductType;
       const resourceId = exportJobResponseMock.resourceId;
       const roi = addFeatureIds(exportJobResponseMock.parameters.exportInputParams.roi);

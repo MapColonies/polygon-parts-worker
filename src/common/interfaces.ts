@@ -46,4 +46,4 @@ export interface IngestionJobParams {
 
 export type FindPolygonPartsResponse = FeatureCollection<Polygon, PolygonPartExtended>;
 
-export type FindPolygonPartsResponseWithoutRequestFeatureId = FeatureCollection<Polygon, Omit<PolygonPartExtended, 'requestFeatureId'>>;
+export type ExportPolygonPartsResponse = FeatureCollection<Polygon, Omit<PolygonPartExtended, 'requestFeatureId'>>;
