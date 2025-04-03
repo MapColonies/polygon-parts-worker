@@ -40,7 +40,7 @@ export class ExportJobHandler implements IJobHandler<ExportJobParameters> {
       await ogr2ogr(modifiedFeature, {
         format: 'GPKG',
         destination: packageLocation,
-        options: ['-nln', `${layer}_features`, '-append'],
+        options: ['-nln', `${layer}_features`, '-overwrite'],
       });
 
       this.logger.info(`finished merging ${layer} features into gpkg`);
