@@ -40,7 +40,10 @@ export class PolygonPartsManagerClient extends HttpClient {
   @withSpanAsyncV4
   public async findPolygonParts(polygonPartsEntityName: PolygonPartsEntityName, roi: RoiFeatureCollection): Promise<Record<string, unknown>> {
     const findPartsUrl = `/polygonParts/${polygonPartsEntityName}/find`;
-    const response = await this.post<Record<string, unknown>>(findPartsUrl, roi, { shouldClip: true });
+    const body = {
+      filter: roi,
+    };
+    const response = await this.post<Record<string, unknown>>(findPartsUrl, body, { shouldClip: true });
     return response;
   }
 }
