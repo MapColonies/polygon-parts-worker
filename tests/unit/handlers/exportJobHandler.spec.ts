@@ -50,7 +50,9 @@ describe('ExportJobHandler', () => {
       (uuidv4 as jest.Mock).mockReturnValue(mockGeoJsonFeature.features[0].properties.requestFeatureId);
       const roi = addFeatureIds(exportJobResponseMock.parameters.exportInputParams.roi);
       const findPartsUrl = `/polygonParts/${resourceId.toLowerCase()}_${productType.toLowerCase()}/find?shouldClip=true`;
-      const geoserverGetFeaturesNock = nock(polygonPartsUrl).post(findPartsUrl, JSON.stringify(roi)).reply(200, mockGeoJsonFeature);
+      const geoserverGetFeaturesNock = nock(polygonPartsUrl)
+        .post(findPartsUrl, JSON.stringify({ filter: roi }))
+        .reply(200, mockGeoJsonFeature);
 
       await exportJobHandler.processJob(exportJobResponseMock);
 
