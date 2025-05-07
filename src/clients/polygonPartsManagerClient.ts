@@ -43,7 +43,7 @@ export class PolygonPartsManagerClient extends HttpClient {
     const body = {
       filter: roi,
     };
-    const response = await this.post<Record<string, unknown>>(findPartsUrl, body, { shouldClip: true });
+    const response = await this.post<FindPolygonPartsResponse>(findPartsUrl, body, { shouldClip: true });
     return response;
   }
 }
