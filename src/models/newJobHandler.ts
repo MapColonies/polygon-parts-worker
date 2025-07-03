@@ -17,7 +17,7 @@ export class NewJobHandler implements IJobHandler<IngestionJobParams> {
 
   public async processJob(job: IJobResponse<IngestionJobParams, unknown>): Promise<void> {
     try {
-      const validatedRequestBody: PolygonPartsPayload = validateIngestionJob(job);
+      const validatedRequestBody = validateIngestionJob(job);
       this.logger.info('creating new polygon part', validatedRequestBody);
 
       const polygonPartsEntity = await this.polygonPartsManager.createPolygonParts(validatedRequestBody);
