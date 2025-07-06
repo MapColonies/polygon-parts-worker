@@ -1,3 +1,4 @@
+import { StatusCodes } from 'http-status-codes';
 import nock from 'nock';
 import { ZodError } from 'zod';
 import { NewJobHandler } from '../../../src/models/newJobHandler';
@@ -23,20 +24,22 @@ describe('NewJobHandler', () => {
     nock.cleanAll();
   });
 
-  describe('processJob', () => {
+  describe('#processJob', () => {
     it('should successfully process job', async () => {
       const updatedParams = getUpdatedJobParams(newJobResponseMock, polygonPartsEntity);
-      nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(200, polygonPartsEntity).persist();
-      const updateJobNock = nock(jobManagerUrl).put(`/jobs/${newJobResponseMock.id}`, JSON.stringify(updatedParams)).reply(200);
+      nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(StatusCodes.OK, polygonPartsEntity);
+      const updateJobNock = nock(jobManagerUrl).put(`/jobs/${newJobResponseMock.id}`, JSON.stringify(updatedParams)).reply(StatusCodes.OK);
 
-      await newJobHandler.processJob(newJobResponseMock);
+      const action = async () => {
+        await newJobHandler.processJob(newJobResponseMock);
+      };
 
+      await expect(action()).resolves.not.toThrow(Error);
       expect(updateJobNock.isDone()).toBeTruthy();
-      expect.assertions(1);
+      expect.assertions(2);
     });
 
-    it('should fail on validation due to invalid productType and throw error', async () => {
-      nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(200).persist();
+    it('should throw an error on validation when invalid productType', async () => {
       const invalidJobResponseMock = { ...newJobResponseMock, productType: 'invalidType' };
 
       const action = async () => {
@@ -44,6 +47,121 @@ describe('NewJobHandler', () => {
       };
 
       await expect(action()).rejects.toThrow(ZodError);
+      expect.assertions(1);
+    });
+
+    it('should throw an error on polygon parts manager throws a non-conflict error', async () => {
+      nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(StatusCodes.INTERNAL_SERVER_ERROR, polygonPartsEntity);
+
+      const action = async () => {
+        await newJobHandler.processJob(newJobResponseMock);
+      };
+
+      await expect(action()).rejects.toThrow(Error);
+      expect.assertions(1);
+    });
+
+    it('should throw an error on job manager throws an error', async () => {
+      const updatedParams = getUpdatedJobParams(newJobResponseMock, polygonPartsEntity);
+      nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(StatusCodes.OK, polygonPartsEntity);
+      const updateJobNock = nock(jobManagerUrl).put(`/jobs/${newJobResponseMock.id}`, JSON.stringify(updatedParams)).reply(StatusCodes.INTERNAL_SERVER_ERROR);
+
+      const action = async () => {
+        await newJobHandler.processJob(newJobResponseMock);
+      };
+
+      await expect(action()).rejects.toThrow(Error);
+      expect(updateJobNock.isDone()).toBeTruthy();
+      expect.assertions(2);
+    });
+
+    describe('#retry-task', () => {
+      it('should successfully process job on create polygon parts throws error when entity already exists (conflict) and polygonPartsEntityName is already in additionalParams (retried task)', async () => {
+        const newJobParameters = {
+          parameters: {
+            ...newJobResponseMock.parameters,
+            additionalParams: { ...newJobResponseMock.parameters.additionalParams, polygonPartsEntityName: 'polygon_parts_entity_name_orthophoto' },
+          },
+        };
+        const job = {
+          ...newJobResponseMock,
+          ...newJobParameters,
+        };
+        nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(StatusCodes.CONFLICT, 'error message');
+        const updateJobNock = nock(jobManagerUrl).put(`/jobs/${job.id}`, JSON.stringify(newJobParameters)).reply(StatusCodes.OK);
+
+        const action = async () => {
+          await newJobHandler.processJob(job);
+        };
+
+        await expect(action()).resolves.not.toThrow(Error);
+        expect(updateJobNock.isDone()).toBeTruthy();
+        expect.assertions(2);
+      });
+
+      it('should throw an error on create polygon parts when entity already exists (conflict) and job parameters are invalid', async () => {
+        const invalidPolygonPartsEntityName = '';
+        const newJobParameters = {
+          parameters: {
+            ...newJobResponseMock.parameters,
+            additionalParams: { ...newJobResponseMock.parameters.additionalParams, polygonPartsEntityName: invalidPolygonPartsEntityName },
+          },
+        };
+        const job = {
+          ...newJobResponseMock,
+          ...newJobParameters,
+        };
+        nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(StatusCodes.CONFLICT, 'error message');
+
+        const action = async () => {
+          await newJobHandler.processJob(job);
+        };
+
+        await expect(action()).rejects.toThrow(ZodError);
+        expect.assertions(1);
+      });
+
+      it('should throw an error on create polygon parts when entity already exists (conflict) and job parameters does not have polygonPartsEntityName in additionalParams', async () => {
+        const newJobParameters = {
+          parameters: {
+            ...newJobResponseMock.parameters,
+            additionalParams: { ...newJobResponseMock.parameters.additionalParams },
+          },
+        };
+        const job = {
+          ...newJobResponseMock,
+          ...newJobParameters,
+        };
+        nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(StatusCodes.CONFLICT, 'error message');
+
+        const action = async () => {
+          await newJobHandler.processJob(job);
+        };
+
+        await expect(action()).rejects.toThrow(new Error('polygonPartsEntityName is missing from additionalParams'));
+        expect.assertions(1);
+      });
+
+      it('should throw an error on create polygon parts when polygon parts manager throws non-conflict error', async () => {
+        const newJobParameters = {
+          parameters: {
+            ...newJobResponseMock.parameters,
+            additionalParams: { ...newJobResponseMock.parameters.additionalParams, polygonPartsEntityName: 'polygon_parts_entity_name_orthophoto' },
+          },
+        };
+        const job = {
+          ...newJobResponseMock,
+          ...newJobParameters,
+        };
+        nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(StatusCodes.INTERNAL_SERVER_ERROR, 'error message');
+
+        const action = async () => {
+          await newJobHandler.processJob(job);
+        };
+
+        await expect(action()).rejects.toThrow(Error);
+        expect.assertions(1);
+      });
     });
   });
 });
