@@ -1,4 +1,4 @@
-import { ConflictError } from '@map-colonies/error-types';
+import { NotFoundError } from '@map-colonies/error-types';
 import type { Logger } from '@map-colonies/js-logger';
 import { type IJobResponse, type IUpdateJobBody, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import type { PolygonPartsEntityNameObject, PolygonPartsPayload } from '@map-colonies/raster-shared';
@@ -7,7 +7,6 @@ import { PolygonPartsManagerClient } from '../clients/polygonPartsManagerClient'
 import { SERVICES } from '../common/constants';
 import type { IJobHandler, IngestionJobParams } from '../common/interfaces';
 import { validateIngestionJob } from '../common/validation';
-import { ingestionNewInitJobSchema } from '../utils/zod.schema';
 
 @injectable()
 export class NewJobHandler implements IJobHandler<IngestionJobParams> {
@@ -22,9 +21,10 @@ export class NewJobHandler implements IJobHandler<IngestionJobParams> {
       const validatedRequestBody = validateIngestionJob(job);
       this.logger.info('creating new polygon part', validatedRequestBody);
 
-      const polygonPartsCreateResponse = await this.createPolygonParts(job, validatedRequestBody);
+      const polygonPartsEntityName =
+        (await this.checkExistingPolygonPartsEntity(validatedRequestBody)) ?? (await this.createPolygonParts(validatedRequestBody));
 
-      const updatedJobParams: IUpdateJobBody<IngestionJobParams> = this.updateAdditionalParams(job, polygonPartsCreateResponse);
+      const updatedJobParams: IUpdateJobBody<IngestionJobParams> = this.updateAdditionalParams(job, polygonPartsEntityName);
       this.logger.info({ msg: 'updating additionalParams for job', jobId: job.id });
       await this.queueClient.jobManagerClient.updateJob(job.id, updatedJobParams);
     } catch (error) {
@@ -33,30 +33,28 @@ export class NewJobHandler implements IJobHandler<IngestionJobParams> {
     }
   }
 
-  private async createPolygonParts(
-    job: IJobResponse<IngestionJobParams, unknown>,
-    validatedRequestBody: PolygonPartsPayload
-  ): Promise<PolygonPartsEntityNameObject> {
+  private async checkExistingPolygonPartsEntity(validatedRequestBody: PolygonPartsPayload): Promise<PolygonPartsEntityNameObject | undefined> {
+    const { productId, productType } = validatedRequestBody;
     try {
-      return await this.polygonPartsManager.createPolygonParts(validatedRequestBody);
+      const existingPolygonPartsEntityName = await this.polygonPartsManager.existsPolygonParts({ productId, productType });
+      return existingPolygonPartsEntityName;
     } catch (error) {
-      if (error instanceof ConflictError) {
-        this.logger.warn({ msg: 'polygon parts entity already exists, proceeding processing' });
-        return this.getExistingPolygonPartsEntity(job);
-      } else {
-        throw error;
+      if (error instanceof NotFoundError) {
+        this.logger.warn({ msg: 'entity already exists', error });
+        return;
       }
+      this.logger.error({ msg: 'cheking existing polygon parts entity failed', error });
+      throw error;
     }
   }
 
-  private getExistingPolygonPartsEntity(job: IJobResponse<IngestionJobParams, unknown>): PolygonPartsEntityNameObject {
-    const ingestionNewInitJob = ingestionNewInitJobSchema.parse(job);
-    const polygonPartsEntityName = ingestionNewInitJob.parameters.additionalParams.polygonPartsEntityName;
-
-    if (polygonPartsEntityName === undefined) {
-      throw new Error('polygonPartsEntityName is missing from additionalParams');
+  private async createPolygonParts(validatedRequestBody: PolygonPartsPayload): Promise<PolygonPartsEntityNameObject> {
+    try {
+      return await this.polygonPartsManager.createPolygonParts(validatedRequestBody);
+    } catch (error) {
+      this.logger.error({ msg: 'failed creating polygon parts', error });
+      throw error;
     }
-    return { polygonPartsEntityName };
   }
 
   private updateAdditionalParams(

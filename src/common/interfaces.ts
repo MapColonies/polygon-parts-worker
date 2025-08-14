@@ -44,6 +44,8 @@ export interface IngestionJobParams {
   additionalParams: Record<string, unknown>;
 }
 
-export type FindPolygonPartsResponse = FeatureCollection<Polygon, PolygonPartExtended>;
+export type ExistsPolygonPartsPayload = Pick<PolygonPartsPayload, 'productId' | 'productType'>;
 
 export type ExportPolygonPartsResponse = FeatureCollection<Polygon, Omit<PolygonPartExtended, 'requestFeatureId'>>;
+
+export type FindPolygonPartsResponse = FeatureCollection<Polygon, PolygonPartExtended>;
