@@ -9,7 +9,8 @@ import { newJobResponseMock } from '../mocks/jobsMocks';
 
 describe('NewJobHandler', () => {
   const polygonPartsManagerUrl = configMock.get<string>('polygonPartsManager.baseUrl');
-  const polygonPartsManagerPostPath = `/polygonParts`;
+  const polygonPartsManagerCreatePath = `/polygonParts`;
+  const polygonPartsManagerExistsPath = `/polygonParts/exists`;
   const jobManagerUrl = configMock.get<string>('jobManagement.config.jobManagerBaseUrl');
   let newJobHandler: NewJobHandler;
 
@@ -27,7 +28,8 @@ describe('NewJobHandler', () => {
   describe('#processJob', () => {
     it('should successfully process job', async () => {
       const updatedParams = getUpdatedJobParams(newJobResponseMock, polygonPartsEntity);
-      nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(StatusCodes.OK, polygonPartsEntity);
+      nock(polygonPartsManagerUrl).post(polygonPartsManagerExistsPath).reply(StatusCodes.NOT_FOUND);
+      nock(polygonPartsManagerUrl).post(polygonPartsManagerCreatePath).reply(StatusCodes.OK, polygonPartsEntity);
       const updateJobNock = nock(jobManagerUrl).put(`/jobs/${newJobResponseMock.id}`, JSON.stringify(updatedParams)).reply(StatusCodes.OK);
 
       const action = async () => {
@@ -50,8 +52,19 @@ describe('NewJobHandler', () => {
       expect.assertions(1);
     });
 
-    it('should throw an error on polygon parts manager throws a non-conflict error', async () => {
-      nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(StatusCodes.INTERNAL_SERVER_ERROR, polygonPartsEntity);
+    it('should throw an error on exists polygon parts manager throws an error', async () => {
+      nock(polygonPartsManagerUrl).post(polygonPartsManagerExistsPath).reply(StatusCodes.INTERNAL_SERVER_ERROR, polygonPartsEntity);
+
+      const action = async () => {
+        await newJobHandler.processJob(newJobResponseMock);
+      };
+
+      await expect(action()).rejects.toThrow(Error);
+      expect.assertions(1);
+    });
+
+    it('should throw an error on create polygon parts manager throws an error', async () => {
+      nock(polygonPartsManagerUrl).post(polygonPartsManagerCreatePath).reply(StatusCodes.INTERNAL_SERVER_ERROR, polygonPartsEntity);
 
       const action = async () => {
         await newJobHandler.processJob(newJobResponseMock);
@@ -63,7 +76,8 @@ describe('NewJobHandler', () => {
 
     it('should throw an error on job manager throws an error', async () => {
       const updatedParams = getUpdatedJobParams(newJobResponseMock, polygonPartsEntity);
-      nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(StatusCodes.OK, polygonPartsEntity);
+      nock(polygonPartsManagerUrl).post(polygonPartsManagerExistsPath).reply(StatusCodes.NOT_FOUND);
+      nock(polygonPartsManagerUrl).post(polygonPartsManagerCreatePath).reply(StatusCodes.OK, polygonPartsEntity);
       const updateJobNock = nock(jobManagerUrl)
         .put(`/jobs/${newJobResponseMock.id}`, JSON.stringify(updatedParams))
         .reply(StatusCodes.INTERNAL_SERVER_ERROR);
@@ -89,7 +103,7 @@ describe('NewJobHandler', () => {
           ...newJobResponseMock,
           ...newJobParameters,
         };
-        nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(StatusCodes.CONFLICT, 'error message');
+        nock(polygonPartsManagerUrl).post(polygonPartsManagerCreatePath).reply(StatusCodes.CONFLICT, 'error message');
         const updateJobNock = nock(jobManagerUrl).put(`/jobs/${job.id}`, JSON.stringify(newJobParameters)).reply(StatusCodes.OK);
 
         const action = async () => {
@@ -113,7 +127,7 @@ describe('NewJobHandler', () => {
           ...newJobResponseMock,
           ...newJobParameters,
         };
-        nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(StatusCodes.CONFLICT, 'error message');
+        nock(polygonPartsManagerUrl).post(polygonPartsManagerCreatePath).reply(StatusCodes.CONFLICT, 'error message');
 
         const action = async () => {
           await newJobHandler.processJob(job);
@@ -134,7 +148,7 @@ describe('NewJobHandler', () => {
           ...newJobResponseMock,
           ...newJobParameters,
         };
-        nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(StatusCodes.CONFLICT, 'error message');
+        nock(polygonPartsManagerUrl).post(polygonPartsManagerCreatePath).reply(StatusCodes.CONFLICT, 'error message');
 
         const action = async () => {
           await newJobHandler.processJob(job);
@@ -155,7 +169,7 @@ describe('NewJobHandler', () => {
           ...newJobResponseMock,
           ...newJobParameters,
         };
-        nock(polygonPartsManagerUrl).post(polygonPartsManagerPostPath).reply(StatusCodes.INTERNAL_SERVER_ERROR, 'error message');
+        nock(polygonPartsManagerUrl).post(polygonPartsManagerCreatePath).reply(StatusCodes.INTERNAL_SERVER_ERROR, 'error message');
 
         const action = async () => {
           await newJobHandler.processJob(job);
