@@ -15,7 +15,7 @@ export class NewJobHandler implements IJobHandler<IngestionJobParams> {
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
     @inject(PolygonPartsManagerClient) private readonly polygonPartsManager: PolygonPartsManagerClient
-  ) { }
+  ) {}
 
   public async processJob(job: IJobResponse<IngestionJobParams, unknown>): Promise<void> {
     try {
