@@ -15,7 +15,7 @@ export class NewJobHandler implements IJobHandler<IngestionJobParams> {
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
     @inject(PolygonPartsManagerClient) private readonly polygonPartsManager: PolygonPartsManagerClient
-  ) { }
+  ) {}
 
   public async processJob(job: IJobResponse<IngestionJobParams, unknown>): Promise<void> {
     try {
@@ -46,13 +46,10 @@ export class NewJobHandler implements IJobHandler<IngestionJobParams> {
     return this.handleFirstAttempt(validatedRequestBody);
   }
 
-  private async handleRetryScenario(
-    existingEntityName: string,
-    validatedRequestBody: PolygonPartsPayload
-  ): Promise<PolygonPartsEntityNameObject> {
+  private async handleRetryScenario(existingEntityName: string, validatedRequestBody: PolygonPartsPayload): Promise<PolygonPartsEntityNameObject> {
     try {
       const existingEntity = await this.checkExistingPolygonPartsEntity(validatedRequestBody);
-      return existingEntity ?? await this.createPolygonParts(validatedRequestBody);
+      return existingEntity ?? (await this.createPolygonParts(validatedRequestBody));
     } catch (error) {
       if (error instanceof ConflictError) {
         return this.handleConflictInRetry(existingEntityName);
