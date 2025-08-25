@@ -92,11 +92,11 @@ describe('NewJobHandler', () => {
     });
 
     describe('#retry-task', () => {
-      it('should successfully process job on create polygon parts throws error when entity already exists (conflict) and polygonPartsEntityName is already in additionalParams (retried task)', async () => {
+      it('should successfully process job on create polygon parts throws error when entity does not exist (conflict) and polygonPartsEntityName is already in additionalParams (retried task)', async () => {
         const newJobParameters = {
           parameters: {
             ...newJobResponseMock.parameters,
-            additionalParams: { ...newJobResponseMock.parameters.additionalParams, polygonPartsEntityName: 'polygon_parts_entity_name_orthophoto' },
+            additionalParams: { ...newJobResponseMock.parameters.additionalParams, polygonPartsEntityName: polygonPartsEntity.polygonPartsEntityName },
           },
         };
         const job = {
@@ -104,7 +104,7 @@ describe('NewJobHandler', () => {
           ...newJobParameters,
         };
         nock(polygonPartsManagerUrl).post(polygonPartsManagerExistsPath).reply(StatusCodes.NOT_FOUND);
-        nock(polygonPartsManagerUrl).post(polygonPartsManagerCreatePath).reply(StatusCodes.CONFLICT, 'error message');
+        nock(polygonPartsManagerUrl).post(polygonPartsManagerCreatePath).reply(StatusCodes.OK, polygonPartsEntity);
         const updateJobNock = nock(jobManagerUrl).put(`/jobs/${job.id}`, JSON.stringify(newJobParameters)).reply(StatusCodes.OK);
 
         const action = async () => {
@@ -114,28 +114,6 @@ describe('NewJobHandler', () => {
         await expect(action()).resolves.not.toThrow(Error);
         expect(updateJobNock.isDone()).toBeTruthy();
         expect.assertions(2);
-      });
-
-      it('should throw an error on create polygon parts when entity already exists (conflict) and job parameters are invalid', async () => {
-        const invalidPolygonPartsEntityName = '';
-        const newJobParameters = {
-          parameters: {
-            ...newJobResponseMock.parameters,
-            additionalParams: { ...newJobResponseMock.parameters.additionalParams, polygonPartsEntityName: invalidPolygonPartsEntityName },
-          },
-        };
-        const job = {
-          ...newJobResponseMock,
-          ...newJobParameters,
-        };
-        nock(polygonPartsManagerUrl).post(polygonPartsManagerExistsPath).reply(StatusCodes.CONFLICT, 'error message');
-
-        const action = async () => {
-          await newJobHandler.processJob(job);
-        };
-
-        await expect(action()).rejects.toThrow(ZodError);
-        expect.assertions(1);
       });
 
       it('should throw an error on create polygon parts when entity already exists (conflict) and job parameters does not have polygonPartsEntityName in additionalParams', async () => {
@@ -149,13 +127,13 @@ describe('NewJobHandler', () => {
           ...newJobResponseMock,
           ...newJobParameters,
         };
-        nock(polygonPartsManagerUrl).post(polygonPartsManagerCreatePath).reply(StatusCodes.CONFLICT, 'error message');
+        nock(polygonPartsManagerUrl).post(polygonPartsManagerExistsPath).reply(StatusCodes.OK, 'someEntityName');
 
         const action = async () => {
           await newJobHandler.processJob(job);
         };
 
-        await expect(action()).rejects.toThrow(new Error('polygonPartsEntityName is missing from additionalParams'));
+        await expect(action()).rejects.toThrow(new Error('polygonPartsEntityName exists in database but is missing from additionalParams'));
         expect.assertions(1);
       });
 

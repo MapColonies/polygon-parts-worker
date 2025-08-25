@@ -15,7 +15,7 @@ export class NewJobHandler implements IJobHandler<IngestionJobParams> {
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
     @inject(PolygonPartsManagerClient) private readonly polygonPartsManager: PolygonPartsManagerClient
-  ) {}
+  ) { }
 
   public async processJob(job: IJobResponse<IngestionJobParams, unknown>): Promise<void> {
     try {
@@ -23,11 +23,21 @@ export class NewJobHandler implements IJobHandler<IngestionJobParams> {
       this.logger.info('creating new polygon part', validatedRequestBody);
 
       const polygonPartsEntityName = await this.getOrCreatePolygonPartsEntity(job, validatedRequestBody);
+      const polygonPartsEntityNameSchema = z
+        .string()
+        .min(1, 'polygonPartsEntityName cannot be an empty string')
+        .describe('Polygon parts entity name must be a non-empty string');
+      // Use Zod schema to validate the entity name - this will throw a ZodError if invalid
+      polygonPartsEntityNameSchema.parse(polygonPartsEntityName.polygonPartsEntityName);
 
       const updatedJobParams: IUpdateJobBody<IngestionJobParams> = this.updateAdditionalParams(job, polygonPartsEntityName);
       this.logger.info({ msg: 'updating additionalParams for job', jobId: job.id });
       await this.queueClient.jobManagerClient.updateJob(job.id, updatedJobParams);
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        this.logger.error({ msg: 'validation error', error });
+        throw error;
+      }
       this.logger.error({ msg: 'error while processing job', error });
       throw error;
     }
@@ -38,50 +48,19 @@ export class NewJobHandler implements IJobHandler<IngestionJobParams> {
     validatedRequestBody: PolygonPartsPayload
   ): Promise<PolygonPartsEntityNameObject> {
     const existingEntityName = job.parameters.additionalParams.polygonPartsEntityName as string | undefined;
+    const existingEntity = await this.checkExistingPolygonPartsEntity(validatedRequestBody);
 
-    if (existingEntityName !== undefined) {
-      return this.handleRetryScenario(existingEntityName, validatedRequestBody);
-    }
-
-    return this.handleFirstAttempt(validatedRequestBody);
-  }
-
-  private async handleRetryScenario(existingEntityName: string, validatedRequestBody: PolygonPartsPayload): Promise<PolygonPartsEntityNameObject> {
-    try {
-      const existingEntity = await this.checkExistingPolygonPartsEntity(validatedRequestBody);
-      return existingEntity ?? (await this.createPolygonParts(validatedRequestBody));
-    } catch (error) {
-      if (error instanceof ConflictError) {
-        return this.handleConflictInRetry(existingEntityName);
+    if (existingEntity !== undefined) {
+      if (existingEntityName === undefined) {
+        throw new Error('polygonPartsEntityName exists in database but is missing from additionalParams');
       }
-      throw error;
+      return existingEntity;
+    } else {
+      const result = await this.createPolygonParts(validatedRequestBody);
+      return result;
     }
   }
-
-  private async handleFirstAttempt(validatedRequestBody: PolygonPartsPayload): Promise<PolygonPartsEntityNameObject> {
-    try {
-      return await this.createPolygonParts(validatedRequestBody);
-    } catch (error) {
-      if (error instanceof ConflictError) {
-        throw new Error('polygonPartsEntityName is missing from additionalParams');
-      }
-      throw error;
-    }
-  }
-
-  private handleConflictInRetry(existingEntityName: string): PolygonPartsEntityNameObject {
-    // Zod schema for polygon parts entity name validation
-    const polygonPartsEntityNameSchema = z
-      .string()
-      .min(1, 'polygonPartsEntityName cannot be an empty string')
-      .describe('Polygon parts entity name must be a non-empty string');
-
-    // Use Zod schema to validate the entity name - this will throw a ZodError if invalid
-    const validatedEntityName = polygonPartsEntityNameSchema.parse(existingEntityName);
-
-    return { polygonPartsEntityName: validatedEntityName } as PolygonPartsEntityNameObject;
-  }
-
+  
   private async checkExistingPolygonPartsEntity(validatedRequestBody: PolygonPartsPayload): Promise<PolygonPartsEntityNameObject | undefined> {
     const { productId, productType } = validatedRequestBody;
     try {
