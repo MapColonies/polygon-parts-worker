@@ -96,7 +96,10 @@ describe('NewJobHandler', () => {
         const newJobParameters = {
           parameters: {
             ...newJobResponseMock.parameters,
-            additionalParams: { ...newJobResponseMock.parameters.additionalParams, polygonPartsEntityName: polygonPartsEntity.polygonPartsEntityName },
+            additionalParams: {
+              ...newJobResponseMock.parameters.additionalParams,
+              polygonPartsEntityName: polygonPartsEntity.polygonPartsEntityName,
+            },
           },
         };
         const job = {
@@ -112,28 +115,33 @@ describe('NewJobHandler', () => {
         };
 
         await expect(action()).resolves.not.toThrow(Error);
-        expect(updateJobNock.isDone()).toBeTruthy();
+        expect(updateJobNock.isDone()).toBeFalsy();
         expect.assertions(2);
       });
 
-      it('should throw an error on create polygon parts when entity already exists (conflict) and job parameters does not have polygonPartsEntityName in additionalParams', async () => {
+      it('should successfully process job on create polygon parts when entity already exists (conflict) and job parameters does not have polygonPartsEntityName in additionalParams', async () => {
         const newJobParameters = {
           parameters: {
             ...newJobResponseMock.parameters,
-            additionalParams: { ...newJobResponseMock.parameters.additionalParams },
+            additionalParams: {
+              ...newJobResponseMock.parameters.additionalParams,
+              polygonPartsEntityName: polygonPartsEntity.polygonPartsEntityName,
+            },
           },
         };
         const job = {
           ...newJobResponseMock,
           ...newJobParameters,
         };
-        nock(polygonPartsManagerUrl).post(polygonPartsManagerExistsPath).reply(StatusCodes.OK, 'someEntityName');
+        const updatedParams = getUpdatedJobParams(newJobResponseMock, polygonPartsEntity);
+        nock(jobManagerUrl).put(`/jobs/${newJobResponseMock.id}`, JSON.stringify(updatedParams)).reply(StatusCodes.OK);
+        nock(polygonPartsManagerUrl).post(polygonPartsManagerExistsPath).reply(StatusCodes.OK, { polygonPartsEntityName: 'blue_marble_orthophoto' });
 
         const action = async () => {
           await newJobHandler.processJob(job);
         };
 
-        await expect(action()).rejects.toThrow(new Error('polygonPartsEntityName exists in database but is missing from additionalParams'));
+        await expect(action()).resolves.not.toThrow();
         expect.assertions(1);
       });
 

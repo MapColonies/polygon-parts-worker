@@ -1,4 +1,4 @@
-import { ConflictError, NotFoundError } from '@map-colonies/error-types';
+import { NotFoundError } from '@map-colonies/error-types';
 import type { Logger } from '@map-colonies/js-logger';
 import { type IJobResponse, type IUpdateJobBody, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import type { PolygonPartsEntityNameObject, PolygonPartsPayload } from '@map-colonies/raster-shared';
@@ -15,24 +15,20 @@ export class NewJobHandler implements IJobHandler<IngestionJobParams> {
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
     @inject(PolygonPartsManagerClient) private readonly polygonPartsManager: PolygonPartsManagerClient
-  ) { }
+  ) {}
 
   public async processJob(job: IJobResponse<IngestionJobParams, unknown>): Promise<void> {
     try {
       const validatedRequestBody = validateIngestionJob(job);
       this.logger.info('creating new polygon part', validatedRequestBody);
 
-      const polygonPartsEntityName = await this.getOrCreatePolygonPartsEntity(job, validatedRequestBody);
+      const polygonPartsEntityName = await this.handlePolygonPartsEntity(job, validatedRequestBody);
       const polygonPartsEntityNameSchema = z
         .string()
         .min(1, 'polygonPartsEntityName cannot be an empty string')
         .describe('Polygon parts entity name must be a non-empty string');
       // Use Zod schema to validate the entity name - this will throw a ZodError if invalid
       polygonPartsEntityNameSchema.parse(polygonPartsEntityName.polygonPartsEntityName);
-
-      const updatedJobParams: IUpdateJobBody<IngestionJobParams> = this.updateAdditionalParams(job, polygonPartsEntityName);
-      this.logger.info({ msg: 'updating additionalParams for job', jobId: job.id });
-      await this.queueClient.jobManagerClient.updateJob(job.id, updatedJobParams);
     } catch (error) {
       if (error instanceof z.ZodError) {
         this.logger.error({ msg: 'validation error', error });
@@ -43,24 +39,28 @@ export class NewJobHandler implements IJobHandler<IngestionJobParams> {
     }
   }
 
-  private async getOrCreatePolygonPartsEntity(
+  private async handlePolygonPartsEntity(
     job: IJobResponse<IngestionJobParams, unknown>,
     validatedRequestBody: PolygonPartsPayload
   ): Promise<PolygonPartsEntityNameObject> {
     const existingEntityName = job.parameters.additionalParams.polygonPartsEntityName as string | undefined;
     const existingEntity = await this.checkExistingPolygonPartsEntity(validatedRequestBody);
+    let finalPolygonPartsEntityNameObject: PolygonPartsEntityNameObject;
 
     if (existingEntity !== undefined) {
-      if (existingEntityName === undefined) {
-        throw new Error('polygonPartsEntityName exists in database but is missing from additionalParams');
-      }
-      return existingEntity;
+      finalPolygonPartsEntityNameObject = existingEntity;
     } else {
-      const result = await this.createPolygonParts(validatedRequestBody);
-      return result;
+      const newEntity = await this.createPolygonParts(validatedRequestBody);
+      finalPolygonPartsEntityNameObject = newEntity;
     }
+
+    if (existingEntityName === undefined) {
+      await this.updateJobWithPolygonPartsEntity(job, finalPolygonPartsEntityNameObject);
+    }
+
+    return finalPolygonPartsEntityNameObject;
   }
-  
+
   private async checkExistingPolygonPartsEntity(validatedRequestBody: PolygonPartsPayload): Promise<PolygonPartsEntityNameObject | undefined> {
     const { productId, productType } = validatedRequestBody;
     try {
@@ -85,7 +85,16 @@ export class NewJobHandler implements IJobHandler<IngestionJobParams> {
     }
   }
 
-  private updateAdditionalParams(
+  private async updateJobWithPolygonPartsEntity(
+    job: IJobResponse<IngestionJobParams, unknown>,
+    polygonPartsEntity: PolygonPartsEntityNameObject
+  ): Promise<void> {
+    const updatedJobParams: IUpdateJobBody<IngestionJobParams> = this.setAdditionalParams(job, polygonPartsEntity);
+    this.logger.info({ msg: 'updating additionalParams for job', jobId: job.id });
+    await this.queueClient.jobManagerClient.updateJob(job.id, updatedJobParams);
+  }
+
+  private setAdditionalParams(
     job: IJobResponse<IngestionJobParams, unknown>,
     polygonPartsEntity: PolygonPartsEntityNameObject
   ): IUpdateJobBody<IngestionJobParams> {
