@@ -15,7 +15,7 @@ export class NewJobHandler implements IJobHandler<IngestionJobParams> {
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
     @inject(PolygonPartsManagerClient) private readonly polygonPartsManager: PolygonPartsManagerClient
-  ) {}
+  ) { }
 
   public async processJob(job: IJobResponse<IngestionJobParams, unknown>): Promise<void> {
     try {
@@ -48,7 +48,7 @@ export class NewJobHandler implements IJobHandler<IngestionJobParams> {
   private async checkExistingPolygonPartsEntity(validatedRequestBody: PolygonPartsPayload): Promise<PolygonPartsEntityNameObject | undefined> {
     const { productId, productType } = validatedRequestBody;
     try {
-      const existingPolygonPartsEntityName = await this.polygonPartsManager.existsPolygonParts({ productId, productType });
+      const existingPolygonPartsEntityName = await this.polygonPartsManager.getPolygonPartsIfExists({ productId, productType });
       return existingPolygonPartsEntityName;
     } catch (error) {
       if (error instanceof NotFoundError) {

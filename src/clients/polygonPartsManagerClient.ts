@@ -38,7 +38,7 @@ export class PolygonPartsManagerClient extends HttpClient {
   }
 
   @withSpanAsyncV4
-  public async existsPolygonParts(requestBody: ExistsPolygonPartsPayload): Promise<PolygonPartsEntityNameObject> {
+  public async getPolygonPartsIfExists(requestBody: ExistsPolygonPartsPayload): Promise<PolygonPartsEntityNameObject> {
     const existsPolygonPartsUrl = `/polygonParts/exists`;
     const response = await this.post<PolygonPartsEntityNameObject>(existsPolygonPartsUrl, requestBody);
     return response;
