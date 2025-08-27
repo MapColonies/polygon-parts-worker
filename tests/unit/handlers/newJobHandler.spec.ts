@@ -115,7 +115,7 @@ describe('NewJobHandler', () => {
         };
 
         await expect(action()).resolves.not.toThrow(Error);
-        expect(updateJobNock.isDone()).toBeFalsy();
+        expect(updateJobNock.isDone()).toBeTruthy();
         expect.assertions(2);
       });
 
