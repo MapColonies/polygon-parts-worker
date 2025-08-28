@@ -134,7 +134,7 @@ describe('NewJobHandler', () => {
           ...newJobParameters,
         };
         const updatedParams = getUpdatedJobParams(newJobResponseMock, polygonPartsEntity);
-        nock(jobManagerUrl).put(`/jobs/${newJobResponseMock.id}`, JSON.stringify(updatedParams)).reply(StatusCodes.OK);
+        const updateJobNock = nock(jobManagerUrl).put(`/jobs/${newJobResponseMock.id}`, JSON.stringify(updatedParams)).reply(StatusCodes.OK);
         nock(polygonPartsManagerUrl).post(polygonPartsManagerExistsPath).reply(StatusCodes.OK, { polygonPartsEntityName: 'blue_marble_orthophoto' });
 
         const action = async () => {
@@ -142,7 +142,8 @@ describe('NewJobHandler', () => {
         };
 
         await expect(action()).resolves.not.toThrow();
-        expect.assertions(1);
+        expect(updateJobNock.isDone()).toBeTruthy();
+        expect.assertions(2);
       });
 
       it('should throw an error on create polygon parts when polygon parts manager throws internal server error', async () => {
