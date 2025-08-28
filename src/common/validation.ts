@@ -1,6 +1,5 @@
 import { IJobResponse } from '@map-colonies/mc-priority-queue';
-import { PolygonPartsPayload, partSchema } from '@map-colonies/raster-shared';
-import { ingestionNewRequestBodySchema } from '../schemas/polyPartsManager.schema';
+import { PolygonPartsPayload, polygonPartsPayloadSchema } from '@map-colonies/raster-shared';
 import { IngestionJobParams } from './interfaces';
 
 export function validateIngestionJob(job: IJobResponse<IngestionJobParams, unknown>): PolygonPartsPayload {
@@ -12,9 +11,6 @@ export function validateIngestionJob(job: IJobResponse<IngestionJobParams, unkno
     partsData: job.parameters.partsData,
   };
 
-  requestBody.partsData.forEach((part) => {
-    partSchema.parse(part);
-  });
-  const validatedRequestBody: PolygonPartsPayload = ingestionNewRequestBodySchema.parse(requestBody);
+  const validatedRequestBody = polygonPartsPayloadSchema.parse(requestBody);
   return validatedRequestBody;
 }

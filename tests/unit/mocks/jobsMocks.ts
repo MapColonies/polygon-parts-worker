@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 import { ProductType, Transparency } from '@map-colonies/mc-model-types';
-import { IJobResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
-import { ExportJobParameters } from '@map-colonies/raster-shared';
-import { IngestionJobParams } from '../../../src/common/interfaces';
+import { type IJobResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
+import { type ExportJobParameters, RASTER_DOMAIN } from '@map-colonies/raster-shared';
+import type { IngestionJobParams } from '../../../src/common/interfaces';
 
 const newJobResponseMock: IJobResponse<IngestionJobParams, unknown> = {
   id: '321d495f-e6e4-45cc-b301-4ebc4e894f03',
@@ -61,11 +61,11 @@ const newJobResponseMock: IJobResponse<IngestionJobParams, unknown> = {
     additionalParams: {
       jobTrackerServiceURL: 'http://raster-core-dev-job-tracker-service',
     },
-  } as IngestionJobParams,
+  },
   status: OperationStatus.PENDING,
   percentage: 0,
   reason: '',
-  domain: 'string',
+  domain: RASTER_DOMAIN,
   isCleaned: false,
   priority: 0,
   expirationDate: new Date('2025-09-24T13:38:04.553Z'),
@@ -103,7 +103,7 @@ const exportJobResponseMock: IJobResponse<ExportJobParameters, unknown> = {
   parameters: {
     additionalParams: {
       fileNamesTemplates: {
-        dataURI: 'test1-source.gpkg',
+        packageName: 'test1-source.gpkg',
       },
       packageRelativePath: 'dcb0cb4ae42344616d0de9d47fa4b90c/test.gpkg',
       relativeDirectoryPath: 'dcb0cb4ae42344616d0de9d47fa4b90c',

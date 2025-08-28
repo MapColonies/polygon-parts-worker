@@ -2,7 +2,7 @@ import { inject, injectable } from 'tsyringe';
 import { IJobResponse, IUpdateJobBody, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { Logger } from '@map-colonies/js-logger';
 import { BadRequestError } from '@map-colonies/error-types';
-import { PolygonPartsEntityNameObject, PolygonPartsPayload } from '@map-colonies/raster-shared';
+import { PolygonPartsEntityNameObject } from '@map-colonies/raster-shared';
 import { IJobHandler, IngestionJobParams } from '../common/interfaces';
 import { PolygonPartsManagerClient } from '../clients/polygonPartsManagerClient';
 import { HANDLERS, SERVICES } from '../common/constants';
@@ -29,7 +29,7 @@ export class UpdateJobHandler implements IJobHandler<IngestionJobParams> {
     }
 
     try {
-      const validatedRequestBody: PolygonPartsPayload = validateIngestionJob(job);
+      const validatedRequestBody = validateIngestionJob(job);
       this.logger.info('creating update polygon part', validatedRequestBody, isSwap);
 
       const polygonPartsEntity = await this.polygonPartsManager.updatePolygonParts(validatedRequestBody, isSwap);

@@ -27,7 +27,7 @@ describe('UpdateJobHandler', () => {
   describe('processJob', () => {
     const isSwap = false;
     const updateJobResponseMock = { ...newJobResponseMock, type: configMock.get<string>('jobDefinitions.jobs.update.type') };
-    it('should successfully process job', async () => {
+    it('should successfully process regular update job by updating polygon parts and job parameters', async () => {
       const updatedParams = getUpdatedJobParams(newJobResponseMock, polygonPartsEntity);
       nock(polygonPartsManagerUrl).put(polygonPartsManagerPutPath).query({ isSwap }).reply(200, polygonPartsEntity).persist();
       const updateJobNock = nock(jobManagerUrl).put(`/jobs/${newJobResponseMock.id}`, JSON.stringify(updatedParams)).reply(200);
@@ -82,7 +82,7 @@ describe('UpdateSwapJobHandler', () => {
   });
 
   describe('processJob', () => {
-    it('should successfully process job', async () => {
+    it('should successfully process swap update job with isSwap=true and update both polygon parts and job parameters', async () => {
       const updatedParams = getUpdatedJobParams(newJobResponseMock, polygonPartsEntity);
       nock(polygonPartsManagerUrl).put(polygonPartsManagerPutPath).query({ isSwap }).reply(200, polygonPartsEntity).persist();
       const updateJobNock = nock(jobManagerUrl).put(`/jobs/${newJobResponseMock.id}`, JSON.stringify(updatedParams)).reply(200);
