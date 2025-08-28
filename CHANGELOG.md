@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.8.1](https://github.com/MapColonies/polygon-parts-worker/compare/v1.8.0...v1.8.1) (2025-08-28)
+
+
+### Bug Fixes
+
+* handle polygon parts creation failure due to conflict error (MAPCO-8494) ([#29](https://github.com/MapColonies/polygon-parts-worker/issues/29)) ([bda6b5f](https://github.com/MapColonies/polygon-parts-worker/commit/bda6b5f689d9f2a3d865e405c6da4bf9beb2e088))
+
 ## [1.8.0](https://github.com/MapColonies/polygon-parts-worker/compare/v1.7.1...v1.8.0) (2025-05-07)
 
 
