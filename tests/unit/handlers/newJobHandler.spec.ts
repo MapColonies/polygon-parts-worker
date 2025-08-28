@@ -91,8 +91,8 @@ describe('NewJobHandler', () => {
       expect.assertions(2);
     });
 
-    describe('#retry-task', () => {
-      it('should successfully process job on create polygon parts throws error when entity does not exist (conflict) and polygonPartsEntityName is already in additionalParams (retried task)', async () => {
+    describe('#error-handling', () => {
+      it('should successfully process job on create polygon parts throws error when entity does not exist (not found) and polygonPartsEntityName is already in additionalParams (retried task)', async () => {
         const newJobParameters = {
           parameters: {
             ...newJobResponseMock.parameters,
@@ -145,7 +145,7 @@ describe('NewJobHandler', () => {
         expect.assertions(1);
       });
 
-      it('should throw an error on create polygon parts when polygon parts manager throws non-conflict error', async () => {
+      it('should throw an error on create polygon parts when polygon parts manager throws internal server error', async () => {
         const newJobParameters = {
           parameters: {
             ...newJobResponseMock.parameters,
