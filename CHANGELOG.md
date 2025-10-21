@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.8.2](https://github.com/MapColonies/polygon-parts-worker/compare/v1.8.1...v1.8.2) (2025-10-21)
+
+
+### Bug Fixes
+
+* remove internal pvc hardcoded name ([#30](https://github.com/MapColonies/polygon-parts-worker/issues/30)) ([426b16e](https://github.com/MapColonies/polygon-parts-worker/commit/426b16ec5a6cef7702e128771028b7d073c3c267))
+
 ### [1.8.1](https://github.com/MapColonies/polygon-parts-worker/compare/v1.8.0...v1.8.1) (2025-08-28)
 
 
