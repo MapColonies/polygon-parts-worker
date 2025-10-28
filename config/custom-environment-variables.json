@@ -61,6 +61,13 @@
       },
       "polygonParts": {
         "type": "POLYGON_PARTS_TASK_TYPE"
+      },
+      "validations": {
+        "type": "VALIDATIONS_TASK_TYPE",
+        "chunkMaxVertices": {
+          "__name": "VALIDATIONS_TASK_CHUNK_MAX_VERTICES",
+          "__format": "number"
+        }
       }
     },
     "jobs": {

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
-import { ProductType, Transparency } from '@map-colonies/mc-model-types';
+import { ProductType } from '@map-colonies/mc-model-types';
 import { IJobResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { ExportJobParameters } from '@map-colonies/raster-shared';
 import { IngestionJobParams } from '../../../src/common/interfaces';
@@ -11,57 +11,17 @@ const newJobResponseMock: IJobResponse<IngestionJobParams, unknown> = {
   type: 'Ingestion_New',
   description: 'polygonPart job for test',
   parameters: {
-    metadata: {
-      srs: '4326',
-      grid: '2x1',
-      region: ['hkjhjk'],
-      srsName: 'WGS84GEO',
-      catalogId: 'a4f05d9e-01ff-4418-b819-8869cab6ee5d',
-      productId: 'hkhjk',
-      displayPath: '2b549bc0-0381-492a-8f55-28a19cd98e38',
-      productName: 'hjkhjk',
-      productType: ProductType.ORTHOPHOTO,
-      producerName: 'IDFMU',
-      tileMimeType: 'image/png',
-      transparency: Transparency.TRANSPARENT,
-      classification: '5',
-      tileOutputFormat: 'PNG',
-      layerRelativePath: 'a4f05d9e-01ff-4418-b819-8869cab6ee5d/2b549bc0-0381-492a-8f55-28a19cd98e38',
-    },
-    partsData: [
-      {
-        sensors: ['jkljkl'],
-        sourceId: 'dghfghfg',
-        footprint: {
-          type: 'Polygon',
-          coordinates: [
-            [
-              [34.48728335834858, 31.531266394350354],
-              [34.48727176862647, 31.53023901883512],
-              [34.48762525514584, 31.530456349213623],
-              [34.48847130484714, 31.530910765642957],
-              [34.488013510830655, 31.531547932783027],
-              [34.48728335834858, 31.531266394350354],
-            ],
-          ],
-        },
-        sourceName: 'dhgfhg',
-        resolutionMeter: 0.037,
-        resolutionDegree: 3.35276126861572e-7,
-        imagingTimeEndUTC: new Date('2024-11-19T13:31:00.000Z'),
-        imagingTimeBeginUTC: new Date('2024-11-17T13:31:00.000Z'),
-        sourceResolutionMeter: 70000,
-        horizontalAccuracyCE90: 49,
-      },
-    ],
+    ingestionResolution: 10,
     inputFiles: {
-      fileNames: ['sample_2.5cm_geo.gpkg'],
-      originDirectory: 'test_dir',
+      gpkgFilesPath: ['/data/polygonPartsTest7/gpkgFiles'],
+      metadataShapefilePath: '/data/polygonPartsTest7/metadataShapefile.shp',
+      productShapefilePath: '/data/polygonPartsTest7/productShapefile.shp',
     },
     additionalParams: {
       jobTrackerServiceURL: 'http://raster-core-dev-job-tracker-service',
+      polygonPartsEntityName: undefined,
     },
-  } as IngestionJobParams,
+  },
   status: OperationStatus.PENDING,
   percentage: 0,
   reason: '',
@@ -103,7 +63,7 @@ const exportJobResponseMock: IJobResponse<ExportJobParameters, unknown> = {
   parameters: {
     additionalParams: {
       fileNamesTemplates: {
-        dataURI: 'test1-source.gpkg',
+        packageName: 'exported_data_package',
       },
       packageRelativePath: 'dcb0cb4ae42344616d0de9d47fa4b90c/test.gpkg',
       relativeDirectoryPath: 'dcb0cb4ae42344616d0de9d47fa4b90c',

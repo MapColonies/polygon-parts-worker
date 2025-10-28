@@ -6,6 +6,7 @@ import { Tracer } from '@opentelemetry/api';
 import { inject, injectable } from 'tsyringe';
 import { JobTrackerClient } from '../clients/jobTrackerClient';
 import { SERVICES } from '../common/constants';
+import { TaskMetricLabels, TaskMetrics } from '../common/otel/metrics/taskMetrics';
 import { ReachedMaxTaskAttemptsError } from '../common/errors';
 import { IConfig, IJobAndTaskResponse, IPermittedJobTypes } from '../common/interfaces';
 import { initJobHandler } from './handlersFactory';
@@ -14,30 +15,32 @@ import { initJobHandler } from './handlersFactory';
 export class JobProcessor {
   private isRunning = true;
   private readonly dequeueIntervalMs: number;
-  private readonly taskTypeToProcess: string;
   private readonly jobTypesToProcess: IPermittedJobTypes;
+  private readonly taskTypesToProcess: string[];
   private readonly maxTaskAttempts: number;
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.TRACER) public readonly tracer: Tracer,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
     @inject(SERVICES.CONFIG) private readonly config: IConfig,
-    @inject(JobTrackerClient) private readonly jobTrackerClient: JobTrackerClient
+    @inject(JobTrackerClient) private readonly jobTrackerClient: JobTrackerClient,
+    @inject(TaskMetrics) private readonly taskMetrics: TaskMetrics
   ) {
     this.dequeueIntervalMs = this.config.get<number>('jobManagement.config.dequeueIntervalMs');
-    this.taskTypeToProcess = this.config.get<string>('jobDefinitions.tasks.polygonParts.type');
+    const validationsTask = this.config.get<string>('jobDefinitions.tasks.validations.type');
+    const polygonPartsTask = this.config.get<string>('jobDefinitions.tasks.polygonParts.type');
     const ingestionNew = this.config.get<string>('jobDefinitions.jobs.new.type');
     const ingestionUpdate = this.config.get<string>('jobDefinitions.jobs.update.type');
     const ingestionSwapUpdate = this.config.get<string>('jobDefinitions.jobs.swapUpdate.type');
     const exportJob = this.config.get<string>('jobDefinitions.jobs.export.type');
     this.jobTypesToProcess = { ingestionNew, ingestionUpdate, ingestionSwapUpdate, exportJob };
+    this.taskTypesToProcess = [validationsTask, polygonPartsTask];
     this.maxTaskAttempts = this.config.get<number>('jobDefinitions.tasks.maxAttempts');
   }
 
   @withSpanAsyncV4
   public async start(): Promise<void> {
     this.logger.info({ msg: 'starting polling' });
-
     while (this.isRunning) {
       let jobAndTask: IJobAndTaskResponse | undefined;
       try {
@@ -45,14 +48,21 @@ export class JobProcessor {
         jobAndTask = await this.getJobAndTask();
 
         if (jobAndTask) {
-          const { task, job } = jobAndTask;
-          this.logger.info({ msg: 'processing job', jobId: job.id });
-          await this.checkTaskAttempts(task);
-          const jobHandler = initJobHandler(job.type, this.jobTypesToProcess);
-          await jobHandler.processJob(job);
+          const { job, task } = jobAndTask;
+          const labels: TaskMetricLabels = {
+            jobType: job.type,
+            taskType: task.type,
+          };
 
-          this.logger.info({ msg: 'notifying job tracker and job manager on task finished', taskId: task.id });
-          await this.notifyOnSuccess(job.id, task.id);
+          await this.taskMetrics.withTaskMetrics(labels, async () => {
+            this.logger.info({ msg: 'processing job', jobId: job.id });
+            await this.checkTaskAttempts(task);
+            const jobHandler = initJobHandler(job.type, this.jobTypesToProcess);
+            await jobHandler.processJob(job, task);
+
+            this.logger.info({ msg: 'notifying job tracker and job manager on task finished', taskId: task.id });
+            await this.notifyOnSuccess(job.id, task.id);
+          });
         }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'something went wrong';
@@ -72,16 +82,14 @@ export class JobProcessor {
     const jobTypesToProcessArray = Object.values(this.jobTypesToProcess) as string[];
 
     for (const jobType of jobTypesToProcessArray) {
-      this.logger.debug(
-        { msg: `try to dequeue task of type "${this.taskTypeToProcess}" and job of type "${jobType}"` },
-        jobType,
-        this.taskTypeToProcess
-      );
-      const task = await this.queueClient.dequeue(jobType, this.taskTypeToProcess);
-      if (task) {
-        this.logger.info({ msg: `getting task's job ${task.id}`, task });
-        const job = await this.queueClient.jobManagerClient.getJob<unknown, unknown>(task.jobId);
-        return { task, job } as IJobAndTaskResponse;
+      for (const taskType of this.taskTypesToProcess) {
+        this.logger.debug({ msg: `try to dequeue task of type "${taskType}" and job of type "${jobType}"` }, jobType, taskType);
+        const task = await this.queueClient.dequeue(jobType, taskType);
+        if (task) {
+          this.logger.info({ msg: `getting task's job ${task.id}`, task });
+          const job = await this.queueClient.jobManagerClient.getJob<unknown, unknown>(task.jobId);
+          return { task, job };
+        }
       }
     }
   }

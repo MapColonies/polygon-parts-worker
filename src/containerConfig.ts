@@ -1,19 +1,19 @@
 import config, { IConfig } from 'config';
 import { getOtelMixin } from '@map-colonies/telemetry';
-import { trace, metrics as OtelMetrics } from '@opentelemetry/api';
+import { trace } from '@opentelemetry/api';
 import { DependencyContainer } from 'tsyringe/dist/typings/types';
 import jsLogger, { Logger, LoggerOptions } from '@map-colonies/js-logger';
-import { Metrics } from '@map-colonies/telemetry';
-import { instancePerContainerCachingFactory } from 'tsyringe';
+import { instanceCachingFactory, instancePerContainerCachingFactory } from 'tsyringe';
 import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { IHttpRetryConfig } from '@map-colonies/mc-utils';
+import { Registry } from 'prom-client';
 import { HANDLERS, SERVICES, SERVICE_NAME } from './common/constants';
 import { tracing } from './common/tracing';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
 import { IJobManagerConfig } from './common/interfaces';
-import { NewJobHandler } from './models/newJobHandler';
-import { UpdateJobHandler } from './models/updateJobHandler';
-import { ExportJobHandler } from './models/exportJobHandler';
+import { IngestionJobHandler } from './models/ingestion/ingestionHandler';
+import { ExportJobHandler } from './models/export/exportJobHandler';
+// import { ShapefileMetrics } from './common/otel/metrics/shapeFileMetrics';
 
 const queueClientFactory = (container: DependencyContainer): QueueClient => {
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
@@ -39,8 +39,7 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
   const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
   const logger = jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, mixin: getOtelMixin() });
 
-  const metrics = new Metrics();
-  metrics.start();
+  const metricsRegistry = new Registry();
 
   const tracer = trace.getTracer(SERVICE_NAME);
 
@@ -48,18 +47,32 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     { token: SERVICES.CONFIG, provider: { useValue: config } },
     { token: SERVICES.LOGGER, provider: { useValue: logger } },
     { token: SERVICES.TRACER, provider: { useValue: tracer } },
-    { token: SERVICES.METER, provider: { useValue: OtelMetrics.getMeterProvider().getMeter(SERVICE_NAME) } },
     { token: SERVICES.QUEUE_CLIENT, provider: { useFactory: instancePerContainerCachingFactory(queueClientFactory) } },
-    { token: HANDLERS.NEW, provider: { useClass: NewJobHandler } },
-    { token: HANDLERS.UPDATE, provider: { useClass: UpdateJobHandler } },
-    { token: HANDLERS.SWAP, provider: { useClass: UpdateJobHandler } },
+    { token: HANDLERS.NEW, provider: { useClass: IngestionJobHandler } },
+    { token: HANDLERS.UPDATE, provider: { useClass: IngestionJobHandler } },
+    { token: HANDLERS.SWAP, provider: { useClass: IngestionJobHandler } },
     { token: HANDLERS.EXPORT, provider: { useClass: ExportJobHandler } },
+    {
+      token: SERVICES.METRICS_REGISTRY,
+      provider: {
+        useFactory: instanceCachingFactory((container) => {
+          const config = container.resolve<IConfig>(SERVICES.CONFIG);
+
+          if (config.get<boolean>('telemetry.metrics.enabled')) {
+            metricsRegistry.setDefaultLabels({
+              app: SERVICE_NAME,
+            });
+            return metricsRegistry;
+          }
+        }),
+      },
+    },
     {
       token: 'onSignal',
       provider: {
         useValue: {
           useValue: async (): Promise<void> => {
-            await Promise.all([tracing.stop(), metrics.stop()]);
+            await Promise.all([tracing.stop()]);
           },
         },
       },

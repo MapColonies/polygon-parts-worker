@@ -4,10 +4,10 @@ import { IJobResponse } from '@map-colonies/mc-priority-queue';
 import ogr2ogr from 'ogr2ogr';
 import { inject, injectable } from 'tsyringe';
 import { ExportJobParameters } from '@map-colonies/raster-shared';
-import { SERVICES } from '../common/constants';
-import { IConfig, IJobHandler } from '../common/interfaces';
-import { PolygonPartsManagerClient } from '../clients/polygonPartsManagerClient';
-import { addFeatureIds, manipulateFeatures } from '../utils/utils';
+import { SERVICES } from '../../common/constants';
+import { IConfig, IJobHandler } from '../../common/interfaces';
+import { PolygonPartsManagerClient } from '../../clients/polygonPartsManagerClient';
+import { addFeatureIds, manipulateFeatures } from '../../utils/utils';
 
 @injectable()
 export class ExportJobHandler implements IJobHandler<ExportJobParameters> {

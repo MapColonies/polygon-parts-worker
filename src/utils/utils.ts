@@ -43,3 +43,5 @@ export const manipulateFeatures = (findFeaturesResponse: FindPolygonPartsRespons
 
   return { ...findFeaturesResponse, features: updatedFeatures };
 };
+
+// export const shapefileToMcFields = (shapefileFields: Record<string, unknown>): Record<string, unknown> => {};

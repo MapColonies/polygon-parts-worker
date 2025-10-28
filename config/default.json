@@ -29,11 +29,11 @@
     }
   },
   "polygonPartsManager": {
-    "baseUrl": "http://localhost:8081"
+    "baseUrl": "http://localhost:8080"
   },
   "gpkgsLocation": "/app/tiles_outputs/gpkgs",
   "server": {
-    "port": "8080",
+    "port": "8081",
     "request": {
       "payload": {
         "limit": "1mb"
@@ -57,6 +57,10 @@
       "maxAttempts": 3,
       "polygonParts": {
         "type": "polygon-parts"
+      },
+      "validations": {
+        "type": "validations",
+        "chunkMaxVertices": 1001
       }
     },
     "jobs": {

@@ -101,6 +101,11 @@ const registerDefaultConfig = (): void => {
         polygonParts: {
           type: 'polygon-parts',
         },
+        validations: {
+          type: 'validations',
+          maxAttempts: 3,
+          verticesPerChunk: 1001,
+        },
       },
       jobs: {
         new: {
