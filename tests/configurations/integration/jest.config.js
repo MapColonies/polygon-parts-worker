@@ -4,7 +4,16 @@ module.exports = {
   },
   coverageReporters: ['text', 'html'],
   collectCoverage: true,
-  collectCoverageFrom: ['<rootDir>/src/**/*.ts', '!*/node_modules/', '!/vendor/**', '!*/common/**', '!**/models/**', '!<rootDir>/src/*'],
+  collectCoverageFrom: [
+    '<rootDir>/src/**/*.ts',
+    '!*/node_modules/',
+    '!/vendor/**',
+    '!*/common/**',
+    '!**/models/export/**',
+    '!<rootDir>/src/*',
+    '!*/schemas/**',
+    '!*/utils/**', //TODO: remove later (currently utils are related explicitly to export domain and there isn't currently integration tests for it)
+  ],
   coverageDirectory: '<rootDir>/coverage',
   rootDir: '../../../.',
   testMatch: ['<rootDir>/tests/integration/**/*.spec.ts'],

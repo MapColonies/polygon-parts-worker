@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // src/common/telemetry/metrics/shapefileMetrics.ts
 import { singleton, inject } from 'tsyringe';
-import { ChunkMetrics } from '@map-colonies/mc-utils';
+import { ChunkMetrics, FileMetrics } from '@map-colonies/mc-utils';
 import { Registry, Histogram } from 'prom-client';
 import { Logger } from '@map-colonies/js-logger';
 import { SERVICES } from '../../constants';
@@ -13,6 +13,8 @@ export class ShapefileMetrics {
   private chunkProcessingDurationHistogram?: Histogram;
   private featuresPerChunkHistogram?: Histogram;
   private durationByChunkSizeHistogram?: Histogram;
+  private fileProcessingDurationHistogram?: Histogram;
+  private featuresPerFileHistogram?: Histogram;
 
   // Configuration
   private readonly metricsEnabled: boolean;
@@ -32,7 +34,7 @@ export class ShapefileMetrics {
 
   // === Chunk Reading ===
   public recordChunk(chunkMetrics: ChunkMetrics): void {
-    const { processTimeMs, readTimeMs, totalTimeMs, featuresCount, verticesCount, skippedFeaturesCount } = chunkMetrics;
+    const { processTimeMs, readTimeMs, totalTimeMs, featuresCount } = chunkMetrics;
 
     const readTimeSeconds = readTimeMs / 1000;
     const processTimeSeconds = processTimeMs / 1000;
@@ -49,6 +51,22 @@ export class ShapefileMetrics {
     //performance by chunk size
     const chunkSizeRange = this.getChunkSizeRangeLabel(featuresCount);
     this.durationByChunkSizeHistogram?.labels({ chunk_size_range: chunkSizeRange }).observe(totalTimeSeconds);
+  }
+
+  public recordFile(fileMetrics: FileMetrics): void {
+    const { totalTimeMs, totalProcessTimeMs, totalReadTimeMs, totalFeatures } = fileMetrics;
+
+    const totalTimeSeconds = totalTimeMs / 1000;
+    const processTimeSeconds = totalProcessTimeMs / 1000;
+    const readTimeSeconds = totalReadTimeMs / 1000;
+
+    //duration
+    this.fileProcessingDurationHistogram?.labels({ operation: 'read' }).observe(readTimeSeconds);
+    this.fileProcessingDurationHistogram?.labels({ operation: 'process' }).observe(processTimeSeconds);
+    this.fileProcessingDurationHistogram?.labels({ operation: 'total' }).observe(totalTimeSeconds);
+
+    //features per chunk
+    this.featuresPerFileHistogram?.labels({}).observe(totalFeatures);
   }
 
   private getChunkSizeRangeLabel(chunkSize: number): string {
@@ -92,6 +110,22 @@ export class ShapefileMetrics {
       help: 'Processing duration grouped by chunk size ranges - THE OPTIMIZATION METRIC!',
       labelNames: ['chunk_size_range', 'file_type'],
       buckets: [0.001, 0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10, 20, 30, 60], // 1ms to 60 seconds
+      registers: [this.metricsRegistry!],
+    });
+
+    this.fileProcessingDurationHistogram = new Histogram({
+      name: 'shapefile_file_processing_duration_seconds',
+      help: 'Time taken to process entire shapefile by operation type',
+      labelNames: ['file_type', 'operation'],
+      buckets: [0.1, 1, 5, 10, 30, 60, 120, 300, 600, 1800, 3600], // 100ms to 1 hour
+      registers: [this.metricsRegistry!],
+    });
+
+    this.featuresPerFileHistogram = new Histogram({
+      name: 'shapefile_features_per_file',
+      help: 'Distribution of features per shapefile processed',
+      labelNames: ['file_type'],
+      buckets: [10, 100, 500, 1000, 5000, 10000, 50000, 100000], // Up to 100k features
       registers: [this.metricsRegistry!],
     });
   }

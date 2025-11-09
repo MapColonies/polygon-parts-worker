@@ -81,19 +81,19 @@ const registerDefaultConfig = (): void => {
     disableHttpClientLogs: true,
     jobManagement: {
       config: {
-        jobManagerBaseUrl: 'http://job-manager',
+        jobManagerBaseUrl: 'http://job-manager-test',
         heartbeat: {
-          baseUrl: 'http://heart-beat',
+          baseUrl: 'http://heart-beat-test',
           intervalMs: 3000,
         },
         jobTracker: {
-          baseUrl: 'http://job-tracker',
+          baseUrl: 'http://job-tracker-test',
         },
         dequeueIntervalMs: 3000,
       },
     },
     polygonPartsManager: {
-      baseUrl: 'http://localhost:8081',
+      baseUrl: 'http://polygon-parts-manager-test',
     },
     gpkgsLocation: '/app/tiles_outputs/gpkgs',
     jobDefinitions: {
@@ -104,7 +104,7 @@ const registerDefaultConfig = (): void => {
         validations: {
           type: 'validations',
           maxAttempts: 3,
-          verticesPerChunk: 1001,
+          verticesPerChunk: 1000,
         },
       },
       jobs: {

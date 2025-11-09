@@ -13,9 +13,9 @@ const newJobResponseMock: IJobResponse<IngestionJobParams, unknown> = {
   parameters: {
     ingestionResolution: 10,
     inputFiles: {
-      gpkgFilesPath: ['/data/polygonPartsTest7/gpkgFiles'],
-      metadataShapefilePath: '/data/polygonPartsTest7/metadataShapefile.shp',
-      productShapefilePath: '/data/polygonPartsTest7/productShapefile.shp',
+      gpkgFilesPath: ['/data/polygonPartsTest/gpkgFiles'],
+      metadataShapefilePath: '/data/polygonPartsTest/metadataShapefile.shp',
+      productShapefilePath: '/data/polygonPartsTest/productShapefile.shp',
     },
     additionalParams: {
       jobTrackerServiceURL: 'http://raster-core-dev-job-tracker-service',

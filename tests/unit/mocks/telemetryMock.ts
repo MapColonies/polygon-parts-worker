@@ -8,6 +8,7 @@ export const loggerMock = jsLogger({ enabled: false });
 
 export const shapeFileMetricsMock = {
   recordChunk: jest.fn(),
+  recordFile: jest.fn(),
 } as unknown as jest.Mocked<ShapefileMetrics>;
 
 export const taskMetricsMock = {

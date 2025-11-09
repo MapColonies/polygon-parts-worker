@@ -1,8 +1,9 @@
 import z from 'zod';
 import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import type { FeatureCollection, Polygon } from 'geojson';
+import { ProcessingState } from '@map-colonies/mc-utils';
 import { PartFeatureProperties, polygonPartsPayloadSchema } from '@map-colonies/raster-shared';
-import { ingestionJobSchema } from './validation';
+import { ingestionJobSchema } from '../schemas/ingestion.schema';
 
 type PolygonPartExtended = PartFeatureProperties &
   Omit<z.infer<typeof polygonPartsPayloadSchema>, 'partsDataChunk'> & {
@@ -48,3 +49,8 @@ export type IngestionJobParams = IngestionJob['parameters'];
 export type FindPolygonPartsResponse = FeatureCollection<Polygon, PolygonPartExtended>;
 
 export type ExportPolygonPartsResponse = FeatureCollection<Polygon, Omit<PolygonPartExtended, 'requestFeatureId'>>;
+
+//TODO: extend from base schema in raster-shared
+export interface ValidationsTaskParameters {
+  processingState: ProcessingState | null;
+}

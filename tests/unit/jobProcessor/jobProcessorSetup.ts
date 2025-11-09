@@ -6,8 +6,10 @@ import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsMana
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { IngestionJobHandler } from '../../../src/models/ingestion/ingestionHandler';
-import { shapeFileMetricsMock, taskMetricsMock } from '../mocks/telemtryMock';
+import { shapeFileMetricsMock, taskMetricsMock } from '../mocks/telemetryMock';
 import { ExportJobHandler } from '../../../src/models/export/exportJobHandler';
+import { createHttpClientV2Mock } from '../mocks/httpClientV2Mock';
+import { HttpClientV2 } from '../../../src/common/http/httpClientV2';
 
 const mockLogger = jsLogger({ enabled: false });
 
@@ -23,14 +25,15 @@ const mockQueueClient = new QueueClient(
 );
 
 const mockTracer = trace.getTracer('testingTracer');
-const mockPolygonPartsClient = new PolygonPartsManagerClient(mockLogger, configMock, mockTracer);
+const mockHttpClientV2 = createHttpClientV2Mock() as HttpClientV2;
+const mockPolygonPartsClient = new PolygonPartsManagerClient(mockLogger, configMock, mockTracer, mockHttpClientV2);
 const mockJobTrackerClient = new JobTrackerClient(mockLogger, configMock, mockTracer);
 
 function jobProcessorInstance(): JobProcessor {
   return new JobProcessor(mockLogger, mockTracer, mockQueueClient, configMock, mockJobTrackerClient, taskMetricsMock);
 }
 
-function newJobHandlerInstance(): IngestionJobHandler {
+function ingestionJobJobHandlerInstance(): IngestionJobHandler {
   return new IngestionJobHandler(mockLogger, mockQueueClient, mockPolygonPartsClient, shapeFileMetricsMock, configMock);
 }
 
@@ -38,7 +41,16 @@ function exportJobHandlerInstance(): ExportJobHandler {
   return new ExportJobHandler(mockLogger, configMock, mockPolygonPartsClient);
 }
 
-export { configMock, jobProcessorInstance, mockJobTrackerClient, mockProcessJob, mockQueueClient, newJobHandlerInstance, exportJobHandlerInstance };
+export {
+  configMock,
+  jobProcessorInstance,
+  mockJobTrackerClient,
+  mockProcessJob,
+  mockQueueClient,
+  ingestionJobJobHandlerInstance,
+  exportJobHandlerInstance,
+  mockHttpClientV2,
+};
 
 export type MockDequeue = jest.MockedFunction<(jobType: string, taskType: string) => Promise<ITaskResponse<unknown> | null>>;
 export type MockGetJob = jest.MockedFunction<(jobId: string) => Promise<IJobResponse<unknown, unknown>>>;

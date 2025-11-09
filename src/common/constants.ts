@@ -19,6 +19,7 @@ export const SERVICES = {
   TASK_METRICS: Symbol('TaskMetrics'),
   SHAPE_FILE_METRICS: Symbol('ShapeFileMetrics'),
   TRACING: Symbol('TracingManager'),
+  POLYGON_PARTS_HTTP_CLIENT: Symbol('PolygonPartsHttpClient'),
 } satisfies Record<string, symbol>;
 
 /* eslint-disable @typescript-eslint/naming-convention */

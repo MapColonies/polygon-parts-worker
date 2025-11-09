@@ -42,10 +42,10 @@ describe('JobProcessor', () => {
     const jobManagerBaseUrl = configMock.get<string>('jobManagement.config.jobManagerBaseUrl');
     const jobTrackerBaseUrl = configMock.get<string>('jobManagement.config.jobTracker.baseUrl');
     const heartbeatBaseUrl = configMock.get<string>('jobManagement.config.heartbeat.baseUrl');
-    const taskType = configMock.get<string>('jobDefinitions.tasks.polygonParts.type');
+    const taskType = configMock.get<string>('jobDefinitions.tasks.validations.type');
     const jobType = configMock.get<string>('jobDefinitions.jobs.new.type');
 
-    it('should successfully fetch new polygon-parts task and process it', async () => {
+    it('should successfully fetch new validations task and process it', async () => {
       const jobManagerUrlDequeuePath = `/tasks/${jobType}/${taskType}/startPending`;
       const jobManagerUrlGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`;
       const jobManagerAckPath = `/jobs/${initTaskForIngestionNew.jobId}/tasks/${initTaskForIngestionNew.id}`;
@@ -70,15 +70,17 @@ describe('JobProcessor', () => {
       expect.assertions(4);
     });
 
-    it('should fail when polygon-parts task reached max attempts', async () => {
+    it('should fail when validations task reached max attempts', async () => {
       const jobManagerUrlDequeuePath = `/tasks/${jobType}/${taskType}/startPending`;
       const jobManagerUrlGetJobPath = `/jobs/${reachedMaxAttemptsTask.jobId}`;
+      const jobManagerGetTaskPath = `/jobs/${reachedMaxAttemptsTask.jobId}/tasks/${reachedMaxAttemptsTask.id}`;
       const jobManagerRejectPath = `/jobs/${reachedMaxAttemptsTask.jobId}/tasks/${reachedMaxAttemptsTask.id}`;
       const jobTrackerNotifyPath = `/tasks/${reachedMaxAttemptsTask.id}/notify`;
 
       nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(200, reachedMaxAttemptsTask).persist();
       nock(jobManagerBaseUrl).get(jobManagerUrlGetJobPath).query({ shouldReturnTasks: false }).reply(200, newJobResponseMock).persist();
-      nock(jobManagerBaseUrl).put(jobManagerRejectPath, JSON.stringify(failTaskRequest)).reply(200).persist();
+      nock(jobManagerBaseUrl).get(jobManagerGetTaskPath).reply(200, reachedMaxAttemptsTask).persist();
+      nock(jobManagerBaseUrl).put(jobManagerRejectPath, failTaskRequest).reply(200).persist();
       nock(jobTrackerBaseUrl).post(jobTrackerNotifyPath).reply(200, 'ok').persist();
 
       const ackSpy = jest.spyOn(mockQueueClient, 'ack');

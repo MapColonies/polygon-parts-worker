@@ -13,6 +13,8 @@ export function initJobHandler(jobHandlerType: string, permittedTypes: IPermitte
       return container.resolve<IngestionJobHandler>(HANDLERS.UPDATE) as IJobHandler;
     case permittedTypes.ingestionSwapUpdate:
       return container.resolve<IngestionJobHandler>(HANDLERS.SWAP) as IJobHandler;
+    // TODO: remove ignore when adding integration tests for export job handler
+    /* istanbul ignore next */
     case permittedTypes.exportJob:
       return container.resolve<ExportJobHandler>(HANDLERS.EXPORT) as IJobHandler;
   }

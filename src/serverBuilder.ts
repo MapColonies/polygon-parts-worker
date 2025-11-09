@@ -19,7 +19,9 @@ export class ServerBuilder {
   }
 
   public build(): express.Application {
-    this.serverInstance.use(collectMetricsExpressMiddleware({ registry: this.registry }));
+    if (this.config.get<boolean>('telemetry.metrics.enabled')) {
+      this.serverInstance.use(collectMetricsExpressMiddleware({ registry: this.registry }));
+    }
 
     return this.serverInstance;
   }

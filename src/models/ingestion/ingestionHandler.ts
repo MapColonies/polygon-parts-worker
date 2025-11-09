@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import { StatusCodes } from 'http-status-codes';
 import { inject, injectable } from 'tsyringe';
 import { IJobResponse, ITaskResponse, IUpdateTaskBody, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { Logger } from '@map-colonies/js-logger';
@@ -20,15 +21,16 @@ import {
   rasterProductTypeSchema,
   SHAPEFILE_EXTENSIONS_LIST,
 } from '@map-colonies/raster-shared';
-import { IConfig, IJobHandler, IngestionJobParams } from '../../common/interfaces';
+import { ZodError } from 'zod';
+import { IConfig, IJobHandler, IngestionJobParams, ValidationsTaskParameters } from '../../common/interfaces';
 import { PolygonPartsManagerClient } from '../../clients/polygonPartsManagerClient';
 import { SERVICES } from '../../common/constants';
-import { ShpFeatureProperties, shpFeatureSchema } from '../../schemas/shpFile.schmea';
+import { ShpFeatureProperties, shpFeatureSchema } from '../../schemas/shpFile.schema';
 import { ShapefileMetrics } from '../../common/otel/metrics/shapeFileMetrics';
 import { ShapefileNotFoundError } from '../../common/errors';
 
 @injectable()
-export class IngestionJobHandler implements IJobHandler<IngestionJobParams, ProcessingState> {
+export class IngestionJobHandler implements IJobHandler<IngestionJobParams, ValidationsTaskParameters> {
   private readonly maxVerticesPerChunk: number;
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
@@ -40,9 +42,9 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Proc
     this.maxVerticesPerChunk = config.get<number>('jobDefinitions.tasks.validations.chunkMaxVertices');
   }
 
-  public async processJob(job: IJobResponse<IngestionJobParams, unknown>, task: ITaskResponse<ProcessingState>): Promise<void> {
+  public async processJob(job: IJobResponse<IngestionJobParams, unknown>, task: ITaskResponse<ValidationsTaskParameters>): Promise<void> {
     try {
-      this.validateShapefileExists(job.parameters.inputFiles.metadataShapefilePath);
+      this.validateShapefilesExists(job.parameters.inputFiles.metadataShapefilePath);
       const shpReader = this.setupShapefileChunkReader(job, task);
       const chunkProcessor = this.setupChunkProcessor(job);
       await shpReader.readAndProcess(job.parameters.inputFiles.metadataShapefilePath, chunkProcessor);
@@ -60,23 +62,30 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Proc
   protected async handleChunk(job: IJobResponse<IngestionJobParams, unknown>, featureCollection: PolygonPartsFeatureCollection): Promise<void> {
     const requestBody = this.createPolygonPartsPayload(job, featureCollection);
     this.logger.info({ msg: 'sending polygon parts to polygon parts manager', partsCount: featureCollection.features.length });
-    await this.polygonPartsManager.validatePolygonParts(requestBody);
+    const validationResult = await this.polygonPartsManager.validatePolygonParts(requestBody);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+    if (validationResult.status === StatusCodes.UNPROCESSABLE_ENTITY) {
+      //TODO: report which parts are invalid
+    }
   }
 
-  private setupShapefileChunkReader(job: IJobResponse<IngestionJobParams, unknown>, task: ITaskResponse<ProcessingState>): ShapefileChunkReader {
+  private setupShapefileChunkReader(
+    job: IJobResponse<IngestionJobParams, unknown>,
+    task: ITaskResponse<ValidationsTaskParameters>
+  ): ShapefileChunkReader {
     const metricsCollector: MetricsCollector = {
       onChunkMetrics: (metrics) => {
         this.logger.info({ msg: 'chunk metrics', metrics });
         this.shapeFileMetrics.recordChunk(metrics);
-        // metricsResult.chunk.push(metrics);
       },
       onFileMetrics: (metrics) => {
         this.logger.info({ msg: 'file metrics', metrics });
+        this.shapeFileMetrics.recordFile(metrics);
       },
     };
 
     const stateManager: StateManager = {
-      loadState: () => task.parameters,
+      loadState: () => task.parameters.processingState,
       saveState: async (state) => {
         await this.updateTaskParams(state, job, task);
       },
@@ -118,11 +127,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Proc
     const shpFeatures = shpFeatureSchema.array().safeParse(chunk.features);
     if (!shpFeatures.success) {
       this.logger.error({ msg: 'error validating features in chunk', chunkId: chunk.id, errors: shpFeatures.error.errors });
-      shpFeatures.error.flatten();
-      const message = shpFeatures.error.format();
-      const result = message._errors.toString();
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      throw new Error(result); //later report which features are invalid
+      throw new ZodError(shpFeatures.error.issues); //TODO: report which features are invalid instead of throwing an error
     }
 
     const mappedFeatures = shpFeatures.data.map((feature) => {
@@ -135,7 +140,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Proc
     return { type: 'FeatureCollection', features: mappedFeatures };
   }
 
-  private validateShapefileExists(shapefilePath: string): void {
+  private validateShapefilesExists(shapefilePath: string): void {
     const parsed = path.parse(shapefilePath);
     const basePath = path.join(parsed.dir, parsed.name);
     const missing: string[] = [];
@@ -148,7 +153,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Proc
     }
 
     if (missing.length > 0) {
-      this.logger.error({ msg: 'shapefile is missing required files', basePath, missingFiles: missing });
+      this.logger.error({ msg: 'shapefiles are missing required files', basePath, missingFiles: missing });
       throw new ShapefileNotFoundError(basePath, missing);
     }
   }
@@ -189,20 +194,20 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Proc
   }
 
   private async updateTaskParams(
-    state: Partial<ProcessingState>,
+    state: ProcessingState,
 
     job: IJobResponse<IngestionJobParams, unknown>,
-    task: ITaskResponse<ProcessingState>
+    task: ITaskResponse<ValidationsTaskParameters>
   ): Promise<void> {
     this.logger.info({ msg: 'update task parameters', state });
 
-    const newParameters = {
+    const newParameters: ValidationsTaskParameters = {
       ...task.parameters,
-      ...state,
+      processingState: { ...task.parameters.processingState, ...state },
     };
-    const taskUpdateBody: IUpdateTaskBody<Partial<ProcessingState>> = {
+    const taskUpdateBody: IUpdateTaskBody<Partial<ValidationsTaskParameters>> = {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      percentage: Number(state.progress?.percentage.toFixed() ?? 0),
+      percentage: Number(state.progress?.percentage.toFixed()),
       parameters: newParameters,
     };
     await this.queueClient.jobManagerClient.updateTask(job.id, task.id, taskUpdateBody);
