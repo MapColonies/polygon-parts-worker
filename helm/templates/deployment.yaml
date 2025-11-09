@@ -71,6 +71,9 @@ spec:
             {{- end }}
             - name: internal-storage
               mountPath: {{ $fs.internalPvc.outputPath }}
+            - name: internal-storage
+              mountPath: {{ $fs.internalPvc.mountPath }}
+              subPath: {{ $fs.internalPvc.ingestionSubPath }}
             {{- if .Values.extraVolumeMounts -}}
               {{ toYaml .Values.extraVolumeMounts | nindent 12 }}
             {{- end }}

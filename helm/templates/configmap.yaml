@@ -29,7 +29,7 @@ data:
   JOB_TRACKER_BASE_URL: {{ $serviceUrls.jobTracker | quote}}
   HEARTBEAT_INTERVAL_MS: {{ .Values.env.jobManagement.config.heartBeat.intervalMs | quote }}
   DEQUEUE_INTERVAL_MS: {{ .Values.env.jobManagement.config.dequeueIntervalMs | quote }}
-  POLYGON_PARTS_TASK_TYPE: {{ $jobDefinitions.tasks.polygonParts.type }}
+  VALIDATIONS_TASK_TYPE: {{ $jobDefinitions.tasks.validations.type }}
   INGESTION_NEW_JOB_TYPE: {{ $jobDefinitions.jobs.new.type }}
   INGESTION_UPDATE_JOB_TYPE: {{ $jobDefinitions.jobs.update.type }}
   INGESTION_SWAP_UPDATE_JOB_TYPE: {{ $jobDefinitions.jobs.swapUpdate.type }}

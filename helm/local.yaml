@@ -10,36 +10,36 @@ global:
 jobDefinitions:
   jobs:
     new:
-      type: ""
+      type: "Ingestion_New"
     update:
-      type: ""
+      type: "Ingestion_Update"
     swapUpdate:
-      type: ""
+      type: "Ingestion_Swap_Update"
     export: 
-      type: ""
+      type: "Export"
   tasks:
     maxAttempts: 3
-    polygonParts:
-      type: ""
+    validations:
+      type: "validations"
 
 serviceUrls:
-  jobManager: ""
-  heartbeatManager: ""
-  polygonPartsManager: ""
-  jobTracker: ""
+  jobManager: "http://common-job-manager-service"
+  heartbeatManager: "http://common-heartbeat-manager-service"
+  polygonPartsManager: "http://raster-core-dev-polygon-parts-manager-service"
+  jobTracker: "http://raster-core-dev-job-tracker-service"
 
 storage:
   fs: 
     internalPvc:
       name: "internal-pvc-nfs"
-      gpkgSubPath: ""
-      outputPath: ""
-      mountPath: ""
-      ingestionSubPath: ""
+      gpkgSubPath: "gpkgs"
+      outputPath: "outputs"
+      mountPath: "/layerSources"
+      ingestionSubPath: "raster"
 
 cloudProvider:
-  dockerRegistryUrl: 'my-registry-url.io'
-  imagePullSecretName: 'my-registry-secret'
+  dockerRegistryUrl: 'acrarolibotnonprod.azurecr.io'
+  imagePullSecretName: 'acr-registry'
   flavor: openshift
 
 tracing:
@@ -95,9 +95,9 @@ caPath: '/usr/local/share/ca-certificates'
 caKey: 'ca.crt'
 
 image:
-  registry: ""
+  registry: "acrarolibotnonprod.azurecr.io"
   repository: polygon-parts-worker
-  tag: 'latest'
+  tag: 'large-capacity-v1'
   pullPolicy: IfNotPresent
 env:
   port: 8080
