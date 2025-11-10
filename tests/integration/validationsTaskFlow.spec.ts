@@ -1,5 +1,6 @@
 import nock from 'nock';
 import { DependencyContainer } from 'tsyringe';
+import { IConfig } from 'config';
 import { TaskHandler } from '@map-colonies/mc-priority-queue';
 import { ZodError } from 'zod';
 import { JobProcessor } from '../../src/models/jobProcessor';
@@ -16,6 +17,7 @@ import { HttpMockHelper } from './mocks/httpMocks';
 
 describe('Validations Task Flow', () => {
   let testContainer: DependencyContainer;
+  let taskTypesToProcess: string[];
 
   beforeAll(() => {
     init();
@@ -31,6 +33,10 @@ describe('Validations Task Flow', () => {
       ],
     });
     testContainer = container;
+    const config = testContainer.resolve<IConfig>(SERVICES.CONFIG);
+    const validationsTaskType = config.get<string>('jobDefinitions.tasks.validations.type');
+    const polygonPartsTaskType = config.get<string>('jobDefinitions.tasks.polygonParts.type');
+    taskTypesToProcess = [validationsTaskType, polygonPartsTaskType];
   });
 
   afterEach(() => {
@@ -44,9 +50,10 @@ describe('Validations Task Flow', () => {
         shapefilePath: 'tests/integration/shapeFiles/israel_137_parts_valid/ShapeMetadata.shp',
         type,
       });
+
       const task = createTask({ jobId: job.id });
 
-      HttpMockHelper.mockJobManagerSearchTask(job.type, task.type, task);
+      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
       HttpMockHelper.mockJobManagerGetJob(job.id, job);
       HttpMockHelper.mockPolygonPartsValidateSuccess();
       HttpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
@@ -73,7 +80,7 @@ describe('Validations Task Flow', () => {
       });
       const task = createTask({ jobId: job.id });
 
-      HttpMockHelper.mockJobManagerSearchTask(job.type, task.type, task);
+      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
       HttpMockHelper.mockJobManagerGetJob(job.id, job);
       HttpMockHelper.mockPolygonPartsValidateSuccess();
       HttpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
@@ -100,7 +107,7 @@ describe('Validations Task Flow', () => {
       const task = createTask({ jobId: job.id });
       const isTaskRecoverable = false; // ShapefileNotFoundError is not recoverable
 
-      HttpMockHelper.mockJobManagerSearchTask(job.type, task.type, task);
+      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
       HttpMockHelper.mockJobManagerGetJob(job.id, job);
       HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task); // Mock for queueClient.reject() internal call
       HttpMockHelper.mockJobManagerRejectTask(job.id, task);
@@ -126,7 +133,7 @@ describe('Validations Task Flow', () => {
       const task = createTask({ jobId: job.id, attempts: 5 });
       const isTaskRecoverable = false; // ReachedMaxTaskAttemptsError is not recoverable
 
-      HttpMockHelper.mockJobManagerSearchTask(job.type, task.type, task);
+      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
       HttpMockHelper.mockJobManagerGetJob(job.id, job);
       HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task); // Mock for queueClient.reject() internal call
       HttpMockHelper.mockJobManagerRejectTask(job.id, task);
@@ -152,7 +159,7 @@ describe('Validations Task Flow', () => {
       const task = createTask({ jobId: job.id });
       const isTaskRecoverable = true; // TODO: Empty shapefile is not recoverable(later we need to set task to unrecoverable when this error is thrown)
 
-      HttpMockHelper.mockJobManagerSearchTask(job.type, task.type, task);
+      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
       HttpMockHelper.mockJobManagerGetJob(job.id, job);
       HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
       HttpMockHelper.mockJobManagerRejectTask(job.id, task);
@@ -183,7 +190,7 @@ describe('Validations Task Flow', () => {
         processingState: { lastProcessedChunkIndex: 18, lastProcessedFeatureIndex: 135, filePath, timestamp: new Date() },
       });
 
-      HttpMockHelper.mockJobManagerSearchTask(job.type, task.type, task);
+      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
       HttpMockHelper.mockJobManagerGetJob(job.id, job);
       HttpMockHelper.mockPolygonPartsValidateSuccess();
       HttpMockHelper.mockJobManagerUpdateTask(job.id, task.id);

@@ -34,8 +34,11 @@ storage:
       name: "internal-pvc-nfs"
       gpkgSubPath: ""
       outputPath: ""
+    ingestionSourcePvc:
+      enabled: true
+      name: ""
       mountPath: ""
-      ingestionSubPath: ""
+      subPath: ""     
 
 cloudProvider:
   dockerRegistryUrl: 'my-registry-url.io'

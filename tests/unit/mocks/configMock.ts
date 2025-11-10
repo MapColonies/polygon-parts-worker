@@ -96,6 +96,7 @@ const registerDefaultConfig = (): void => {
       baseUrl: 'http://polygon-parts-manager-test',
     },
     gpkgsLocation: '/app/tiles_outputs/gpkgs',
+    ingestionSourcesDirPath: '',
     jobDefinitions: {
       tasks: {
         polygonParts: {

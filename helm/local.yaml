@@ -34,8 +34,11 @@ storage:
       name: "internal-pvc-nfs"
       gpkgSubPath: "gpkgs"
       outputPath: "outputs"
-      mountPath: "/layerSources"
-      ingestionSubPath: "raster"
+    ingestionSourcePvc:
+        enabled: true
+        name: "shared-ingestion-source"
+        mountPath: "layerSources"
+        subPath: "raster/ingestion-sources"  
 
 cloudProvider:
   dockerRegistryUrl: 'acrarolibotnonprod.azurecr.io'
@@ -97,7 +100,7 @@ caKey: 'ca.crt'
 image:
   registry: "acrarolibotnonprod.azurecr.io"
   repository: polygon-parts-worker
-  tag: 'large-capacity-v1'
+  tag: 'large-capacity-v5'
   pullPolicy: IfNotPresent
 env:
   port: 8080

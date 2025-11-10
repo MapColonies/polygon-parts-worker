@@ -11,7 +11,7 @@ const newJobResponseMock: IJobResponse<IngestionJobParams, unknown> = {
   type: 'Ingestion_New',
   description: 'polygonPart job for test',
   parameters: {
-    ingestionResolution: 10,
+    ingestionResolution: 0.0006866455078125,
     inputFiles: {
       gpkgFilesPath: ['/data/polygonPartsTest/gpkgFiles'],
       metadataShapefilePath: '/data/polygonPartsTest/metadataShapefile.shp',

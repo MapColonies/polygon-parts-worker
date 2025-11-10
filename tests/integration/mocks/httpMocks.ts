@@ -1,5 +1,4 @@
 import nock from 'nock';
-import { PolygonPartsPayload } from '@map-colonies/raster-shared';
 import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { StatusCodes } from 'http-status-codes';
 import { HANDLERS } from '../../../src/common/constants';
@@ -32,16 +31,14 @@ export class HttpMockHelper {
     return nock(mockUrls.jobManagerUrl).get(`/jobs/${jobId}?shouldReturnTasks=${shouldReturnTasks}`).reply(StatusCodes.OK, job);
   }
 
-  public static mockJobManagerSearchTask(jobType: string, taskType: string, task: ITaskResponse<unknown>): nock.Scope {
-    nock(mockUrls.jobManagerUrl)
-      .post(`/tasks/${HANDLERS.NEW}/${taskType}/startPending`)
-      .reply(StatusCodes.OK, jobType === HANDLERS.NEW ? task : undefined);
-    nock(mockUrls.jobManagerUrl)
-      .post(`/tasks/${HANDLERS.UPDATE}/${taskType}/startPending`)
-      .reply(StatusCodes.OK, jobType === HANDLERS.UPDATE ? task : undefined);
-    return nock(mockUrls.jobManagerUrl)
-      .post(`/tasks/${HANDLERS.SWAP}/${taskType}/startPending`)
-      .reply(StatusCodes.OK, jobType === HANDLERS.SWAP ? task : undefined);
+  public static mockJobManagerSearchTasks(jobType: string, taskTypes: string[], task: ITaskResponse<unknown>): void {
+    for (const handler of [HANDLERS.NEW, HANDLERS.UPDATE, HANDLERS.SWAP, HANDLERS.EXPORT]) {
+      for (const taskType of taskTypes) {
+        nock(mockUrls.jobManagerUrl)
+          .post(`/tasks/${handler}/${taskType}/startPending`)
+          .reply(StatusCodes.OK, jobType === handler ? task : undefined);
+      }
+    }
   }
 
   public static mockJobManagerGetTaskById(jobId: string, taskId: string, task: ITaskResponse<unknown>): nock.Scope {

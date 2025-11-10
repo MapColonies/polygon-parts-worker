@@ -41,4 +41,5 @@ data:
   HTTP_RETRY_DELAY: {{ .Values.env.httpRetry.delay | quote }}
   HTTP_RETRY_RESET_TIMEOUT: {{ .Values.env.httpRetry.resetTimeout | quote }}
   DISABLE_HTTP_CLIENT_LOGS: {{ .Values.env.disableHttpClientLogs | quote }}
+  INGESTION_SOURCES_DIR_PATH: {{ printf "/%s" $fs.ingestionSourcePvc.mountPath | quote }}
 {{- end }}

@@ -53,6 +53,7 @@
     "baseUrl": "POLYGON_PARTS_MANAGER_BASE_URL"
   },
   "gpkgsLocation": "GPKGS_LOCATION",
+  "ingestionSourcesDirPath": "INGESTION_SOURCES_DIR_PATH",
   "jobDefinitions": {
     "tasks": {
       "maxAttempts": {

@@ -32,7 +32,7 @@ export function createIngestionJob(options: CreateJobOptions = {}): IJobResponse
   const version = options.version ?? '1.0';
   const productType = options.productType ?? ProductType.ORTHOPHOTO;
   const shapefilePath = options.shapefilePath ?? '/tmp/ShapeMetadata.shp';
-  const ingestionResolution = options.ingestionResolution ?? 10;
+  const ingestionResolution = options.ingestionResolution ?? 0.0006866455078125;
 
   return {
     id: jobId,

@@ -1,4 +1,4 @@
-import { bboxSchema, polygonSchema } from '@map-colonies/raster-shared';
+import { bboxSchema, multiPolygonSchema, polygonSchema } from '@map-colonies/raster-shared';
 import { z } from 'zod';
 import { commaSeparatedStringSchema, flexibleDateCoerce } from './common.schema';
 
@@ -23,7 +23,7 @@ export type ShpFeatureProperties = z.infer<typeof shpFeaturePropertiesSchema>;
 export const shpFeatureSchema = z.object({
   type: z.literal('Feature'),
   id: z.string().or(z.number()).optional(),
-  geometry: polygonSchema,
+  geometry: polygonSchema.or(multiPolygonSchema),
   properties: shpFeaturePropertiesSchema,
   bbox: bboxSchema.optional(),
 });

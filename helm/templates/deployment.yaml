@@ -71,9 +71,9 @@ spec:
             {{- end }}
             - name: internal-storage
               mountPath: {{ $fs.internalPvc.outputPath }}
-            - name: internal-storage
-              mountPath: {{ $fs.internalPvc.mountPath }}
-              subPath: {{ $fs.internalPvc.ingestionSubPath }}
+            - name: ingestion-storage
+              mountPath: {{ $fs.ingestionSourcePvc.mountPath }} 
+              subPath: {{ $fs.ingestionSourcePvc.subPath }}
             {{- if .Values.extraVolumeMounts -}}
               {{ toYaml .Values.extraVolumeMounts | nindent 12 }}
             {{- end }}
@@ -129,6 +129,11 @@ spec:
         - name: root-ca
           secret:
             secretName: {{ .Values.caSecretName }}
+        {{- end }}
+        {{- if $fs.ingestionSourcePvc.enabled }}
+        - name: ingestion-storage
+          persistentVolumeClaim:
+            claimName: {{ $fs.ingestionSourcePvc.name }}
         {{- end }}
         - name: internal-storage
           persistentVolumeClaim:

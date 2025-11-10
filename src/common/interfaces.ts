@@ -54,3 +54,8 @@ export type ExportPolygonPartsResponse = FeatureCollection<Polygon, Omit<Polygon
 export interface ValidationsTaskParameters {
   processingState: ProcessingState | null;
 }
+
+export interface FeatureResolutions {
+  resolutionMeter: number;
+  resolutionDegree: number;
+}

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { degreesPerPixelToZoomLevel, zoomLevelToResolutionMeter } from '@map-colonies/mc-utils';
 import { FindPolygonPartsResponse, ExportPolygonPartsResponse } from '../common/interfaces';
 
-const calculateResMeterFromDegree = (resolutionDegree: number): number => {
+export const calculateResMeterFromDegree = (resolutionDegree: number): number => {
   const resDegreeZoomLevel = degreesPerPixelToZoomLevel(resolutionDegree);
   const resMeter = zoomLevelToResolutionMeter(resDegreeZoomLevel) as number;
   return resMeter;
@@ -43,5 +43,3 @@ export const manipulateFeatures = (findFeaturesResponse: FindPolygonPartsRespons
 
   return { ...findFeaturesResponse, features: updatedFeatures };
 };
-
-// export const shapefileToMcFields = (shapefileFields: Record<string, unknown>): Record<string, unknown> => {};

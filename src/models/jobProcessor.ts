@@ -7,7 +7,7 @@ import { inject, injectable } from 'tsyringe';
 import { JobTrackerClient } from '../clients/jobTrackerClient';
 import { SERVICES } from '../common/constants';
 import { TaskMetricLabels, TaskMetrics } from '../common/otel/metrics/taskMetrics';
-import { ReachedMaxTaskAttemptsError, ShapefileNotFoundError } from '../common/errors';
+import { ReachedMaxTaskAttemptsError, UnrecoverableTaskError } from '../common/errors';
 import { IConfig, IJobAndTaskResponse, IPermittedJobTypes } from '../common/interfaces';
 import { initJobHandler } from './handlersFactory';
 
@@ -28,12 +28,13 @@ export class JobProcessor {
   ) {
     this.dequeueIntervalMs = this.config.get<number>('jobManagement.config.dequeueIntervalMs');
     const validationsTask = this.config.get<string>('jobDefinitions.tasks.validations.type');
+    const polygonPartsTask = this.config.get<string>('jobDefinitions.tasks.polygonParts.type');
     const ingestionNew = this.config.get<string>('jobDefinitions.jobs.new.type');
     const ingestionUpdate = this.config.get<string>('jobDefinitions.jobs.update.type');
     const ingestionSwapUpdate = this.config.get<string>('jobDefinitions.jobs.swapUpdate.type');
     const exportJob = this.config.get<string>('jobDefinitions.jobs.export.type');
     this.jobTypesToProcess = { ingestionNew, ingestionUpdate, ingestionSwapUpdate, exportJob };
-    this.taskTypesToProcess = [validationsTask];
+    this.taskTypesToProcess = [validationsTask, polygonPartsTask];
     this.maxTaskAttempts = this.config.get<number>('jobDefinitions.tasks.maxAttempts');
   }
 
@@ -68,7 +69,7 @@ export class JobProcessor {
         this.logger.error({ msg: 'error while handling job', error: errorMsg });
         if (jobAndTask && !(error instanceof ReachedMaxTaskAttemptsError)) {
           const { job, task } = jobAndTask;
-          const isRecoverable = !(error instanceof ShapefileNotFoundError);
+          const isRecoverable = !(error instanceof UnrecoverableTaskError);
           await this.queueClient.reject(job.id, task.id, isRecoverable, errorMsg);
         }
       }

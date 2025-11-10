@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { CORE_VALIDATIONS, INGESTION_VALIDATIONS } from '@map-colonies/raster-shared';
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const createFakeShpFeatureProperties = () => {
   return {
     id: faker.number.int().toString(),
