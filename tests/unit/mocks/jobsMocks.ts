@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 import { ProductType } from '@map-colonies/mc-model-types';
 import { IJobResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
-import { ExportJobParameters } from '@map-colonies/raster-shared';
+import { ExportJobParameters, RASTER_DOMAIN } from '@map-colonies/raster-shared';
 import { IngestionJobParams } from '../../../src/common/interfaces';
 
 const newJobResponseMock: IJobResponse<IngestionJobParams, unknown> = {
@@ -25,7 +25,7 @@ const newJobResponseMock: IJobResponse<IngestionJobParams, unknown> = {
   status: OperationStatus.PENDING,
   percentage: 0,
   reason: '',
-  domain: 'string',
+  domain: RASTER_DOMAIN,
   isCleaned: false,
   priority: 0,
   expirationDate: new Date('2025-09-24T13:38:04.553Z'),
