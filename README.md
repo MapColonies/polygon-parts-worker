@@ -2,7 +2,9 @@
 
 ----------------------------------
 
-This is a worker service designed to handle polygon parts tasks by communicating with the **Job-Manager** service. Using a polling strategy, it processes tasks created by the **Job-Tracker** service.
+This is a worker service designed to process polygon parts ingestion and export tasks by communicating with the **Job-Manager** service. Using a polling strategy, it processes tasks created by the **Job-Tracker** service.
+
+The service supports **file-based ingestion** from shapefiles with **chunk-based processing** for large capacity datasets, providing scalability and fault tolerance through state management and recovery mechanisms.
 
 ### Features:
 This project includes the following configurations and tools for efficient development and production:
@@ -35,11 +37,39 @@ This project includes the following configurations and tools for efficient devel
     - Linting
     - Vulnerability scanning with Snyk
 
+## Architecture Overview
+
+### Task Processing Flow
+
+The worker processes two main types of jobs:
+
+1. **Ingestion Jobs** (`Ingestion_New`, `Ingestion_Update`, `Ingestion_Swap_Update`)
+   - **Validations Task**: Reads shapefile in chunks, validates features, and sends polygon parts to the Polygon Parts Manager for validation
+
+2. **Export Jobs** (`Export`)
+   - **Polygon Parts Task**: Retrieves polygon parts from the Polygon Parts Manager and merges features into GeoPackage files
+
+### Chunk-Based Processing
+
+The service uses **chunk-based processing** for handling large shapefiles:
+- Shapefile features are read and validated in configurable chunks (default: 1000 vertices per chunk)
+- Processing state is persisted after each chunk for fault tolerance
+- Failed tasks can resume from the last processed chunk
+- Metrics are collected for each chunk and aggregated at the file level
+
+### State Management and Recovery
+
+- **Processing state** includes last processed chunk index, feature index, and progress percentage
+- State is saved to the task parameters after each chunk
+- On task retry, processing resumes from the last saved state
+- Maximum retry attempts are configurable per task type
+
 ## Getting Started
 #### Prerequisites
 Ensure you have the following installed:
 - [Node.js](https://nodejs.org/en) (version specified in .nvmrc)
 - [npm](https://www.npmjs.com/)
+- Access to required storage volumes for shapefiles and GeoPackage files
 
 ## Installation
 
@@ -79,7 +109,7 @@ Example structure for config/default.json:
       },
       "jobManagement": {
         "config": {
-          "jobManagerBaseUrl": "http://http://localhost:8080",
+          "jobManagerBaseUrl": "http://localhost:8080",
           "heartbeat": {
             "baseUrl": "http://localhost:8083",
             "intervalMs": 3000
@@ -93,6 +123,8 @@ Example structure for config/default.json:
       "polygonPartsManager": {
         "baseUrl": "http://localhost:8081"
       },
+      "ingestionSourcesDirPath": "/app/layerSources",
+      "gpkgsLocation": "/app/tiles_outputs/gpkgs",
       "server": {
         "port": "8080",
         "request": {
@@ -115,8 +147,13 @@ Example structure for config/default.json:
       },
       "jobDefinitions": {
         "tasks": {
+          "maxAttempts": 3,
           "polygonParts": {
             "type": "polygon-parts"
+          },
+          "validations": {
+            "type": "validations",
+            "chunkMaxVertices": 1000
           }
         },
         "jobs": {
@@ -128,6 +165,9 @@ Example structure for config/default.json:
           },
           "swapUpdate": {
             "type": "Ingestion_Swap_Update"
+          },
+          "export": {
+            "type": "Export"
           }
         }
       }
@@ -155,10 +195,16 @@ Example structure for config/default.json:
 | `JOB_TRACKER_BASE_URL`                | Base URL of the Job Tracker service.                         | `http://localhost:8082`                        |
 | `DEQUEUE_INTERVAL_MS`                 | Interval (in milliseconds) for dequeuing jobs.              | `3000`                                         |
 | `POLYGON_PARTS_MANAGER_BASE_URL`      | Base URL of the Polygon Parts Manager service.               | `http://localhost:8081`                        |
+| `INGESTION_SOURCES_DIR_PATH`          | Base directory path for ingestion source files (shapefiles).  | `/app/layerSources`                            |
+| `GPKGS_LOCATION`                      | Directory path for GeoPackage output files.                  | `/app/tiles_outputs/gpkgs`                     |
+| `VALIDATIONS_TASK_TYPE`               | Type for validation tasks.                                   | `validations`                                  |
+| `VALIDATIONS_TASK_CHUNK_MAX_VERTICES` | Maximum vertices per chunk for shapefile processing.         | `1000`                                         |
 | `POLYGON_PARTS_TASK_TYPE`             | Type for polygon parts tasks.                                | `polygon-parts`                                |
 | `INGESTION_NEW_JOB_TYPE`              | Job type for new ingestion jobs.                             | `Ingestion_New`                                |
 | `INGESTION_UPDATE_JOB_TYPE`           | Job type for update ingestion jobs.                          | `Ingestion_Update`                             |
 | `INGESTION_SWAP_UPDATE_JOB_TYPE`      | Job type for swap update ingestion jobs.                     | `Ingestion_Swap_Update`                        |
+| `EXPORT_JOB_TYPE`                     | Job type for export jobs.                                    | `Export`                                       |
+| `MAX_TASK_ATTEMPTS`                   | Maximum number of retry attempts for failed tasks.           | `3`                                            |
 
 ## Run Locally
 
@@ -174,15 +220,98 @@ You can run tests using the following commands:
 
 **All Tests:** `npm run test`
 **Unit Tests Only:** `npm run test:unit`
+**Integration Tests Only:** `npm run test:integration`
+
+## Key Features
+
+### Shapefile-Based Ingestion
+- Reads shapefile features (.shp, .shx, .dbf, .prj, .cpg files required)
+- Validates feature properties against schema
+- Supports large shapefiles through chunk-based processing
+- Transforms shapefile properties to polygon parts format
+
+### Chunk Processing
+- Configurable chunk size based on vertex count (default: 1000 vertices)
+- Memory-efficient processing of large datasets
+- Progress tracking and state persistence per chunk
+- Automatic recovery from failures
+
+### Metrics and Monitoring
+- Per-chunk metrics: vertex count, feature count, processing time
+- File-level metrics: total chunks, total vertices, total features
+- Task-level metrics: success/failure rates, active tasks, processing duration
+- Prometheus-compatible metrics endpoint
+
+### Error Handling
+- Comprehensive validation of shapefile structure and content
+- Graceful handling of invalid features with reporting
+- Configurable retry attempts with state recovery
+- Detailed error logging for troubleshooting
 
 ## Docker
 
     # Build the Docker image
     docker build -t polygon-parts-worker .
     
-    # Run the Docker container
-    docker run -d -p 3000:3000 polygon-parts-worker
+    # Run the Docker container with required volume mounts
+    docker run -d \
+      -p 8080:8080 \
+      -v /path/to/ingestion-sources:/app/layerSources \
+      -v /path/to/gpkg-outputs:/app/tiles_outputs/gpkgs \
+      polygon-parts-worker
+
+### Required Volumes
+- **Ingestion Sources**: Mount directory containing shapefile sources
+- **GPKG Outputs**: Mount directory for GeoPackage output files
+
+## Monitoring
+
+The service exposes Prometheus-compatible metrics at `/metrics` endpoint when metrics are enabled.
+
+### Available Metrics
+
+#### Task Metrics
+- `polygon_parts_active_tasks`: Current number of active tasks
+- `polygon_parts_tasks_processed_total`: Total number of tasks processed
+- `polygon_parts_tasks_success_total`: Total number of successful tasks
+- `polygon_parts_tasks_failure_total`: Total number of failed tasks (labeled by error type)
+- `polygon_parts_tasks_processing_duration_seconds`: Task processing duration histogram
+
+#### Shapefile Metrics
+- Chunk-level: vertices count, features count per chunk
+- File-level: total chunks, total vertices, total features, processing time
+
+See `config/dashboard.json` for a complete Grafana dashboard configuration.
     
+
+## Breaking Changes (v2.0)
+
+This version introduces significant architectural changes:
+
+### Consolidated Job Handlers
+- **Removed**: `NewJobHandler` and `UpdateJobHandler` classes
+- **Added**: Unified `IngestionJobHandler` that handles all ingestion job types (New, Update, Swap Update)
+- All ingestion logic is now centralized for better maintainability
+
+### Shapefile-Based Processing
+- **Changed**: Ingestion now requires shapefile inputs instead of inline feature data
+- **Required**: Shapefile components (.shp, .shx, .dbf, .prj, .cpg) must all be present
+- **New**: Feature properties follow a new schema defined in `shpFile.schema.ts`
+
+### Task Types
+- **Added**: New `validations` task type for shapefile validation and processing
+- **Changed**: Task processing flow now includes state management and recovery
+
+### Configuration Changes
+- **Added**: `INGESTION_SOURCES_DIR_PATH` - base directory for ingestion source files
+- **Added**: `VALIDATIONS_TASK_TYPE` - task type for validation tasks
+- **Added**: `VALIDATIONS_TASK_CHUNK_MAX_VERTICES` - chunk size configuration
+- **Added**: `MAX_TASK_ATTEMPTS` - maximum retry attempts
+
+### Dependencies
+- **Added**: `@map-colonies/mc-utils` v3.5.1 - for shapefile processing utilities
+- **Added**: `shapefile` - for reading shapefile format
+- **Updated**: `@map-colonies/raster-shared` to v7.2.0-alpha.1
 
 ## Contributing
 We welcome contributions! Please follow these steps:
