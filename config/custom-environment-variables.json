@@ -56,17 +56,21 @@
   "ingestionSourcesDirPath": "INGESTION_SOURCES_DIR_PATH",
   "jobDefinitions": {
     "tasks": {
-      "maxAttempts": {
-        "__name": "MAX_ATTEMPTS",
-        "__format": "number"
-      },
       "polygonParts": {
-        "type": "POLYGON_PARTS_TASK_TYPE"
+        "type": "POLYGON_PARTS_TASK_TYPE",
+        "maxAttempts": {
+          "__name": "POLYGON_PARTS_TASK_MAX_ATTEMPTS",
+          "__format": "number"
+        }
       },
       "validations": {
         "type": "VALIDATIONS_TASK_TYPE",
         "chunkMaxVertices": {
           "__name": "VALIDATIONS_TASK_CHUNK_MAX_VERTICES",
+          "__format": "number"
+        },
+        "maxAttempts": {
+          "__name": "VALIDATIONS_TASK_MAX_ATTEMPTS",
           "__format": "number"
         }
       }

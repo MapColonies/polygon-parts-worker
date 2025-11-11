@@ -35,6 +35,9 @@ data:
   INGESTION_SWAP_UPDATE_JOB_TYPE: {{ $jobDefinitions.jobs.swapUpdate.type }}
   EXPORT_JOB_TYPE: {{ $jobDefinitions.jobs.export.type }}
   MAX_ATTEMPTS: {{ $jobDefinitions.tasks.maxAttempts | quote }}
+  POLYGON_PARTS_TASK_MAX_ATTEMPTS: {{ $jobDefinitions.tasks.polygonParts.maxAttempts | quote }}
+  VALIDATIONS_TASK_MAX_ATTEMPTS: {{ $jobDefinitions.tasks.validations.maxAttempts | quote }}
+  VALIDATIONS_TASK_CHUNK_MAX_VERTICES: {{ $jobDefinitions.tasks.validations.chunkMaxVertices | quote }}
   GPKGS_LOCATION: {{ $gpkgLocation | quote }}
   npm_config_cache: /tmp/
   HTTP_RETRY_ATTEMPTS: {{ .Values.env.httpRetry.attempts | quote }}

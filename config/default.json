@@ -55,12 +55,13 @@
   "disableHttpClientLogs": false,
   "jobDefinitions": {
     "tasks": {
-      "maxAttempts": 3,
       "polygonParts": {
-        "type": "polygon-parts"
+        "type": "polygon-parts",
+        "maxAttempts": 3
       },
       "validations": {
         "type": "validations",
+        "maxAttempts": 3,
         "chunkMaxVertices": 1001
       }
     },
