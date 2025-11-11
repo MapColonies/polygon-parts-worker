@@ -101,6 +101,7 @@ const registerDefaultConfig = (): void => {
       tasks: {
         polygonParts: {
           type: 'polygon-parts',
+          maxAttempts: 3,
         },
         validations: {
           type: 'validations',

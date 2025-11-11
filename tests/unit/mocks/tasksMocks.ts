@@ -25,7 +25,7 @@ export const validationsTask: ITaskResponse<ValidationsTaskParameters> = {
 
 export const initTaskForIngestionNew: ITaskResponse<IPollingTaskParameters> = {
   id: '4a5486bd-6269-4898-b9b1-647fe56d6ae2',
-  type: 'polygonParts',
+  type: 'polygon-parts',
   description: 'polygonParts task',
   parameters: {
     blockDuplication: true,

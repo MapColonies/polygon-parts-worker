@@ -44,6 +44,16 @@ export interface IPermittedJobTypes {
   exportJob: string;
 }
 
+export interface ITaskConfig {
+  [key: string]: unknown;
+  type: string;
+  maxAttempts: number;
+}
+
+export interface ITasksConfig {
+  [key: string]: ITaskConfig;
+}
+
 export type IngestionJob = z.infer<typeof ingestionJobSchema>;
 export type IngestionJobParams = IngestionJob['parameters'];
 export type FindPolygonPartsResponse = FeatureCollection<Polygon, PolygonPartExtended>;
