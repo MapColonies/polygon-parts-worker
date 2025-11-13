@@ -51,10 +51,10 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     }
   }
 
-  protected async handleChunk(job: IJobResponse<IngestionJobParams, unknown>, featureCollection: PolygonPartsFeatureCollection): Promise<void> {
+  private async handleChunk(job: IJobResponse<IngestionJobParams, unknown>, featureCollection: PolygonPartsFeatureCollection): Promise<void> {
     const requestBody = this.createPolygonPartsPayload(job, featureCollection);
     this.logger.info({ msg: 'sending polygon parts to polygon parts manager', partsCount: featureCollection.features.length });
-    const validationResult = await this.polygonPartsManager.validatePolygonParts(requestBody);
+    const validationResult = await this.polygonPartsManager.validate(requestBody);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     if (validationResult.status === StatusCodes.UNPROCESSABLE_ENTITY) {
       //TODO: report which parts are invalid
@@ -168,7 +168,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
       resolutionMeter: resolutions.resolutionMeter,
       resolutionDegree: resolutions.resolutionDegree,
       sensors: shpProps.sensors,
-      description: shpProps.desc ?? '',
+      description: shpProps.desc,
       cities: shpProps.cities,
       countries: shpProps.countries,
     };
@@ -193,7 +193,6 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
 
   private async updateTaskParams(
     state: ProcessingState,
-
     job: IJobResponse<IngestionJobParams, unknown>,
     task: ITaskResponse<ValidationsTaskParameters>
   ): Promise<void> {

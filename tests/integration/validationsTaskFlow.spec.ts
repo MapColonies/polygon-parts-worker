@@ -60,7 +60,7 @@ describe('Validations Task Flow', () => {
       HttpMockHelper.mockJobTrackerFinishTask(task.id);
 
       const ingestionHandlerProcessJobSpy = jest.spyOn(IngestionJobHandler.prototype, 'processJob');
-      const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validatePolygonParts');
+      const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validate');
       const jobTrackerNotifySpy = jest.spyOn(JobTrackerClient.prototype, 'notifyOnFinishedTask');
       const processor = testContainer.resolve(JobProcessor);
 
@@ -113,7 +113,33 @@ describe('Validations Task Flow', () => {
       HttpMockHelper.mockJobManagerRejectTask(job.id, task);
 
       const ingestionHandlerProcessJobSpy = jest.spyOn(IngestionJobHandler.prototype, 'processJob');
-      const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validatePolygonParts');
+      const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validate');
+      const queueClientRejectSpy = jest.spyOn(TaskHandler.prototype, 'reject');
+      const processor = testContainer.resolve(JobProcessor);
+
+      await processor.start({ runOnce: true });
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      expect(ingestionHandlerProcessJobSpy).toHaveBeenCalledWith(expect.objectContaining({ ...job, expirationDate: expect.any(String) }), task);
+      expect(polygonPartsManagerValidateSpy).not.toHaveBeenCalled();
+      await expect(ingestionHandlerProcessJobSpy.mock.results[0].value).rejects.toThrow(ShapefileNotFoundError);
+      expect(queueClientRejectSpy).toHaveBeenCalledWith(job.id, task.id, isTaskRecoverable, expect.any(String));
+    });
+
+    it('should fail and reject task when one of the shapefile files is missing', async () => {
+      const job = createIngestionJob({
+        shapefilePath: 'tests/integration/shapeFiles/missing_dbf/ShapeMetadata.shp',
+      });
+      const task = createTask({ jobId: job.id });
+      const isTaskRecoverable = false; // ShapefileNotFoundError is not recoverable
+
+      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
+      HttpMockHelper.mockJobManagerGetJob(job.id, job);
+      HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task); // Mock for queueClient.reject() internal call
+      HttpMockHelper.mockJobManagerRejectTask(job.id, task);
+
+      const ingestionHandlerProcessJobSpy = jest.spyOn(IngestionJobHandler.prototype, 'processJob');
+      const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validate');
       const queueClientRejectSpy = jest.spyOn(TaskHandler.prototype, 'reject');
       const processor = testContainer.resolve(JobProcessor);
 
@@ -140,7 +166,7 @@ describe('Validations Task Flow', () => {
       HttpMockHelper.mockJobTrackerFinishTask(task.id);
 
       const jobTrackerNotifySpy = jest.spyOn(JobTrackerClient.prototype, 'notifyOnFinishedTask');
-      const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validatePolygonParts');
+      const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validate');
       const queueClientRejectSpy = jest.spyOn(TaskHandler.prototype, 'reject');
       const processor = testContainer.resolve(JobProcessor);
 
@@ -165,7 +191,7 @@ describe('Validations Task Flow', () => {
       HttpMockHelper.mockJobManagerRejectTask(job.id, task);
 
       const ingestionHandlerProcessJobSpy = jest.spyOn(IngestionJobHandler.prototype, 'processJob');
-      const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validatePolygonParts');
+      const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validate');
       const queueClientRejectSpy = jest.spyOn(TaskHandler.prototype, 'reject');
       const processor = testContainer.resolve(JobProcessor);
 
@@ -197,7 +223,7 @@ describe('Validations Task Flow', () => {
       HttpMockHelper.mockJobTrackerFinishTask(task.id);
 
       const ingestionHandlerProcessJobSpy = jest.spyOn(IngestionJobHandler.prototype, 'processJob');
-      const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validatePolygonParts');
+      const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validate');
       const jobTrackerNotifySpy = jest.spyOn(JobTrackerClient.prototype, 'notifyOnFinishedTask');
       const processor = testContainer.resolve(JobProcessor);
 

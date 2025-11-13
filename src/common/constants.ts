@@ -12,7 +12,6 @@ export const SERVICES = {
   LOGGER: Symbol('Logger'),
   CONFIG: Symbol('Config'),
   TRACER: Symbol('Tracer'),
-  METER: Symbol('Meter'),
   METRICS_REGISTRY: Symbol('MetricsRegistry'),
   QUEUE_CLIENT: Symbol('QueueClient'),
   SHAPE_FILE_PROCESSOR: Symbol('ShapeFileProcessor'),

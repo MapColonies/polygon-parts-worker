@@ -13,13 +13,13 @@ export class ServerBuilder {
   public constructor(
     @inject(SERVICES.CONFIG) private readonly config: IConfig,
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(SERVICES.METRICS_REGISTRY) private readonly registry: Registry
+    @inject(SERVICES.METRICS_REGISTRY) private readonly registry?: Registry
   ) {
     this.serverInstance = express();
   }
 
   public build(): express.Application {
-    if (this.config.get<boolean>('telemetry.metrics.enabled')) {
+    if (this.config.get<boolean>('telemetry.metrics.enabled') && this.registry) {
       this.serverInstance.use(collectMetricsExpressMiddleware({ registry: this.registry }));
     }
 

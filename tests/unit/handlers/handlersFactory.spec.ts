@@ -1,12 +1,12 @@
 import { BadRequestError } from '@map-colonies/error-types';
 import { HANDLERS } from '../../../src/common/constants';
-import { initJobHandler } from '../../../src/models/handlersFactory';
+import { initJobHandler } from '../../../src/models/handlerFactory';
 import { IngestionJobHandler } from '../../../src/models/ingestion/ingestionHandler';
 import { configMock } from '../mocks/configMock';
 import { registerExternalValues } from '../../../src/containerConfig';
 import { ingestionJobJobHandlerInstance } from '../jobProcessor/jobProcessorSetup';
 
-describe('HandlersFactory', () => {
+describe('HandlerFactory', () => {
   const ingestionNew = configMock.get<string>('jobDefinitions.jobs.new.type');
   const ingestionUpdate = configMock.get<string>('jobDefinitions.jobs.update.type');
   const ingestionSwapUpdate = configMock.get<string>('jobDefinitions.jobs.swapUpdate.type');

@@ -28,7 +28,7 @@ export class PolygonPartsManagerClient extends HttpClient {
   }
 
   @withSpanAsyncV4
-  public async validatePolygonParts(requestBody: PolygonPartsPayload): Promise<AxiosResponse<PolygonPartsChunkValidationResult>> {
+  public async validate(requestBody: PolygonPartsPayload): Promise<AxiosResponse<PolygonPartsChunkValidationResult>> {
     const validatePolygonPartsUrl = `/polygonParts/validate`;
     const response = await this.httpClientV2.post<PolygonPartsChunkValidationResult>(validatePolygonPartsUrl, requestBody);
     return response;

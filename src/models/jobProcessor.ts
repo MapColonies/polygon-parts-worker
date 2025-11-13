@@ -9,7 +9,7 @@ import { SERVICES } from '../common/constants';
 import { TaskMetricLabels, TaskMetrics } from '../common/otel/metrics/taskMetrics';
 import { ReachedMaxTaskAttemptsError, UnrecoverableTaskError } from '../common/errors';
 import { IConfig, IJobAndTaskResponse, IPermittedJobTypes, ITasksConfig } from '../common/interfaces';
-import { initJobHandler } from './handlersFactory';
+import { initJobHandler } from './handlerFactory';
 
 @injectable()
 export class JobProcessor {
@@ -87,11 +87,11 @@ export class JobProcessor {
 
   @withSpanAsyncV4
   private async getJobAndTask(): Promise<IJobAndTaskResponse | undefined> {
-    const jobTypesToProcessArray = Object.values(this.jobTypesToProcess) as string[];
+    const jobTypes = Object.values(this.jobTypesToProcess) as string[];
 
-    for (const jobType of jobTypesToProcessArray) {
+    for (const jobType of jobTypes) {
       for (const taskType of this.taskTypesToProcess) {
-        this.logger.debug({ msg: `try to dequeue task of type "${taskType}" and job of type "${jobType}"` }, jobType, taskType);
+        this.logger.debug({ msg: `dequeuing` }, jobType, taskType);
         const task = await this.queueClient.dequeue(jobType, taskType);
         if (task) {
           this.logger.info({ msg: `getting task's job ${task.id}`, task });

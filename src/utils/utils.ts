@@ -4,8 +4,8 @@ import { degreesPerPixelToZoomLevel, zoomLevelToResolutionMeter } from '@map-col
 import { FindPolygonPartsResponse, ExportPolygonPartsResponse } from '../common/interfaces';
 
 export const calculateResMeterFromDegree = (resolutionDegree: number): number => {
-  const resDegreeZoomLevel = degreesPerPixelToZoomLevel(resolutionDegree);
-  const resMeter = zoomLevelToResolutionMeter(resDegreeZoomLevel) as number;
+  const zoomLevel = degreesPerPixelToZoomLevel(resolutionDegree);
+  const resMeter = zoomLevelToResolutionMeter(zoomLevel) as number;
   return resMeter;
 };
 

@@ -1,4 +1,3 @@
-// src/common/telemetry/metrics/taskMetrics.ts
 import { singleton, inject } from 'tsyringe';
 import { Registry, Counter, Histogram, Gauge } from 'prom-client';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
@@ -38,62 +37,11 @@ export class TaskMetrics {
 
     if (this.registry && this.metricsEnabled) {
       this.initializeMetrics();
-      this.logger.info('Task metrics initialized');
+      this.logger.info({ msg: 'Task metrics initialized' });
     }
   }
 
-  // === Task Processing ===
-  public recordTaskProcessing(duration: number, labels: TaskMetricLabels): void {
-    if (!this.metricsEnabled) {
-      return;
-    }
-
-    try {
-      const { jobType, taskType, status = OperationStatus.COMPLETED } = labels;
-
-      // Record duration
-      this.tasksProcessingDuration?.observe({ jobType, taskType, status }, duration);
-
-      // Increment processed counter
-      this.tasksProcessedCounter?.inc({ jobType, taskType });
-
-      // Increment status-specific counters
-      if (status === OperationStatus.COMPLETED) {
-        this.tasksSuccessCounter?.inc({ jobType, taskType });
-      } else if (status === OperationStatus.FAILED) {
-        this.tasksFailureCounter?.inc({ jobType, taskType, errorType: labels.errorType ?? 'UnknownError' });
-      }
-    } catch (error) {
-      this.logger.error('Failed to record task processing metrics', { error, labels });
-    }
-  }
-
-  // === Active Tasks Management ===
-  public incrementActiveTasks(labels: Pick<TaskMetricLabels, 'jobType' | 'taskType'>): void {
-    if (!this.metricsEnabled) {
-      return;
-    }
-
-    try {
-      this.activeTasksGauge?.inc(labels);
-    } catch (error) {
-      this.logger.error('Failed to increment active tasks gauge', { error, labels });
-    }
-  }
-
-  public decrementActiveTasks(labels: Pick<TaskMetricLabels, 'jobType' | 'taskType'>): void {
-    if (!this.metricsEnabled) {
-      return;
-    }
-
-    try {
-      this.activeTasksGauge?.dec(labels);
-    } catch (error) {
-      this.logger.error('Failed to decrement active tasks gauge', { error, labels });
-    }
-  }
-
-  // === Utility Methods ===
+  //#region Utility Methods
   public async withTaskMetrics<T>(labels: Pick<TaskMetricLabels, 'jobType' | 'taskType'>, fn: () => Promise<T>): Promise<T> {
     if (!this.metricsEnabled) {
       return fn();
@@ -125,7 +73,62 @@ export class TaskMetrics {
       this.decrementActiveTasks(labels);
     }
   }
+  //#endregion
 
+  //#region Task Processing
+  private recordTaskProcessing(duration: number, labels: TaskMetricLabels): void {
+    if (!this.metricsEnabled) {
+      return;
+    }
+
+    try {
+      const { jobType, taskType, status = OperationStatus.COMPLETED } = labels;
+
+      // Record duration
+      this.tasksProcessingDuration?.observe({ jobType, taskType, status }, duration);
+
+      // Increment processed counter
+      this.tasksProcessedCounter?.inc({ jobType, taskType });
+
+      // Increment status-specific counters
+      if (status === OperationStatus.COMPLETED) {
+        this.tasksSuccessCounter?.inc({ jobType, taskType });
+      } else if (status === OperationStatus.FAILED) {
+        this.tasksFailureCounter?.inc({ jobType, taskType, errorType: labels.errorType ?? 'UnknownError' });
+      }
+    } catch (error) {
+      this.logger.error({ msg: 'Failed to record task processing metrics', error, labels });
+    }
+  }
+  //#endregion
+
+  //#region Active Tasks Management
+  private incrementActiveTasks(labels: Pick<TaskMetricLabels, 'jobType' | 'taskType'>): void {
+    if (!this.metricsEnabled) {
+      return;
+    }
+
+    try {
+      this.activeTasksGauge?.inc(labels);
+    } catch (error) {
+      this.logger.error({ msg: 'Failed to increment active tasks gauge', error, labels });
+    }
+  }
+
+  private decrementActiveTasks(labels: Pick<TaskMetricLabels, 'jobType' | 'taskType'>): void {
+    if (!this.metricsEnabled) {
+      return;
+    }
+
+    try {
+      this.activeTasksGauge?.dec(labels);
+    } catch (error) {
+      this.logger.error({ msg: 'Failed to decrement active tasks gauge', error, labels });
+    }
+  }
+  //#endregion
+
+  //#region Private Methods
   private initializeMetrics(): void {
     this.tasksProcessedCounter = new Counter({
       name: 'polygon_parts_tasks_processed_total',
@@ -163,4 +166,5 @@ export class TaskMetrics {
       registers: [this.registry!],
     });
   }
+  //#endregion
 }

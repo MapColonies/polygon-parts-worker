@@ -1,7 +1,8 @@
 import { z } from 'zod';
 
 export const commaSeparatedStringSchema = z
-  .union([z.null(), z.string()])
+  .string()
+  .nullable()
   .transform((val) => {
     if (val === null || val === '') {
       return [];

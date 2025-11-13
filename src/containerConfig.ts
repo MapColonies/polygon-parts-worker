@@ -14,7 +14,6 @@ import { IJobManagerConfig } from './common/interfaces';
 import { IngestionJobHandler } from './models/ingestion/ingestionHandler';
 import { ExportJobHandler } from './models/export/exportJobHandler';
 import { HttpClientV2 } from './common/http/httpClientV2';
-// import { ShapefileMetrics } from './common/otel/metrics/shapeFileMetrics';
 
 //TODO: remove the following factory and use HttpClient from mc-utils when we remove the old HttpClient
 const polygonPartsHttpClientFactory = (container: DependencyContainer): HttpClientV2 => {
@@ -81,10 +80,8 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     {
       token: 'onSignal',
       provider: {
-        useValue: {
-          useValue: async (): Promise<void> => {
-            await Promise.all([tracing.stop()]);
-          },
+        useValue: async (): Promise<void> => {
+          await Promise.all([tracing.stop()]);
         },
       },
     },

@@ -3,7 +3,7 @@ import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { failTaskRequest, newJobResponseMock, updatedJobRequest } from '../mocks/jobsMocks';
 import { initTaskForIngestionNew, reachedMaxAttemptsTask } from '../mocks/tasksMocks';
-import * as handlersFactory from '../../../src/models/handlersFactory';
+import * as handlerFactory from '../../../src/models/handlerFactory';
 
 const initJobHandlerMock = jest.fn();
 
@@ -15,7 +15,7 @@ initJobHandlerMock.mockImplementation(() => {
   };
 });
 
-jest.mock<typeof handlersFactory>('../../../src/models/handlersFactory', () => {
+jest.mock<typeof handlerFactory>('../../../src/models/handlerFactory', () => {
   return {
     initJobHandler: initJobHandlerMock,
   };

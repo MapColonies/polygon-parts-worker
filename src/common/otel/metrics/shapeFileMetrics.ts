@@ -28,11 +28,10 @@ export class ShapefileMetrics {
 
     if (this.metricsRegistry && this.metricsEnabled) {
       this.initializeMetrics();
-      this.logger.info('Shapefile metrics initialized');
+      this.logger.info({ msg: 'Shapefile metrics initialized' });
     }
   }
 
-  // === Chunk Reading ===
   public recordChunk(chunkMetrics: ChunkMetrics): void {
     const { processTimeMs, readTimeMs, totalTimeMs, featuresCount } = chunkMetrics;
 

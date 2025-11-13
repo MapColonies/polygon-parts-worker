@@ -3,7 +3,7 @@ import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import type { FeatureCollection, Polygon } from 'geojson';
 import { ProcessingState } from '@map-colonies/mc-utils';
 import { PartFeatureProperties, polygonPartsPayloadSchema } from '@map-colonies/raster-shared';
-import { ingestionJobSchema } from '../schemas/ingestion.schema';
+import { ingestionJobParamsSchema } from '../schemas/ingestion.schema';
 
 type PolygonPartExtended = PartFeatureProperties &
   Omit<z.infer<typeof polygonPartsPayloadSchema>, 'partsDataChunk'> & {
@@ -34,7 +34,7 @@ export interface IJobAndTaskResponse {
 }
 
 export interface IJobHandler<TJobParams = unknown, TTaskParams = unknown> {
-  processJob: (job: IJobResponse<TJobParams, unknown>, task: ITaskResponse<TTaskParams>) => Promise<void>;
+  processJob: (job: IJobResponse<TJobParams, TTaskParams>, task: ITaskResponse<TTaskParams>) => Promise<void>;
 }
 
 export interface IPermittedJobTypes {
@@ -54,8 +54,7 @@ export interface ITasksConfig {
   [key: string]: ITaskConfig;
 }
 
-export type IngestionJob = z.infer<typeof ingestionJobSchema>;
-export type IngestionJobParams = IngestionJob['parameters'];
+export type IngestionJobParams = z.infer<typeof ingestionJobParamsSchema>;
 export type FindPolygonPartsResponse = FeatureCollection<Polygon, PolygonPartExtended>;
 
 export type ExportPolygonPartsResponse = FeatureCollection<Polygon, Omit<PolygonPartExtended, 'requestFeatureId'>>;

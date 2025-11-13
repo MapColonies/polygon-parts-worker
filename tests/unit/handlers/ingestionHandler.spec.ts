@@ -180,7 +180,7 @@ describe('IngestionJobHandler', () => {
 
         await ingestionJobHandler.processJob(newJobResponseMock, validationsTask);
 
-        // Should call validatePolygonParts for each chunk
+        // Should call validate for each chunk
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(mockHttpClientV2.post).toHaveBeenCalledTimes(2);
       });
