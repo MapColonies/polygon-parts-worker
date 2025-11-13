@@ -71,7 +71,7 @@ spec:
             {{- end }}
             - name: internal-storage
               mountPath: {{ $fs.internalPvc.outputPath }}
-            {{- if $fs.internalPvc.enabled }}
+            {{- if $fs.ingestionSourcePvc.enabled }}
             - name: ingestion-storage
               mountPath: {{ $fs.ingestionSourcePvc.mountPath }} 
               subPath: {{ $fs.ingestionSourcePvc.subPath }}
