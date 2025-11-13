@@ -1,16 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 import { IJobResponse, IUpdateJobBody } from '@map-colonies/mc-priority-queue';
-import { PolygonPartsEntityNameObject, RasterProductTypes } from '@map-colonies/raster-shared';
+import { RasterProductTypes } from '@map-colonies/raster-shared';
 import { IngestionJobParams } from '../../../src/common/interfaces';
 
-const polygonPartsEntity: PolygonPartsEntityNameObject = { polygonPartsEntityName: 'blue_marble_orthophoto' };
-
-const getUpdatedJobParams = (
-  job: IJobResponse<IngestionJobParams, unknown>,
-  polygonPartsEntity: PolygonPartsEntityNameObject
-): IUpdateJobBody<IngestionJobParams> => {
-  const newAdditionalParameters = { ...job.parameters.additionalParams, ...polygonPartsEntity };
+const getUpdatedJobParams = (job: IJobResponse<IngestionJobParams, unknown>): IUpdateJobBody<IngestionJobParams> => {
+  const newAdditionalParameters = { ...job.parameters.additionalParams };
   const newParameters = { ...job.parameters, additionalParams: { ...newAdditionalParameters } };
   return { parameters: newParameters };
 };
@@ -70,4 +65,4 @@ const modifiedGeoJsonFeature = {
   ],
 };
 
-export { polygonPartsEntity, getUpdatedJobParams, mockGeoJsonFeature, modifiedGeoJsonFeature };
+export { getUpdatedJobParams, mockGeoJsonFeature, modifiedGeoJsonFeature };

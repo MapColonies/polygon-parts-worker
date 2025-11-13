@@ -3,9 +3,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { degreesPerPixelToZoomLevel, zoomLevelToResolutionMeter } from '@map-colonies/mc-utils';
 import { FindPolygonPartsResponse, ExportPolygonPartsResponse } from '../common/interfaces';
 
-const calculateResMeterFromDegree = (resolutionDegree: number): number => {
-  const resDegreeZoomLevel = degreesPerPixelToZoomLevel(resolutionDegree);
-  const resMeter = zoomLevelToResolutionMeter(resDegreeZoomLevel) as number;
+export const calculateResMeterFromDegree = (resolutionDegree: number): number => {
+  const zoomLevel = degreesPerPixelToZoomLevel(resolutionDegree);
+  const resMeter = zoomLevelToResolutionMeter(zoomLevel) as number;
   return resMeter;
 };
 

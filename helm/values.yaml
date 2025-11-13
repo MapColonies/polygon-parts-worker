@@ -18,9 +18,14 @@ jobDefinitions:
     export: 
       type: ""
   tasks:
-    maxAttempts: 3
     polygonParts:
       type: ""
+      config:
+      maxAttempts: 3  
+    validations:
+      type: ""
+      chunkMaxVertices: 1000
+      maxAttempts: 3
 
 serviceUrls:
   jobManager: ""
@@ -34,6 +39,11 @@ storage:
       name: ""
       gpkgSubPath: ""
       outputPath: ""
+    ingestionSourcePvc:
+      enabled: true
+      name: ""
+      mountPath: ""
+      subPath: ""     
 
 cloudProvider:
   dockerRegistryUrl: 'my-registry-url.io'

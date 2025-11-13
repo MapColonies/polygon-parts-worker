@@ -4,7 +4,7 @@ import ogr2ogr from 'ogr2ogr';
 import fsMock from 'mock-fs';
 import { v4 as uuidv4 } from 'uuid';
 import { ProductType } from '@map-colonies/mc-model-types';
-import { ExportJobHandler } from '../../../src/models/exportJobHandler';
+import { ExportJobHandler } from '../../../src/models/export/exportJobHandler';
 import { exportJobHandlerInstance } from '../jobProcessor/jobProcessorSetup';
 import { configMock, init } from '../mocks/configMock';
 import { mockGeoJsonFeature, modifiedGeoJsonFeature } from '../mocks/jobProcessorResponseMock';

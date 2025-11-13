@@ -1,10 +1,17 @@
-import { InputFiles } from '@map-colonies/mc-model-types';
+import z from 'zod';
 import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import type { FeatureCollection, Polygon } from 'geojson';
-import { PolygonPart, PolygonPartsPayload } from '@map-colonies/raster-shared';
+import { ProcessingState } from '@map-colonies/mc-utils';
+import { PartFeatureProperties, polygonPartsPayloadSchema } from '@map-colonies/raster-shared';
+import { ingestionJobParamsSchema } from '../schemas/ingestion.schema';
 
-type PolygonPartExtended = Omit<PolygonPart, 'footprint'> &
-  Omit<PolygonPartsPayload, 'partsData'> & { requestFeatureId: string; partId: string; ingestionDateUTC: Date; id: string };
+type PolygonPartExtended = PartFeatureProperties &
+  Omit<z.infer<typeof polygonPartsPayloadSchema>, 'partsDataChunk'> & {
+    requestFeatureId: string;
+    partId: string;
+    ingestionDateUTC: Date;
+    id: string;
+  };
 export interface IConfig {
   get: <T>(setting: string) => T;
   has: (setting: string) => boolean;
@@ -26,8 +33,8 @@ export interface IJobAndTaskResponse {
   job: IJobResponse<unknown, unknown>;
 }
 
-export interface IJobHandler<TJobParams = unknown> {
-  processJob: (job: IJobResponse<TJobParams, unknown>) => Promise<void>;
+export interface IJobHandler<TJobParams = unknown, TTaskParams = unknown> {
+  processJob: (job: IJobResponse<TJobParams, TTaskParams>, task: ITaskResponse<TTaskParams>) => Promise<void>;
 }
 
 export interface IPermittedJobTypes {
@@ -37,15 +44,27 @@ export interface IPermittedJobTypes {
   exportJob: string;
 }
 
-export interface IngestionJobParams {
-  metadata: Record<string, unknown>;
-  partsData: PolygonPart[];
-  inputFiles: InputFiles;
-  additionalParams: Record<string, unknown>;
+export interface ITaskConfig {
+  [key: string]: unknown;
+  type: string;
+  maxAttempts: number;
 }
 
-export type ExistsPolygonPartsPayload = Pick<PolygonPartsPayload, 'productId' | 'productType'>;
+export interface ITasksConfig {
+  [key: string]: ITaskConfig;
+}
+
+export type IngestionJobParams = z.infer<typeof ingestionJobParamsSchema>;
+export type FindPolygonPartsResponse = FeatureCollection<Polygon, PolygonPartExtended>;
 
 export type ExportPolygonPartsResponse = FeatureCollection<Polygon, Omit<PolygonPartExtended, 'requestFeatureId'>>;
 
-export type FindPolygonPartsResponse = FeatureCollection<Polygon, PolygonPartExtended>;
+//TODO: extend from base schema in raster-shared
+export interface ValidationsTaskParameters {
+  processingState: ProcessingState | null;
+}
+
+export interface FeatureResolutions {
+  resolutionMeter: number;
+  resolutionDegree: number;
+}

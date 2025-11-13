@@ -12,8 +12,13 @@ export const SERVICES = {
   LOGGER: Symbol('Logger'),
   CONFIG: Symbol('Config'),
   TRACER: Symbol('Tracer'),
-  METER: Symbol('Meter'),
+  METRICS_REGISTRY: Symbol('MetricsRegistry'),
   QUEUE_CLIENT: Symbol('QueueClient'),
+  SHAPE_FILE_PROCESSOR: Symbol('ShapeFileProcessor'),
+  TASK_METRICS: Symbol('TaskMetrics'),
+  SHAPE_FILE_METRICS: Symbol('ShapeFileMetrics'),
+  TRACING: Symbol('TracingManager'),
+  POLYGON_PARTS_HTTP_CLIENT: Symbol('PolygonPartsHttpClient'),
 } satisfies Record<string, symbol>;
 
 /* eslint-disable @typescript-eslint/naming-convention */
