@@ -5,7 +5,6 @@ import { inject, injectable } from 'tsyringe';
 import { IJobResponse, ITaskResponse, IUpdateTaskBody, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { Logger } from '@map-colonies/js-logger';
 import { MetricsCollector, ShapefileChunkReader, ProcessingState, ChunkProcessor, ShapefileChunk, StateManager } from '@map-colonies/mc-utils';
-
 import {
   PartFeatureProperties,
   PolygonPartsFeatureCollection,
