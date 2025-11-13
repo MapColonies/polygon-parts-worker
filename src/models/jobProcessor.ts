@@ -1,7 +1,7 @@
 import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import { Logger } from '@map-colonies/js-logger';
 import { ITaskResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
-import { withSpanAsyncV4 } from '@map-colonies/telemetry';
+import { withSpanAsyncV4, withSpanV4 } from '@map-colonies/telemetry';
 import { Tracer } from '@opentelemetry/api';
 import { inject, injectable } from 'tsyringe';
 import { JobTrackerClient } from '../clients/jobTrackerClient';
@@ -80,6 +80,7 @@ export class JobProcessor {
     }
   }
 
+  @withSpanV4
   public stop(): void {
     this.logger.info({ msg: 'stopping polling' });
     this.isRunning = false;
