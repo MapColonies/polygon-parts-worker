@@ -37,7 +37,10 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     this.ingestionSourcesDirPath = this.config.get<string>('ingestionSourcesDirPath');
   }
 
-  public async processJob(job: IJobResponse<IngestionJobParams, unknown>, task: ITaskResponse<ValidationsTaskParameters>): Promise<void> {
+  public async processJob(
+    job: IJobResponse<IngestionJobParams, ValidationsTaskParameters>,
+    task: ITaskResponse<ValidationsTaskParameters>
+  ): Promise<void> {
     try {
       this.validateShapefilesExists(job.parameters.inputFiles.metadataShapefilePath);
       const shpReader = this.setupShapefileChunkReader(job, task);
