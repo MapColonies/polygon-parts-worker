@@ -151,8 +151,8 @@ Example structure for config/default.json:
           "polygonParts": {
             "type": "polygon-parts"
           },
-          "validations": {
-            "type": "validations",
+          "validation": {
+            "type": "validation",
             "chunkMaxVertices": 1000
           }
         },
@@ -197,7 +197,7 @@ Example structure for config/default.json:
 | `POLYGON_PARTS_MANAGER_BASE_URL`      | Base URL of the Polygon Parts Manager service.               | `http://localhost:8081`                        |
 | `INGESTION_SOURCES_DIR_PATH`          | Base directory path for ingestion source files (shapefiles).  | `/app/layerSources`                            |
 | `GPKGS_LOCATION`                      | Directory path for GeoPackage output files.                  | `/app/tiles_outputs/gpkgs`                     |
-| `VALIDATIONS_TASK_TYPE`               | Type for validation tasks.                                   | `validations`                                  |
+| `VALIDATION_TASK_TYPE`               | Type for validation tasks.                                   | `validation`                                  |
 | `VALIDATIONS_TASK_CHUNK_MAX_VERTICES` | Maximum vertices per chunk for shapefile processing.         | `1000`                                         |
 | `POLYGON_PARTS_TASK_TYPE`             | Type for polygon parts tasks.                                | `polygon-parts`                                |
 | `INGESTION_NEW_JOB_TYPE`              | Job type for new ingestion jobs.                             | `Ingestion_New`                                |
@@ -299,7 +299,7 @@ This version introduces significant architectural changes:
 - **New**: Feature properties follow a new schema defined in `shpFile.schema.ts`
 
 ### Task Types
-- **Added**: New `validations` task type for shapefile validation and processing
+- **Added**: New `validation` task type for shapefile validation and processing
 - **Changed**: Task processing flow now includes state management and recovery
 
 ### Configuration Changes

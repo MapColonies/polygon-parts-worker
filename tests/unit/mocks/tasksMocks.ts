@@ -9,8 +9,8 @@ export interface IPollingTaskParameters {
 export const validationsTask: ITaskResponse<ValidationsTaskParameters> = {
   id: '3a5486bd-6269-4898-b9b1-647fe56d6ae2',
   attempts: 0,
-  type: 'validations',
-  description: 'validations task',
+  type: 'validation',
+  description: 'validation task',
   parameters: {
     processingState: null,
   },

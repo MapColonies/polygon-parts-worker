@@ -77,7 +77,7 @@ export function createIngestionJob(options: CreateJobOptions = {}): IJobResponse
 
 export function createTask(options: CreateTaskOptions = {}): ITaskResponse<ValidationsTaskParameters> {
   const taskId = options.taskId ?? randomUUID();
-  const type = options.type ?? 'validations';
+  const type = options.type ?? 'validation';
   const jobId = options.jobId ?? randomUUID();
   const processingState = options.processingState ?? null;
   const status = options.status ?? OperationStatus.IN_PROGRESS;

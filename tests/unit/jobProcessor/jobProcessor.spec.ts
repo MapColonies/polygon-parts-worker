@@ -42,11 +42,11 @@ describe('JobProcessor', () => {
     const jobManagerBaseUrl = configMock.get<string>('jobManagement.config.jobManagerBaseUrl');
     const jobTrackerBaseUrl = configMock.get<string>('jobManagement.config.jobTracker.baseUrl');
     const heartbeatBaseUrl = configMock.get<string>('jobManagement.config.heartbeat.baseUrl');
-    const validationsTaskType = configMock.get<string>('jobDefinitions.tasks.validations.type');
+    const validationsTaskType = configMock.get<string>('jobDefinitions.tasks.validation.type');
     const polygonPartsTaskType = configMock.get<string>('jobDefinitions.tasks.polygonParts.type');
     const jobType = configMock.get<string>('jobDefinitions.jobs.new.type');
 
-    it('should successfully fetch new validations task and process it', async () => {
+    it('should successfully fetch new validation task and process it', async () => {
       const jobManagerUrlValidationsDequeuePath = `/tasks/${jobType}/${validationsTaskType}/startPending`;
       const jobManagerUrlPolygonPartsDequeuePath = `/tasks/${jobType}/${polygonPartsTaskType}/startPending`;
       const jobManagerUrlGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`;
@@ -73,7 +73,7 @@ describe('JobProcessor', () => {
       expect.assertions(4);
     });
 
-    it('should fail when validations task reached max attempts', async () => {
+    it('should fail when  task reached max attempts', async () => {
       const jobManagerUrlDequeuePath = `/tasks/${jobType}/${validationsTaskType}/startPending`;
       const jobManagerUrlPolygonPartsDequeuePath = `/tasks/${jobType}/${polygonPartsTaskType}/startPending`;
       const jobManagerUrlGetJobPath = `/jobs/${reachedMaxAttemptsTask.jobId}`;

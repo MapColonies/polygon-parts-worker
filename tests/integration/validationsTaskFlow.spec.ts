@@ -34,7 +34,7 @@ describe('Validations Task Flow', () => {
     });
     testContainer = container;
     const config = testContainer.resolve<IConfig>(SERVICES.CONFIG);
-    const validationsTaskType = config.get<string>('jobDefinitions.tasks.validations.type');
+    const validationsTaskType = config.get<string>('jobDefinitions.tasks.validation.type');
     const polygonPartsTaskType = config.get<string>('jobDefinitions.tasks.polygonParts.type');
     taskTypesToProcess = [validationsTaskType, polygonPartsTaskType];
   });

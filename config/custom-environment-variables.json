@@ -63,14 +63,14 @@
           "__format": "number"
         }
       },
-      "validations": {
-        "type": "VALIDATIONS_TASK_TYPE",
+      "validation": {
+        "type": "VALIDATION_TASK_TYPE",
         "chunkMaxVertices": {
-          "__name": "VALIDATIONS_TASK_CHUNK_MAX_VERTICES",
+          "__name": "VALIDATION_TASK_CHUNK_MAX_VERTICES",
           "__format": "number"
         },
         "maxAttempts": {
-          "__name": "VALIDATIONS_TASK_MAX_ATTEMPTS",
+          "__name": "VALIDATION_TASK_MAX_ATTEMPTS",
           "__format": "number"
         }
       }

@@ -31,7 +31,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     @inject(ShapefileMetrics) private readonly shapeFileMetrics: ShapefileMetrics,
     @inject(SERVICES.CONFIG) private readonly config: IConfig
   ) {
-    this.maxVerticesPerChunk = config.get<number>('jobDefinitions.tasks.validations.chunkMaxVertices');
+    this.maxVerticesPerChunk = config.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
     this.ingestionSourcesDirPath = this.config.get<string>('ingestionSourcesDirPath');
   }
 

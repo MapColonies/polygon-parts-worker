@@ -43,14 +43,14 @@ describe('IngestionJobHandler', () => {
     });
 
     it('should set maxVerticesPerChunk from config', () => {
-      const expectedMaxVertices = configMock.get<number>('jobDefinitions.tasks.validations.verticesPerChunk');
+      const expectedMaxVertices = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
       expect(expectedMaxVertices).toBe(1000);
     });
   });
 
   describe('processJob', () => {
     describe('successful processing', () => {
-      it('should successfully process a job and validations task with valid shapefile containing single chunk', async () => {
+      it('should successfully process a job and validation task with valid shapefile containing single chunk', async () => {
         const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
 
         mockFSWithShapefiles(shapefilePath);
@@ -68,7 +68,7 @@ describe('IngestionJobHandler', () => {
         );
       });
 
-      it('should successfully process a job and validations task with valid shapefile containing multiple chunks', async () => {
+      it('should successfully process a job and validation task with valid shapefile containing multiple chunks', async () => {
         const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
 
         mockFSWithShapefiles(shapefilePath);

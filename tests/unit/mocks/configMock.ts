@@ -103,8 +103,8 @@ const registerDefaultConfig = (): void => {
           type: 'polygon-parts',
           maxAttempts: 3,
         },
-        validations: {
-          type: 'validations',
+        validation: {
+          type: 'validation',
           maxAttempts: 3,
           verticesPerChunk: 1000,
         },

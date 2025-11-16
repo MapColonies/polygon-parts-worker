@@ -29,15 +29,15 @@ data:
   JOB_TRACKER_BASE_URL: {{ $serviceUrls.jobTracker | quote}}
   HEARTBEAT_INTERVAL_MS: {{ .Values.env.jobManagement.config.heartBeat.intervalMs | quote }}
   DEQUEUE_INTERVAL_MS: {{ .Values.env.jobManagement.config.dequeueIntervalMs | quote }}
-  VALIDATIONS_TASK_TYPE: {{ $jobDefinitions.tasks.validations.type }}
+  VALIDATION_TASK_TYPE: {{ $jobDefinitions.tasks.validation.type }}
   INGESTION_NEW_JOB_TYPE: {{ $jobDefinitions.jobs.new.type }}
   INGESTION_UPDATE_JOB_TYPE: {{ $jobDefinitions.jobs.update.type }}
   INGESTION_SWAP_UPDATE_JOB_TYPE: {{ $jobDefinitions.jobs.swapUpdate.type }}
   EXPORT_JOB_TYPE: {{ $jobDefinitions.jobs.export.type }}
   MAX_ATTEMPTS: {{ $jobDefinitions.tasks.maxAttempts | quote }}
   POLYGON_PARTS_TASK_MAX_ATTEMPTS: {{ $jobDefinitions.tasks.polygonParts.maxAttempts | quote }}
-  VALIDATIONS_TASK_MAX_ATTEMPTS: {{ $jobDefinitions.tasks.validations.maxAttempts | quote }}
-  VALIDATIONS_TASK_CHUNK_MAX_VERTICES: {{ $jobDefinitions.tasks.validations.chunkMaxVertices | quote }}
+  VALIDATION_TASK_MAX_ATTEMPTS: {{ $jobDefinitions.tasks.validation.maxAttempts | quote }}
+  VALIDATION_TASK_CHUNK_MAX_VERTICES: {{ $jobDefinitions.tasks.validation.chunkMaxVertices | quote }}
   GPKGS_LOCATION: {{ $gpkgLocation | quote }}
   npm_config_cache: /tmp/
   HTTP_RETRY_ATTEMPTS: {{ .Values.env.httpRetry.attempts | quote }}

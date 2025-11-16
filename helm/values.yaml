@@ -22,7 +22,7 @@ jobDefinitions:
       type: ""
       config:
       maxAttempts: 3  
-    validations:
+    validation:
       type: ""
       chunkMaxVertices: 1000
       maxAttempts: 3
