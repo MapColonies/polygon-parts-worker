@@ -71,7 +71,7 @@ describe('JobProcessor', () => {
       expect(ackSpy).toHaveBeenCalledTimes(1);
       expect(notifyOnFinishedTaskSpy).toHaveBeenCalledTimes(1);
       expect.assertions(4);
-    }, 100000);
+    });
 
     it('should fail when validations task reached max attempts', async () => {
       const jobManagerUrlDequeuePath = `/tasks/${jobType}/${validationsTaskType}/startPending`;
