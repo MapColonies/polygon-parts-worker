@@ -2,7 +2,7 @@ import fsMock from 'mock-fs';
 import { ShapefileChunk, ShapefileChunkReader } from '@map-colonies/mc-utils';
 import { Feature, Polygon } from 'geojson';
 import { IngestionJobHandler } from '../../../src/models/ingestion/ingestionHandler';
-import { ingestionJobJobHandlerInstance, configMock, mockQueueClient, mockHttpClientV2 } from '../jobProcessor/jobProcessorSetup';
+import { ingestionJobJobHandlerInstance, configMock, mockQueueClient, mockPolygonPartsClient } from '../jobProcessor/jobProcessorSetup';
 import { newJobResponseMock } from '../mocks/jobsMocks';
 import { validationsTask } from '../mocks/tasksMocks';
 import { mockFSWithShapefiles } from '../mocks/fsMocks';
@@ -178,11 +178,13 @@ describe('IngestionJobHandler', () => {
           });
         });
 
+        const polygonPartsManagerValidateSpy = jest.spyOn(mockPolygonPartsClient, 'validate');
+
         await ingestionJobHandler.processJob(newJobResponseMock, validationsTask);
 
         // Should call validate for each chunk
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(mockHttpClientV2.post).toHaveBeenCalledTimes(2);
+        expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(2);
       });
 
       it('should update task parameters with processing state after each chunk', async () => {
@@ -308,11 +310,13 @@ describe('IngestionJobHandler', () => {
           });
         });
 
+        const polygonPartsManagerValidateSpy = jest.spyOn(mockPolygonPartsClient, 'validate');
+
         await expect(ingestionJobHandler.processJob(newJobResponseMock, validationsTask)).resolves.not.toThrow();
         // Should still process valid features despite skipped ones
         //TODO: When implementing Report mechanism, verify that skipped features are reported
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(mockHttpClientV2.post).toHaveBeenCalledTimes(1);
+        expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -385,8 +389,10 @@ describe('IngestionJobHandler', () => {
         });
 
         await expect(ingestionJobHandler.processJob(newJobResponseMock, validationsTask)).resolves.not.toThrow();
+        const polygonPartsManagerValidateSpy = jest.spyOn(mockPolygonPartsClient, 'validate');
+
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(mockHttpClientV2.post).toHaveBeenCalledTimes(1);
+        expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1);
       });
 
       it('should throw ZodError when chunk contains invalid features', async () => {

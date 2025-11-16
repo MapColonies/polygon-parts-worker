@@ -1,6 +1,5 @@
 import path from 'path';
 import fs from 'fs';
-import { StatusCodes } from 'http-status-codes';
 import { inject, injectable } from 'tsyringe';
 import { IJobResponse, ITaskResponse, IUpdateTaskBody, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { Logger } from '@map-colonies/js-logger';
@@ -56,11 +55,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
   private async handleChunk(job: IJobResponse<IngestionJobParams, unknown>, featureCollection: PolygonPartsFeatureCollection): Promise<void> {
     const requestBody = this.createPolygonPartsPayload(job, featureCollection);
     this.logger.info({ msg: 'sending polygon parts to polygon parts manager', partsCount: featureCollection.features.length });
-    const validationResult = await this.polygonPartsManager.validate(requestBody);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-    if (validationResult.status === StatusCodes.UNPROCESSABLE_ENTITY) {
-      //TODO: report which parts are invalid
-    }
+    await this.polygonPartsManager.validate(requestBody);
   }
 
   private setupShapefileChunkReader(
