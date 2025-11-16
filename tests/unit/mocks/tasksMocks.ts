@@ -1,16 +1,16 @@
 import { ITaskResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
-import { ValidationsTaskParameters } from '../../../src/common/interfaces';
+import { ValidationTaskParameters } from '../../../src/common/interfaces';
 
 //copied from Ingestion-Trigger, should be moved to a shared library (Mc-Models)
 export interface IPollingTaskParameters {
   blockDuplication?: boolean;
 }
 
-export const validationsTask: ITaskResponse<ValidationsTaskParameters> = {
+export const validationTask: ITaskResponse<ValidationTaskParameters> = {
   id: '3a5486bd-6269-4898-b9b1-647fe56d6ae2',
   attempts: 0,
-  type: 'validations',
-  description: 'validations task',
+  type: 'validation',
+  description: 'validation task',
   parameters: {
     processingState: null,
   },

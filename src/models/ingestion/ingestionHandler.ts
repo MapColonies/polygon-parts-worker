@@ -12,7 +12,7 @@ import {
   SHAPEFILE_EXTENSIONS_LIST,
 } from '@map-colonies/raster-shared';
 import { ZodError } from 'zod';
-import { FeatureResolutions, IConfig, IJobHandler, IngestionJobParams, ValidationsTaskParameters } from '../../common/interfaces';
+import { FeatureResolutions, IConfig, IJobHandler, IngestionJobParams, ValidationTaskParameters } from '../../common/interfaces';
 import { PolygonPartsManagerClient } from '../../clients/polygonPartsManagerClient';
 import { SERVICES } from '../../common/constants';
 import { ShpFeatureProperties, shpFeatureSchema } from '../../schemas/shpFile.schema';
@@ -21,7 +21,7 @@ import { ShapefileNotFoundError } from '../../common/errors';
 import { calculateResMeterFromDegree } from '../../utils/utils';
 
 @injectable()
-export class IngestionJobHandler implements IJobHandler<IngestionJobParams, ValidationsTaskParameters> {
+export class IngestionJobHandler implements IJobHandler<IngestionJobParams, ValidationTaskParameters> {
   private readonly maxVerticesPerChunk: number;
   private readonly ingestionSourcesDirPath: string;
   public constructor(
@@ -31,13 +31,13 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     @inject(ShapefileMetrics) private readonly shapeFileMetrics: ShapefileMetrics,
     @inject(SERVICES.CONFIG) private readonly config: IConfig
   ) {
-    this.maxVerticesPerChunk = config.get<number>('jobDefinitions.tasks.validations.chunkMaxVertices');
+    this.maxVerticesPerChunk = config.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
     this.ingestionSourcesDirPath = this.config.get<string>('ingestionSourcesDirPath');
   }
 
   public async processJob(
-    job: IJobResponse<IngestionJobParams, ValidationsTaskParameters>,
-    task: ITaskResponse<ValidationsTaskParameters>
+    job: IJobResponse<IngestionJobParams, ValidationTaskParameters>,
+    task: ITaskResponse<ValidationTaskParameters>
   ): Promise<void> {
     try {
       this.validateShapefilesExists(job.parameters.inputFiles.metadataShapefilePath);
@@ -60,7 +60,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
 
   private setupShapefileChunkReader(
     job: IJobResponse<IngestionJobParams, unknown>,
-    task: ITaskResponse<ValidationsTaskParameters>
+    task: ITaskResponse<ValidationTaskParameters>
   ): ShapefileChunkReader {
     const metricsCollector: MetricsCollector = {
       onChunkMetrics: (metrics) => {
@@ -191,15 +191,15 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
   private async updateTaskParams(
     state: ProcessingState,
     job: IJobResponse<IngestionJobParams, unknown>,
-    task: ITaskResponse<ValidationsTaskParameters>
+    task: ITaskResponse<ValidationTaskParameters>
   ): Promise<void> {
     this.logger.info({ msg: 'update task parameters', state });
 
-    const newParameters: ValidationsTaskParameters = {
+    const newParameters: ValidationTaskParameters = {
       ...task.parameters,
       processingState: { ...task.parameters.processingState, ...state },
     };
-    const taskUpdateBody: IUpdateTaskBody<Partial<ValidationsTaskParameters>> = {
+    const taskUpdateBody: IUpdateTaskBody<Partial<ValidationTaskParameters>> = {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       percentage: Number(state.progress?.percentage.toFixed()),
       parameters: newParameters,

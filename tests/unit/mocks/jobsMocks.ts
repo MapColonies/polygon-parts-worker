@@ -2,10 +2,10 @@
 import { ProductType } from '@map-colonies/mc-model-types';
 import { IJobResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { ExportJobParameters, RASTER_DOMAIN } from '@map-colonies/raster-shared';
-import { IngestionJobParams, ValidationsTaskParameters } from '../../../src/common/interfaces';
-import { validationsTask } from './tasksMocks';
+import { IngestionJobParams, ValidationTaskParameters } from '../../../src/common/interfaces';
+import { validationTask } from './tasksMocks';
 
-const newJobResponseMock: IJobResponse<IngestionJobParams, ValidationsTaskParameters> = {
+const newJobResponseMock: IJobResponse<IngestionJobParams, ValidationTaskParameters> = {
   id: '321d495f-e6e4-45cc-b301-4ebc4e894f03',
   resourceId: 'polygonPartsTest7',
   version: '1.0',
@@ -23,7 +23,7 @@ const newJobResponseMock: IJobResponse<IngestionJobParams, ValidationsTaskParame
       polygonPartsEntityName: undefined,
     },
   },
-  tasks: [validationsTask],
+  tasks: [validationTask],
   status: OperationStatus.PENDING,
   percentage: 0,
   reason: '',
