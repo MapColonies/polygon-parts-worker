@@ -105,7 +105,7 @@ describe('IngestionJobHandler', () => {
             process: expect.any(Function),
           })
         );
-      }, 10000);
+      });
 
       it('should process all chunks sequentially', async () => {
         const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
