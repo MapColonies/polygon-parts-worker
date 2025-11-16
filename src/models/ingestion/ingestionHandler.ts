@@ -57,10 +57,6 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     const requestBody = this.createPolygonPartsPayload(job, featureCollection);
     this.logger.info({ msg: 'sending polygon parts to polygon parts manager', partsCount: featureCollection.features.length });
     const validationResult = await this.polygonPartsManager.validate(requestBody);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-    if (validationResult.status === StatusCodes.UNPROCESSABLE_ENTITY) {
-      //TODO: report which parts are invalid
-    }
   }
 
   private setupShapefileChunkReader(

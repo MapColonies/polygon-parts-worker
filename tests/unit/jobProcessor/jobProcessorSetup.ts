@@ -8,8 +8,6 @@ import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { IngestionJobHandler } from '../../../src/models/ingestion/ingestionHandler';
 import { shapeFileMetricsMock, taskMetricsMock } from '../mocks/telemetryMock';
 import { ExportJobHandler } from '../../../src/models/export/exportJobHandler';
-import { createHttpClientV2Mock } from '../mocks/httpClientV2Mock';
-import { HttpClientV2 } from '../../../src/common/http/httpClientV2';
 
 const mockLogger = jsLogger({ enabled: false });
 
@@ -25,8 +23,7 @@ const mockQueueClient = new QueueClient(
 );
 
 const mockTracer = trace.getTracer('testingTracer');
-const mockHttpClientV2 = createHttpClientV2Mock() as HttpClientV2;
-const mockPolygonPartsClient = new PolygonPartsManagerClient(mockLogger, configMock, mockTracer, mockHttpClientV2);
+const mockPolygonPartsClient = new PolygonPartsManagerClient(mockLogger, configMock, mockTracer);
 const mockJobTrackerClient = new JobTrackerClient(mockLogger, configMock, mockTracer);
 
 function jobProcessorInstance(): JobProcessor {
@@ -34,6 +31,7 @@ function jobProcessorInstance(): JobProcessor {
 }
 
 function ingestionJobJobHandlerInstance(): IngestionJobHandler {
+  mockPolygonPartsClient.validate = jest.fn().mockResolvedValue(undefined);
   return new IngestionJobHandler(mockLogger, mockQueueClient, mockPolygonPartsClient, shapeFileMetricsMock, configMock);
 }
 
@@ -49,7 +47,7 @@ export {
   mockQueueClient,
   ingestionJobJobHandlerInstance,
   exportJobHandlerInstance,
-  mockHttpClientV2,
+  mockPolygonPartsClient,
 };
 
 export type MockDequeue = jest.MockedFunction<(jobType: string, taskType: string) => Promise<ITaskResponse<unknown> | null>>;

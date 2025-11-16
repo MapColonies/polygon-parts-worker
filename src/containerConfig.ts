@@ -13,16 +13,6 @@ import { InjectionObject, registerDependencies } from './common/dependencyRegist
 import { IJobManagerConfig } from './common/interfaces';
 import { IngestionJobHandler } from './models/ingestion/ingestionHandler';
 import { ExportJobHandler } from './models/export/exportJobHandler';
-import { HttpClientV2 } from './common/http/httpClientV2';
-
-//TODO: remove the following factory and use HttpClient from mc-utils when we remove the old HttpClient
-const polygonPartsHttpClientFactory = (container: DependencyContainer): HttpClientV2 => {
-  const logger = container.resolve<Logger>(SERVICES.LOGGER);
-  const config = container.resolve<IConfig>(SERVICES.CONFIG);
-  const httpRetryConfig = config.get<IHttpRetryConfig>('httpRetry');
-  const baseUrl = config.get<string>('polygonPartsManager.baseUrl');
-  return new HttpClientV2(logger, baseUrl, 'PolygonPartsManager', httpRetryConfig, config.get<boolean>('disableHttpClientLogs'));
-};
 
 const queueClientFactory = (container: DependencyContainer): QueueClient => {
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
@@ -61,7 +51,6 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     { token: HANDLERS.UPDATE, provider: { useClass: IngestionJobHandler } },
     { token: HANDLERS.SWAP, provider: { useClass: IngestionJobHandler } },
     { token: HANDLERS.EXPORT, provider: { useClass: ExportJobHandler } },
-    { token: SERVICES.POLYGON_PARTS_HTTP_CLIENT, provider: { useFactory: instancePerContainerCachingFactory(polygonPartsHttpClientFactory) } },
     {
       token: SERVICES.METRICS_REGISTRY,
       provider: {
