@@ -1,5 +1,5 @@
 import fsMock from 'mock-fs';
-import { HttpClient, ShapefileChunk, ShapefileChunkReader } from '@map-colonies/mc-utils';
+import { ShapefileChunk, ShapefileChunkReader } from '@map-colonies/mc-utils';
 import { Feature, Polygon } from 'geojson';
 import { IngestionJobHandler } from '../../../src/models/ingestion/ingestionHandler';
 import { ingestionJobJobHandlerInstance, configMock, mockQueueClient, mockPolygonPartsClient } from '../jobProcessor/jobProcessorSetup';

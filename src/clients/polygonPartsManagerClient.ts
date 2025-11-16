@@ -1,6 +1,5 @@
 import { HttpClient, IHttpRetryConfig } from '@map-colonies/mc-utils';
 import { inject, injectable } from 'tsyringe';
-import { AxiosResponse } from 'axios';
 import { Logger } from '@map-colonies/js-logger';
 import { Tracer } from '@opentelemetry/api';
 import { PolygonPartsChunkValidationResult } from '@map-colonies/raster-shared';
