@@ -44,7 +44,7 @@ This project includes the following configurations and tools for efficient devel
 The worker processes two main types of jobs:
 
 1. **Ingestion Jobs** (`Ingestion_New`, `Ingestion_Update`, `Ingestion_Swap_Update`)
-   - **Validations Task**: Reads shapefile in chunks, validates features, and sends polygon parts to the Polygon Parts Manager for validation
+   - **Validation Task**: Reads shapefile in chunks, validates features, and sends polygon parts to the Polygon Parts Manager for validation
 
 2. **Export Jobs** (`Export`)
    - **Polygon Parts Task**: Retrieves polygon parts from the Polygon Parts Manager and merges features into GeoPackage files
@@ -198,7 +198,7 @@ Example structure for config/default.json:
 | `INGESTION_SOURCES_DIR_PATH`          | Base directory path for ingestion source files (shapefiles).  | `/app/layerSources`                            |
 | `GPKGS_LOCATION`                      | Directory path for GeoPackage output files.                  | `/app/tiles_outputs/gpkgs`                     |
 | `VALIDATION_TASK_TYPE`               | Type for validation tasks.                                   | `validation`                                  |
-| `VALIDATIONS_TASK_CHUNK_MAX_VERTICES` | Maximum vertices per chunk for shapefile processing.         | `1000`                                         |
+| `VALIDATION_TASK_CHUNK_MAX_VERTICES` | Maximum vertices per chunk for shapefile processing.         | `1000`                                         |
 | `POLYGON_PARTS_TASK_TYPE`             | Type for polygon parts tasks.                                | `polygon-parts`                                |
 | `INGESTION_NEW_JOB_TYPE`              | Job type for new ingestion jobs.                             | `Ingestion_New`                                |
 | `INGESTION_UPDATE_JOB_TYPE`           | Job type for update ingestion jobs.                          | `Ingestion_Update`                             |
@@ -304,8 +304,8 @@ This version introduces significant architectural changes:
 
 ### Configuration Changes
 - **Added**: `INGESTION_SOURCES_DIR_PATH` - base directory for ingestion source files
-- **Added**: `VALIDATIONS_TASK_TYPE` - task type for validation tasks
-- **Added**: `VALIDATIONS_TASK_CHUNK_MAX_VERTICES` - chunk size configuration
+- **Added**: `VALIDATION_TASK_TYPE` - task type for validation tasks
+- **Added**: `VALIDATION_TASK_CHUNK_MAX_VERTICES` - chunk size configuration
 - **Added**: `MAX_TASK_ATTEMPTS` - maximum retry attempts
 
 ### Dependencies

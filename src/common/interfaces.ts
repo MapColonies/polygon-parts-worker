@@ -60,7 +60,7 @@ export type FindPolygonPartsResponse = FeatureCollection<Polygon, PolygonPartExt
 export type ExportPolygonPartsResponse = FeatureCollection<Polygon, Omit<PolygonPartExtended, 'requestFeatureId'>>;
 
 //TODO: extend from base schema in raster-shared
-export interface ValidationsTaskParameters {
+export interface ValidationTaskParameters {
   processingState: ProcessingState | null;
 }
 

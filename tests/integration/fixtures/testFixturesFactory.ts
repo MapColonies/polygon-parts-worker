@@ -2,7 +2,7 @@
 import { randomUUID } from 'crypto';
 import { IJobResponse, ITaskResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { ProductType } from '@map-colonies/mc-model-types';
-import { IngestionJobParams, ValidationsTaskParameters } from '../../../src/common/interfaces';
+import { IngestionJobParams, ValidationTaskParameters } from '../../../src/common/interfaces';
 import { HANDLERS } from '../../../src/common/constants';
 
 export interface CreateJobOptions {
@@ -20,7 +20,7 @@ export interface CreateTaskOptions {
   jobId?: string;
   type?: string;
   checkSum?: string;
-  processingState?: ValidationsTaskParameters['processingState'];
+  processingState?: ValidationTaskParameters['processingState'];
   status?: OperationStatus;
   attempts?: number;
 }
@@ -75,7 +75,7 @@ export function createIngestionJob(options: CreateJobOptions = {}): IJobResponse
   };
 }
 
-export function createTask(options: CreateTaskOptions = {}): ITaskResponse<ValidationsTaskParameters> {
+export function createTask(options: CreateTaskOptions = {}): ITaskResponse<ValidationTaskParameters> {
   const taskId = options.taskId ?? randomUUID();
   const type = options.type ?? 'validation';
   const jobId = options.jobId ?? randomUUID();

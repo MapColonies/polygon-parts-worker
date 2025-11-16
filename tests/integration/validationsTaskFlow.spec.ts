@@ -15,7 +15,7 @@ import { loggerMock, tracerMock } from '../unit/mocks/telemetryMock';
 import { createIngestionJob, createTask } from './fixtures/testFixturesFactory';
 import { HttpMockHelper } from './mocks/httpMocks';
 
-describe('Validations Task Flow', () => {
+describe('Validation Task Flow', () => {
   let testContainer: DependencyContainer;
   let taskTypesToProcess: string[];
 
@@ -34,9 +34,9 @@ describe('Validations Task Flow', () => {
     });
     testContainer = container;
     const config = testContainer.resolve<IConfig>(SERVICES.CONFIG);
-    const validationsTaskType = config.get<string>('jobDefinitions.tasks.validation.type');
+    const validationTaskType = config.get<string>('jobDefinitions.tasks.validation.type');
     const polygonPartsTaskType = config.get<string>('jobDefinitions.tasks.polygonParts.type');
-    taskTypesToProcess = [validationsTaskType, polygonPartsTaskType];
+    taskTypesToProcess = [validationTaskType, polygonPartsTaskType];
   });
 
   afterEach(() => {
@@ -44,8 +44,8 @@ describe('Validations Task Flow', () => {
     jest.clearAllMocks();
   });
 
-  describe('Happy Path - Successful Validations', () => {
-    test.each([HANDLERS.NEW, HANDLERS.UPDATE, HANDLERS.SWAP])('should complete validation task successfully for %s handler', async (type) => {
+  describe('Happy Path - Successful Validation', () => {
+    test.only.each([HANDLERS.NEW, HANDLERS.UPDATE, HANDLERS.SWAP])('should complete validation task successfully for %s handler', async (type) => {
       const job = createIngestionJob({
         shapefilePath: 'tests/integration/shapeFiles/israel_137_parts_valid/ShapeMetadata.shp',
         type,

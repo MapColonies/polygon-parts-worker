@@ -42,18 +42,18 @@ describe('JobProcessor', () => {
     const jobManagerBaseUrl = configMock.get<string>('jobManagement.config.jobManagerBaseUrl');
     const jobTrackerBaseUrl = configMock.get<string>('jobManagement.config.jobTracker.baseUrl');
     const heartbeatBaseUrl = configMock.get<string>('jobManagement.config.heartbeat.baseUrl');
-    const validationsTaskType = configMock.get<string>('jobDefinitions.tasks.validation.type');
+    const validationTaskType = configMock.get<string>('jobDefinitions.tasks.validation.type');
     const polygonPartsTaskType = configMock.get<string>('jobDefinitions.tasks.polygonParts.type');
     const jobType = configMock.get<string>('jobDefinitions.jobs.new.type');
 
     it('should successfully fetch new validation task and process it', async () => {
-      const jobManagerUrlValidationsDequeuePath = `/tasks/${jobType}/${validationsTaskType}/startPending`;
+      const jobManagerUrlValidationDequeuePath = `/tasks/${jobType}/${validationTaskType}/startPending`;
       const jobManagerUrlPolygonPartsDequeuePath = `/tasks/${jobType}/${polygonPartsTaskType}/startPending`;
       const jobManagerUrlGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`;
       const jobManagerAckPath = `/jobs/${initTaskForIngestionNew.jobId}/tasks/${initTaskForIngestionNew.id}`;
       const jobTrackerNotifyPath = `/tasks/${initTaskForIngestionNew.id}/notify`;
 
-      nock(jobManagerBaseUrl).post(jobManagerUrlValidationsDequeuePath).reply(200, initTaskForIngestionNew).persist();
+      nock(jobManagerBaseUrl).post(jobManagerUrlValidationDequeuePath).reply(200, initTaskForIngestionNew).persist();
       nock(jobManagerBaseUrl).post(jobManagerUrlPolygonPartsDequeuePath).reply(200, undefined).persist();
       nock(jobManagerBaseUrl).get(jobManagerUrlGetJobPath).query({ shouldReturnTasks: false }).reply(200, newJobResponseMock).persist();
       nock(jobManagerBaseUrl).put(jobManagerUrlGetJobPath, JSON.stringify(updatedJobRequest)).reply(200).persist();
@@ -74,7 +74,7 @@ describe('JobProcessor', () => {
     });
 
     it('should fail when  task reached max attempts', async () => {
-      const jobManagerUrlDequeuePath = `/tasks/${jobType}/${validationsTaskType}/startPending`;
+      const jobManagerUrlDequeuePath = `/tasks/${jobType}/${validationTaskType}/startPending`;
       const jobManagerUrlPolygonPartsDequeuePath = `/tasks/${jobType}/${polygonPartsTaskType}/startPending`;
       const jobManagerUrlGetJobPath = `/jobs/${reachedMaxAttemptsTask.jobId}`;
       const jobManagerGetTaskPath = `/jobs/${reachedMaxAttemptsTask.jobId}/tasks/${reachedMaxAttemptsTask.id}`;
@@ -104,7 +104,7 @@ describe('JobProcessor', () => {
       expect.assertions(6);
     });
     it('should fail to fetch task', async () => {
-      const jobManagerUrlDequeuePath = `/tasks/${jobType}/${validationsTaskType}/startPending`;
+      const jobManagerUrlDequeuePath = `/tasks/${jobType}/${validationTaskType}/startPending`;
 
       nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(502).persist();
 
@@ -116,7 +116,7 @@ describe('JobProcessor', () => {
     });
 
     it('should not find task', async () => {
-      const jobManagerUrlPath = `/tasks/${jobType}/${validationsTaskType}/startPending`;
+      const jobManagerUrlPath = `/tasks/${jobType}/${validationTaskType}/startPending`;
 
       nock(jobManagerBaseUrl).post(jobManagerUrlPath).reply(404).persist();
 
@@ -128,7 +128,7 @@ describe('JobProcessor', () => {
     });
 
     it('should find task, fail processing it, reject it, and increase attempt', async () => {
-      const jobManagerUrlValidationsDequeuePath = `/tasks/${jobType}/${validationsTaskType}/startPending`;
+      const jobManagerUrlValidationDequeuePath = `/tasks/${jobType}/${validationTaskType}/startPending`;
       const jobManagerUrlPolygonPartsDequeuePath = `/tasks/${jobType}/${polygonPartsTaskType}/startPending`;
       const jobManagerUrlGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`; //jobID
       const heartbeatPath = `/heartbeat/${initTaskForIngestionNew.id}`; //taskID
@@ -142,7 +142,7 @@ describe('JobProcessor', () => {
         };
       });
 
-      nock(jobManagerBaseUrl).post(jobManagerUrlValidationsDequeuePath).reply(200, initTaskForIngestionNew).persist();
+      nock(jobManagerBaseUrl).post(jobManagerUrlValidationDequeuePath).reply(200, initTaskForIngestionNew).persist();
       nock(jobManagerBaseUrl).post(jobManagerUrlPolygonPartsDequeuePath).reply(200, undefined).persist();
       nock(jobManagerBaseUrl).get(jobManagerUrlGetJobPath).query({ shouldReturnTasks: false }).reply(200, invalidJobResponseMock).persist();
       nock(heartbeatBaseUrl).post(heartbeatPath).reply(200, 'ok').persist();

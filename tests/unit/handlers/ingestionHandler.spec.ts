@@ -56,7 +56,7 @@ describe('IngestionJobHandler', () => {
         mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockResolvedValue(undefined);
 
-        await ingestionJobHandler.processJob(newJobResponseMock, validationsTask);
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
 
         expect(mockReadAndProcess).toHaveBeenCalledTimes(1);
         expect(mockReadAndProcess).toHaveBeenCalledWith(
@@ -95,7 +95,7 @@ describe('IngestionJobHandler', () => {
           });
         });
 
-        await ingestionJobHandler.processJob(newJobResponseMock, validationsTask);
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
 
         expect(mockReadAndProcess).toHaveBeenCalledTimes(1);
         expect(mockReadAndProcess).toHaveBeenCalledWith(
@@ -138,7 +138,7 @@ describe('IngestionJobHandler', () => {
           processOrder.push(3);
         });
 
-        await ingestionJobHandler.processJob(newJobResponseMock, validationsTask);
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
 
         expect(processOrder).toEqual([1, 2, 3]);
       });
@@ -180,7 +180,7 @@ describe('IngestionJobHandler', () => {
 
         const polygonPartsManagerValidateSpy = jest.spyOn(mockPolygonPartsClient, 'validate');
 
-        await ingestionJobHandler.processJob(newJobResponseMock, validationsTask);
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
 
         // Should call validate for each chunk
         // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -217,7 +217,7 @@ describe('IngestionJobHandler', () => {
           await stateManager.saveState({ progress: { percentage: 66.67 } });
         });
 
-        await ingestionJobHandler.processJob(newJobResponseMock, validationsTask);
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
 
         expect(mockUpdateTask).toHaveBeenCalled();
       });
@@ -258,7 +258,7 @@ describe('IngestionJobHandler', () => {
           });
         });
 
-        await ingestionJobHandler.processJob(newJobResponseMock, validationsTask);
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(shapeFileMetricsMock.recordChunk).toHaveBeenCalledTimes(2);
@@ -312,7 +312,7 @@ describe('IngestionJobHandler', () => {
 
         const polygonPartsManagerValidateSpy = jest.spyOn(mockPolygonPartsClient, 'validate');
 
-        await expect(ingestionJobHandler.processJob(newJobResponseMock, validationsTask)).resolves.not.toThrow();
+        await expect(ingestionJobHandler.processJob(newJobResponseMock, validationTask)).resolves.not.toThrow();
         // Should still process valid features despite skipped ones
         //TODO: When implementing Report mechanism, verify that skipped features are reported
         // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -342,7 +342,7 @@ describe('IngestionJobHandler', () => {
 
         fsMock(mockFiles);
 
-        await expect(ingestionJobHandler.processJob(newJobResponseMock, validationsTask)).rejects.toThrow();
+        await expect(ingestionJobHandler.processJob(newJobResponseMock, validationTask)).rejects.toThrow();
       });
 
       it('should throw ShapefileNotFoundError when multiple required files are missing', async () => {
@@ -354,7 +354,7 @@ describe('IngestionJobHandler', () => {
           [basePath + '.prj']: 'mock content',
         });
 
-        await expect(ingestionJobHandler.processJob(newJobResponseMock, validationsTask)).rejects.toThrow();
+        await expect(ingestionJobHandler.processJob(newJobResponseMock, validationTask)).rejects.toThrow();
       });
     });
 
@@ -388,7 +388,7 @@ describe('IngestionJobHandler', () => {
           });
         });
 
-        await expect(ingestionJobHandler.processJob(newJobResponseMock, validationsTask)).resolves.not.toThrow();
+        await expect(ingestionJobHandler.processJob(newJobResponseMock, validationTask)).resolves.not.toThrow();
         const polygonPartsManagerValidateSpy = jest.spyOn(mockPolygonPartsClient, 'validate');
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -427,7 +427,7 @@ describe('IngestionJobHandler', () => {
           });
         });
 
-        await expect(ingestionJobHandler.processJob(newJobResponseMock, validationsTask)).rejects.toThrow();
+        await expect(ingestionJobHandler.processJob(newJobResponseMock, validationTask)).rejects.toThrow();
       });
     });
 
@@ -438,7 +438,7 @@ describe('IngestionJobHandler', () => {
         mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockResolvedValue(undefined);
 
-        await ingestionJobHandler.processJob(newJobResponseMock, validationsTask);
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
 
         // Verify that ShapefileChunkReader was initialized with stateManager that loads from task
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -447,7 +447,7 @@ describe('IngestionJobHandler', () => {
         };
 
         // The loadState function should return the task's processingState
-        expect(stateManager.loadState()).toBe(validationsTask.parameters.processingState);
+        expect(stateManager.loadState()).toBe(validationTask.parameters.processingState);
       });
 
       it('should save processing state after each chunk', async () => {
@@ -480,7 +480,7 @@ describe('IngestionJobHandler', () => {
           await stateManager.saveState({ progress: { percentage: 100 } });
         });
 
-        await ingestionJobHandler.processJob(newJobResponseMock, validationsTask);
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
 
         // Should have called updateTask twice (once per saveState)
         expect(mockUpdateTask).toHaveBeenCalledTimes(2);
@@ -508,11 +508,11 @@ describe('IngestionJobHandler', () => {
           await stateManager.saveState({ progress: { percentage: 75.5 } });
         });
 
-        await ingestionJobHandler.processJob(newJobResponseMock, validationsTask);
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
 
         expect(mockUpdateTask).toHaveBeenCalledWith(
           newJobResponseMock.id,
-          validationsTask.id,
+          validationTask.id,
           expect.objectContaining({
             percentage: 76, // Should round 75.5 to 76
           })
@@ -549,13 +549,13 @@ describe('IngestionJobHandler', () => {
           await stateManager.saveState({ progress: { percentage: 66.67 } });
         });
 
-        await ingestionJobHandler.processJob(newJobResponseMock, validationsTask);
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
 
         // Should round to integers
         expect(mockUpdateTask).toHaveBeenNthCalledWith(
           1,
           newJobResponseMock.id,
-          validationsTask.id,
+          validationTask.id,
           expect.objectContaining({
             percentage: 33, // Should round 33.33 to 33
           })
@@ -564,7 +564,7 @@ describe('IngestionJobHandler', () => {
         expect(mockUpdateTask).toHaveBeenNthCalledWith(
           2,
           newJobResponseMock.id,
-          validationsTask.id,
+          validationTask.id,
           expect.objectContaining({
             percentage: 67, // Should round 66.67 to 67
           })
@@ -621,7 +621,7 @@ describe('IngestionJobHandler', () => {
           });
         });
 
-        await ingestionJobHandler.processJob(newJobResponseMock, validationsTask);
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
 
         // Should record metrics for each chunk
         // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -693,7 +693,7 @@ describe('IngestionJobHandler', () => {
           });
         });
 
-        await ingestionJobHandler.processJob(newJobResponseMock, validationsTask);
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
 
         expect(mockReadAndProcess).toHaveBeenCalledTimes(1);
       });
