@@ -45,7 +45,7 @@ describe('Validation Task Flow', () => {
   });
 
   describe('Happy Path - Successful Validation', () => {
-    test.only.each([HANDLERS.NEW, HANDLERS.UPDATE, HANDLERS.SWAP])('should complete validation task successfully for %s handler', async (type) => {
+    test.each([HANDLERS.NEW, HANDLERS.UPDATE, HANDLERS.SWAP])('should complete validation task successfully for %s handler', async (type) => {
       const job = createIngestionJob({
         shapefilePath: 'tests/integration/shapeFiles/israel_137_parts_valid/ShapeMetadata.shp',
         type,

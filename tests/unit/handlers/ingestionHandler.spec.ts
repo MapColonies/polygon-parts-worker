@@ -4,7 +4,7 @@ import { Feature, Polygon } from 'geojson';
 import { IngestionJobHandler } from '../../../src/models/ingestion/ingestionHandler';
 import { ingestionJobJobHandlerInstance, configMock, mockQueueClient, mockPolygonPartsClient } from '../jobProcessor/jobProcessorSetup';
 import { newJobResponseMock } from '../mocks/jobsMocks';
-import { validationsTask } from '../mocks/tasksMocks';
+import { validationTask } from '../mocks/tasksMocks';
 import { mockFSWithShapefiles } from '../mocks/fsMocks';
 import { shapeFileMetricsMock } from '../mocks/telemetryMock';
 import { ShpFeatureProperties } from '../../../src/schemas/shpFile.schema';
