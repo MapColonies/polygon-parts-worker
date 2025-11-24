@@ -71,6 +71,32 @@ describe('Validation Task Flow', () => {
       expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(20); // 20 chunks created from the shapefile
       expect(jobTrackerNotifySpy).toHaveBeenCalledWith(task.id);
     });
+
+    it('should complete validation task successfully for shapefile with teranova data', async () => {
+      const job = createIngestionJob({
+        shapefilePath: 'tests/integration/shapeFiles/teranova_shapefile/ShapeMetadata.shp',
+      });
+
+      const task = createTask({ jobId: job.id });
+
+      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
+      HttpMockHelper.mockJobManagerGetJob(job.id, job);
+      HttpMockHelper.mockPolygonPartsValidateSuccess();
+      HttpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
+      HttpMockHelper.mockJobTrackerFinishTask(task.id);
+
+      const ingestionHandlerProcessJobSpy = jest.spyOn(IngestionJobHandler.prototype, 'processJob');
+      const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validate');
+      const jobTrackerNotifySpy = jest.spyOn(JobTrackerClient.prototype, 'notifyOnFinishedTask');
+      const processor = testContainer.resolve(JobProcessor);
+
+      await processor.start({ runOnce: true });
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      expect(ingestionHandlerProcessJobSpy).toHaveBeenCalledWith(expect.objectContaining({ ...job, expirationDate: expect.any(String) }), task);
+      expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1); // Only 1 chunk created from the shapefile
+      expect(jobTrackerNotifySpy).toHaveBeenCalledWith(task.id);
+    });
   });
 
   describe('Sad Path - Validation Failures', () => {
