@@ -5,7 +5,7 @@ import { IJobResponse, ITaskResponse, IUpdateTaskBody, TaskHandler as QueueClien
 import { Logger } from '@map-colonies/js-logger';
 import { MetricsCollector, ShapefileChunkReader, ProcessingState, ChunkProcessor, ShapefileChunk, StateManager } from '@map-colonies/mc-utils';
 import {
-  PartFeatureProperties,
+  PolygonPartsChunkValidationResult,
   PolygonPartsFeatureCollection,
   PolygonPartsPayload,
   rasterProductTypeSchema,
@@ -15,10 +15,11 @@ import { ZodError } from 'zod';
 import { FeatureResolutions, IConfig, IJobHandler, IngestionJobParams, ValidationTaskParameters } from '../../common/interfaces';
 import { PolygonPartsManagerClient } from '../../clients/polygonPartsManagerClient';
 import { SERVICES } from '../../common/constants';
-import { ShpFeatureProperties, shpFeatureSchema } from '../../schemas/shpFile.schema';
+import { PolygonPartFeature, ShpFeature, shpFeatureSchema } from '../../schemas/shpFile.schema';
 import { ShapefileMetrics } from '../../common/otel/metrics/shapeFileMetrics';
 import { ShapefileNotFoundError } from '../../common/errors';
 import { calculateResMeterFromDegree } from '../../utils/utils';
+import { ValidationErrorCollector } from './validationErrorCollector';
 
 @injectable()
 export class IngestionJobHandler implements IJobHandler<IngestionJobParams, ValidationTaskParameters> {
@@ -28,6 +29,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
     @inject(PolygonPartsManagerClient) private readonly polygonPartsManager: PolygonPartsManagerClient,
+    @inject(ValidationErrorCollector) private readonly validationErrorCollector: ValidationErrorCollector,
     @inject(ShapefileMetrics) private readonly shapeFileMetrics: ShapefileMetrics,
     @inject(SERVICES.CONFIG) private readonly config: IConfig
   ) {
@@ -42,6 +44,11 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     try {
       this.validateShapefilesExists(job.parameters.inputFiles.metadataShapefilePath);
       const shpReader = this.setupShapefileChunkReader(job, task);
+
+      const shapeFileStats = await shpReader.getShapefileStats(job.parameters.inputFiles.metadataShapefilePath);
+      this.logger.info({ msg: 'shapefile stats retrieved', shapeFileStats });
+      this.validationErrorCollector.setShapefileStats(shapeFileStats);
+
       const chunkProcessor = this.setupChunkProcessor(job);
       await shpReader.readAndProcess(job.parameters.inputFiles.metadataShapefilePath, chunkProcessor);
 
@@ -52,10 +59,14 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     }
   }
 
-  private async handleChunk(job: IJobResponse<IngestionJobParams, unknown>, featureCollection: PolygonPartsFeatureCollection): Promise<void> {
+  private async validateChunk(
+    job: IJobResponse<IngestionJobParams, unknown>,
+    featureCollection: PolygonPartsFeatureCollection
+  ): Promise<PolygonPartsChunkValidationResult> {
     const requestBody = this.createPolygonPartsPayload(job, featureCollection);
     this.logger.info({ msg: 'sending polygon parts to polygon parts manager', partsCount: featureCollection.features.length });
-    await this.polygonPartsManager.validate(requestBody);
+    const validationResult = await this.polygonPartsManager.validate(requestBody);
+    return validationResult;
   }
 
   private setupShapefileChunkReader(
@@ -102,36 +113,41 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
           chunkSize: chunk.features.length,
           skippedFeaturesCount: chunk.skippedFeatures.length,
         });
-        // const { skippedFeatures } = chunk; TODO: handle skipped features(Report them)
+        const { skippedFeatures } = chunk;
+        this.validationErrorCollector.addVerticesErrors(skippedFeatures, chunk.id, this.maxVerticesPerChunk);
+        this.logger.info({ msg: 'vertices errors added', chunkId: chunk.id });
 
         const validFeatureCollection = this.parseChunk(chunk, job);
 
-        await this.handleChunk(job, validFeatureCollection);
+        const validationResult = await this.validateChunk(job, validFeatureCollection);
+        this.validationErrorCollector.addGeometryValidationErrors(validationResult, chunk.features, chunk.id);
         this.logger.info({ msg: 'chunk processed', chunkId: chunk.id, featuresCount: validFeatureCollection.features.length });
       },
     };
   }
 
   private parseChunk(chunk: ShapefileChunk, job: IJobResponse<IngestionJobParams, unknown>): PolygonPartsFeatureCollection {
-    const shpFeatures = shpFeatureSchema.array().safeParse(chunk.features);
-    if (!shpFeatures.success) {
-      this.logger.error({ msg: 'error validating features in chunk', chunkId: chunk.id, errors: shpFeatures.error.errors });
-      throw new ZodError(shpFeatures.error.issues); //TODO: report which features are invalid instead of throwing an error
-    }
+    const validFeatures: PolygonPartFeature[] = [];
 
     const featureResolutions: FeatureResolutions = {
       resolutionMeter: calculateResMeterFromDegree(job.parameters.ingestionResolution),
       resolutionDegree: job.parameters.ingestionResolution,
     };
 
-    const mappedFeatures = shpFeatures.data.map((feature) => {
-      const mappedProperties = this.mapShpPropertiesSchemaToPartProperties(feature.properties, featureResolutions);
-      return {
-        ...feature,
-        properties: mappedProperties,
-      };
-    });
-    return { type: 'FeatureCollection', features: mappedFeatures };
+    for (const feature of chunk.features) {
+      try {
+        const parsedFeature = shpFeatureSchema.parse(feature);
+        const mappedFeature = this.mapShpPropertiesSchemaToPartProperties(parsedFeature, featureResolutions);
+        validFeatures.push(mappedFeature);
+      } catch (error) {
+        if (error instanceof ZodError) {
+          this.logger.warn({ msg: 'feature validation failed', featureId: feature.id, errors: error.issues });
+          this.validationErrorCollector.addMetadataError(error.issues, feature, chunk.id);
+        }
+      }
+    }
+
+    return { type: 'FeatureCollection', features: validFeatures };
   }
 
   private validateShapefilesExists(shapefileRelativePath: string): void {
@@ -153,21 +169,25 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     }
   }
 
-  private mapShpPropertiesSchemaToPartProperties(shpProps: ShpFeatureProperties, resolutions: FeatureResolutions): PartFeatureProperties {
-    return {
-      id: shpProps.id,
-      sourceId: shpProps.sourceId,
-      sourceName: shpProps.sourceName,
-      horizontalAccuracyCE90: shpProps.ep90,
-      imagingTimeBeginUTC: shpProps.updateDate,
-      imagingTimeEndUTC: shpProps.updateDate,
-      sourceResolutionMeter: shpProps.sourceRes,
+  private mapShpPropertiesSchemaToPartProperties(feature: ShpFeature, resolutions: FeatureResolutions): PolygonPartFeature {
+    const mappedProperties = {
+      id: feature.properties.id,
+      sourceId: feature.properties.sourceId,
+      sourceName: feature.properties.sourceName,
+      horizontalAccuracyCE90: feature.properties.ep90,
+      imagingTimeBeginUTC: feature.properties.updateDate,
+      imagingTimeEndUTC: feature.properties.updateDate,
+      sourceResolutionMeter: feature.properties.sourceRes,
       resolutionMeter: resolutions.resolutionMeter,
       resolutionDegree: resolutions.resolutionDegree,
-      sensors: shpProps.sensors,
-      description: shpProps.desc,
-      cities: shpProps.cities,
-      countries: shpProps.countries,
+      sensors: feature.properties.sensors,
+      description: feature.properties.desc,
+      cities: feature.properties.cities,
+      countries: feature.properties.countries,
+    };
+    return {
+      ...feature,
+      properties: mappedProperties,
     };
   }
 

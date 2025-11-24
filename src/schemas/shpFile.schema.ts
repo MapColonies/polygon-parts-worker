@@ -1,5 +1,5 @@
-import { bboxSchema, multiPolygonSchema, polygonSchema } from '@map-colonies/raster-shared';
-import { z } from 'zod';
+import { bboxSchema, multiPolygonSchema, PolygonPartsFeatureCollection, polygonSchema } from '@map-colonies/raster-shared';
+import { any, z } from 'zod';
 import { commaSeparatedStringSchema, flexibleDateCoerce } from './common.schema';
 
 export const shpFeaturePropertiesSchema = z.object({
@@ -30,10 +30,27 @@ export const shpFeaturePropertiesSchema = z.object({
 
 export type ShpFeatureProperties = z.infer<typeof shpFeaturePropertiesSchema>;
 
-export const shpFeatureSchema = z.object({
+export const featureIdSchema = shpFeaturePropertiesSchema.pick({ id: true });
+
+export const exceededVerticesFeaturePropertiesSchema = shpFeaturePropertiesSchema.extend({ vertices: z.number().int().positive() });
+
+export const shpFeatureBaseSchema = z.object({
   type: z.literal('Feature'),
   id: z.string().or(z.number()).optional(),
-  geometry: polygonSchema.or(multiPolygonSchema),
-  properties: shpFeaturePropertiesSchema,
   bbox: bboxSchema.optional(),
 });
+
+export const shpFeatureSchema = shpFeatureBaseSchema.extend({
+  geometry: polygonSchema.or(multiPolygonSchema),
+  properties: shpFeaturePropertiesSchema,
+});
+
+export type ShpFeature = z.infer<typeof shpFeatureSchema>;
+
+export const exceededVerticesShpFeatureSchema = shpFeatureBaseSchema.extend({
+  geometry: any(),
+  properties: exceededVerticesFeaturePropertiesSchema,
+});
+
+// eslint-disable-next-line @typescript-eslint/no-magic-numbers
+export type PolygonPartFeature = PolygonPartsFeatureCollection['features'][0];
