@@ -1,10 +1,9 @@
 import { ValidationErrorType } from '@map-colonies/raster-shared';
 import { ErrorsCount } from './types';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export const Unknown_ID = 'Unknown_ID';
+export const UNKNOWN_ID = 'UNKNOWN_ID';
 
-export const metadataErrorSeparator = '; ';
+export const METADATA_ERROR_SEPARATOR = '; ';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const ErrorTypeToColumnName: Record<ValidationErrorType, string> = {

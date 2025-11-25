@@ -13,7 +13,7 @@ import { SERVICES } from '../../common/constants';
 import { exceededVerticesShpFeatureSchema, featureIdSchema } from '../../schemas/shpFile.schema';
 import { IConfig } from '../../common/interfaces';
 import { ErrorsCount, InvalidFeature, ThresholdsResult, ValidationError } from './types';
-import { errorCountMapping, ErrorTypeToColumnName, metadataErrorSeparator, Unknown_ID } from './constants';
+import { errorCountMapping, ErrorTypeToColumnName, METADATA_ERROR_SEPARATOR, UNKNOWN_ID } from './constants';
 
 /**
  * Collects and aggregates validation errors during shapefile processing.
@@ -78,7 +78,7 @@ export class ValidationErrorCollector {
     const error: ValidationError = {
       type: ValidationErrorType.METADATA,
       columnName: ErrorTypeToColumnName[ValidationErrorType.METADATA],
-      message: zodIssues.map((issue) => issue.message).join(metadataErrorSeparator),
+      message: zodIssues.map((issue) => issue.message).join(METADATA_ERROR_SEPARATOR),
     };
 
     this.addOrUpdateInvalidFeature(id, chunkId, feature, error);
@@ -305,7 +305,7 @@ export class ValidationErrorCollector {
 
     errorsByType.forEach((errors, errorType) => {
       const columnName = ErrorTypeToColumnName[errorType];
-      errorProps[columnName] = errors.map((e) => e.message).join(metadataErrorSeparator);
+      errorProps[columnName] = errors.map((e) => e.message).join(METADATA_ERROR_SEPARATOR);
     });
 
     return {
@@ -335,7 +335,7 @@ export class ValidationErrorCollector {
 
   private extractFeatureId(feature: Feature<Geometry, unknown>): string {
     const parseResult = featureIdSchema.safeParse(feature.properties);
-    const id = parseResult.success ? parseResult.data.id : Unknown_ID;
+    const id = parseResult.success ? parseResult.data.id : UNKNOWN_ID;
     return id;
   }
 
