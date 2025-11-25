@@ -85,9 +85,9 @@ export class ValidationErrorCollector {
   }
 
   /**
-   * Adds geometry validation errors from polygon-parts-manager response
+   * Adds validation errors from polygon-parts-manager response
    */
-  public addGeometryValidationErrors(
+  public addValidationErrors(
     validationResult: PolygonPartsChunkValidationResult,
     chunkFeatures: Feature<Geometry, unknown>[],
     chunkId: number
@@ -100,7 +100,7 @@ export class ValidationErrorCollector {
     });
 
     const featuresById = this.buildFeatureIdMap(chunkFeatures);
-    this.processPartGeometryErrors(validationResult.parts, featuresById, chunkId);
+    this.processPartValidationErrors(validationResult.parts, featuresById, chunkId);
     this.updateThresholdsTracking(validationResult.smallHolesCount);
 
     this.logger.debug({
@@ -207,7 +207,7 @@ export class ValidationErrorCollector {
     return featuresById;
   }
 
-  private processPartGeometryErrors(
+  private processPartValidationErrors(
     parts: PolygonPartsChunkValidationResult['parts'],
     featuresById: Map<string, Feature<Geometry, unknown>>,
     chunkId: number
@@ -217,7 +217,8 @@ export class ValidationErrorCollector {
 
       if (!feature) {
         this.logger.warn({
-          msg: 'Feature not found for validation error',
+          msg: 'Feature has validation errors but was not found in chunk features',
+          validationErrors: partError.errors,
           featureId: partError.id,
           chunkId,
         });
@@ -234,9 +235,10 @@ export class ValidationErrorCollector {
     chunkId: number
   ): void {
     partError.errors.forEach((errorType) => {
+      const columnName = VALIDATION_ERROR_TYPE_FORMATS[errorType].columnName;
       const error: ValidationError = {
         type: errorType,
-        columnName: VALIDATION_ERROR_TYPE_FORMATS[errorType].columnName,
+        columnName,
         message: this.mapErrorTypeToMessage(errorType),
       };
 
@@ -252,10 +254,16 @@ export class ValidationErrorCollector {
   private updateThresholdsTracking(smallHolesCount: number): void {
     if (smallHolesCount > 0) {
       this.thresholdsResult.smallHoles.count += smallHolesCount;
-      this.thresholdsResult.smallHoles.exceeded = this.checkSmallHolesThreshold();
+      this.thresholdsResult.smallHoles.exceeded = this.checkThresholdExceeded(
+        this.thresholdsResult.smallHoles.count,
+        this.smallHolesPercentageThreshold
+      );
     }
 
-    this.thresholdsResult.smallGeometries.exceeded = this.checkSmallGeometriesThreshold();
+    this.thresholdsResult.smallGeometries.exceeded = this.checkThresholdExceeded(
+      this.errorsCount.smallGeometries,
+      this.smallGeometriesPercentageThreshold
+    );
   }
 
   private addVerticesError(feature: Feature<Geometry, unknown>, chunkId: number, maxVerticesAllowed: number): void {
@@ -317,18 +325,12 @@ export class ValidationErrorCollector {
     };
   }
 
-  private checkSmallGeometriesThreshold(): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-    const percentage = (this.errorsCount.smallGeometries / this.shapefileStats.totalFeatures) * 100;
-    const exceeded = percentage > this.smallGeometriesPercentageThreshold;
-
-    return exceeded;
-  }
-
-  private checkSmallHolesThreshold(): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-    const percentage = (this.errorsCount.smallHoles / this.shapefileStats.totalFeatures) * 100;
-    const exceeded = percentage > this.smallHolesPercentageThreshold;
+  private checkThresholdExceeded(errorCount: number, threshold: number): boolean {
+    /* eslint-disable @typescript-eslint/no-magic-numbers */
+    const rawPercentage = (errorCount / this.shapefileStats.totalFeatures) * 100;
+    const percentage = Number(rawPercentage.toFixed(2));
+    /* eslint-enable @typescript-eslint/no-magic-numbers */
+    const exceeded = percentage > threshold;
 
     return exceeded;
   }
@@ -350,7 +352,7 @@ export class ValidationErrorCollector {
       case ValidationErrorType.SMALL_HOLES:
         return 'Contains small holes';
       default:
-        return 'Unknown error';
+        return errorType;
     }
   }
 }

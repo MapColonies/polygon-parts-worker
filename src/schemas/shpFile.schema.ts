@@ -73,5 +73,4 @@ export const exceededVerticesShpFeatureSchema = shpFeatureBaseSchema.extend({
   properties: exceededVerticesFeaturePropertiesSchema,
 });
 
-// eslint-disable-next-line @typescript-eslint/no-magic-numbers
-export type PolygonPartFeature = PolygonPartsFeatureCollection['features'][0];
+export type PolygonPartFeature = PolygonPartsFeatureCollection['features'][number];

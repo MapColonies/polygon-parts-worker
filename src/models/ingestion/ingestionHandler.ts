@@ -8,6 +8,7 @@ import {
   PolygonPartsChunkValidationResult,
   PolygonPartsFeatureCollection,
   PolygonPartsPayload,
+  polygonPartsPayloadSchema,
   rasterProductTypeSchema,
   SHAPEFILE_EXTENSIONS_LIST,
 } from '@map-colonies/raster-shared';
@@ -113,14 +114,16 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
           chunkSize: chunk.features.length,
           skippedFeaturesCount: chunk.skippedFeatures.length,
         });
-        const { skippedFeatures } = chunk;
-        this.validationErrorCollector.addVerticesErrors(skippedFeatures, chunk.id, this.maxVerticesPerChunk);
-        this.logger.info({ msg: 'vertices errors added', chunkId: chunk.id });
 
+        if (chunk.skippedFeatures.length > 0) {
+          this.validationErrorCollector.addVerticesErrors(chunk.skippedFeatures, chunk.id, this.maxVerticesPerChunk);
+        }
+
+        this.logger.info({ msg: 'vertices errors added', chunkId: chunk.id });
         const validFeatureCollection = this.parseChunk(chunk, job);
 
         const validationResult = await this.validateChunk(job, validFeatureCollection);
-        this.validationErrorCollector.addGeometryValidationErrors(validationResult, chunk.features, chunk.id);
+        this.validationErrorCollector.addValidationErrors(validationResult, chunk.features, chunk.id);
         this.logger.info({ msg: 'chunk processed', chunkId: chunk.id, featuresCount: validFeatureCollection.features.length });
       },
     };
@@ -196,9 +199,11 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     featureCollection: PolygonPartsFeatureCollection
   ): PolygonPartsPayload {
     const validProductType = rasterProductTypeSchema.parse(job.productType);
+    const validCatalogId = polygonPartsPayloadSchema.pick({ catalogId: true }).parse(job.internalId).catalogId;
 
     const request: PolygonPartsPayload = {
       jobType: job.type,
+      catalogId: validCatalogId,
       productId: job.resourceId,
       productType: validProductType,
       productVersion: job.version,
