@@ -13,7 +13,7 @@ import { SERVICES } from '../../common/constants';
 import { exceededVerticesShpFeatureSchema, featureIdSchema } from '../../schemas/shpFile.schema';
 import { IConfig } from '../../common/interfaces';
 import { ErrorsCount, InvalidFeature, ThresholdsResult, ValidationError } from './types';
-import { errorCountMapping, ErrorTypeToColumnName, METADATA_ERROR_SEPARATOR, UNKNOWN_ID } from './constants';
+import { VALIDATION_ERROR_TYPE_FORMATS, METADATA_ERROR_SEPARATOR, UNKNOWN_ID } from './constants';
 
 /**
  * Collects and aggregates validation errors during shapefile processing.
@@ -77,7 +77,7 @@ export class ValidationErrorCollector {
 
     const error: ValidationError = {
       type: ValidationErrorType.METADATA,
-      columnName: ErrorTypeToColumnName[ValidationErrorType.METADATA],
+      columnName: VALIDATION_ERROR_TYPE_FORMATS[ValidationErrorType.METADATA].columnName,
       message: zodIssues.map((issue) => issue.message).join(METADATA_ERROR_SEPARATOR),
     };
 
@@ -236,7 +236,7 @@ export class ValidationErrorCollector {
     partError.errors.forEach((errorType) => {
       const error: ValidationError = {
         type: errorType,
-        columnName: ErrorTypeToColumnName[errorType],
+        columnName: VALIDATION_ERROR_TYPE_FORMATS[errorType].columnName,
         message: this.mapErrorTypeToMessage(errorType),
       };
 
@@ -245,7 +245,7 @@ export class ValidationErrorCollector {
   }
 
   private incrementErrorCounter(errorType: ValidationErrorType): void {
-    const countKey = errorCountMapping[errorType];
+    const countKey = VALIDATION_ERROR_TYPE_FORMATS[errorType].countKey;
     this.errorsCount[countKey]++;
   }
 
@@ -264,7 +264,7 @@ export class ValidationErrorCollector {
 
       const error: ValidationError = {
         type: ValidationErrorType.VERTICES,
-        columnName: ErrorTypeToColumnName[ValidationErrorType.VERTICES],
+        columnName: VALIDATION_ERROR_TYPE_FORMATS[ValidationErrorType.VERTICES].columnName,
         message: `result:${parsedFeature.properties.vertices}, limit: ${maxVerticesAllowed}`,
       };
 
@@ -304,7 +304,7 @@ export class ValidationErrorCollector {
     });
 
     errorsByType.forEach((errors, errorType) => {
-      const columnName = ErrorTypeToColumnName[errorType];
+      const columnName = VALIDATION_ERROR_TYPE_FORMATS[errorType].columnName;
       errorProps[columnName] = errors.map((e) => e.message).join(METADATA_ERROR_SEPARATOR);
     });
 

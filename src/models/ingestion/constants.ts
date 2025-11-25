@@ -5,21 +5,11 @@ export const UNKNOWN_ID = 'UNKNOWN_ID';
 
 export const METADATA_ERROR_SEPARATOR = '; ';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export const ErrorTypeToColumnName: Record<ValidationErrorType, string> = {
-  [ValidationErrorType.VERTICES]: 'e_vertices',
-  [ValidationErrorType.METADATA]: 'e_metadata',
-  [ValidationErrorType.GEOMETRY_VALIDITY]: 'e_validity',
-  [ValidationErrorType.RESOLUTION]: 'e_res',
-  [ValidationErrorType.SMALL_GEOMETRY]: 'e_sm_geom',
-  [ValidationErrorType.SMALL_HOLES]: 'e_sm_holes',
-};
-
-export const errorCountMapping: Record<ValidationErrorType, keyof ErrorsCount> = {
-  [ValidationErrorType.GEOMETRY_VALIDITY]: 'geometryValidity',
-  [ValidationErrorType.RESOLUTION]: 'resolution',
-  [ValidationErrorType.METADATA]: 'metadata',
-  [ValidationErrorType.VERTICES]: 'vertices',
-  [ValidationErrorType.SMALL_GEOMETRY]: 'smallGeometries',
-  [ValidationErrorType.SMALL_HOLES]: 'smallHoles',
-};
+export const VALIDATION_ERROR_TYPE_FORMATS = {
+  [ValidationErrorType.VERTICES]: { columnName: 'e_vertices', countKey: 'vertices' },
+  [ValidationErrorType.METADATA]: { columnName: 'e_metadata', countKey: 'metadata' },
+  [ValidationErrorType.GEOMETRY_VALIDITY]: { columnName: 'e_validity', countKey: 'geometryValidity' },
+  [ValidationErrorType.RESOLUTION]: { columnName: 'e_res', countKey: 'resolution' },
+  [ValidationErrorType.SMALL_GEOMETRY]: { columnName: 'e_sm_geom', countKey: 'smallGeometries' },
+  [ValidationErrorType.SMALL_HOLES]: { columnName: 'e_sm_holes', countKey: 'smallHoles' },
+} as const satisfies Record<ValidationErrorType, { columnName: string; countKey: keyof ErrorsCount }>;
