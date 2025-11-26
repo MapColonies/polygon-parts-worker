@@ -8,6 +8,7 @@ import {
   PolygonPartValidationErrorsType,
   ValidationAggregatedErrors,
   ValidationErrorType,
+  PolygonPartValidationError
 } from '@map-colonies/raster-shared';
 import { SERVICES } from '../../common/constants';
 import { exceededVerticesShpFeatureSchema, featureIdSchema } from '../../schemas/shpFile.schema';
@@ -232,7 +233,7 @@ export class ValidationErrorCollector {
   }
 
   private addPartErrorsToFeature(
-    partError: PolygonPartsChunkValidationResult['parts'][number],
+    partError: PolygonPartValidationError,
     feature: Feature<Geometry, unknown>,
     chunkId: number
   ): void {
