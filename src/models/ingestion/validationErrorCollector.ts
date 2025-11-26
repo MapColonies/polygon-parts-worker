@@ -272,20 +272,22 @@ export class ValidationErrorCollector {
   }
 
   private addVerticesError(feature: Feature<Geometry, unknown>, chunkId: number, maxVerticesAllowed: number): void {
+    const error: ValidationError = {
+      type: ValidationErrorType.VERTICES,
+      columnName: VALIDATION_ERROR_TYPE_FORMATS[ValidationErrorType.VERTICES].columnName,
+      message: `limit: ${maxVerticesAllowed}`,
+    };
+
     try {
       const parsedFeature = exceededVerticesShpFeatureSchema.parse(feature);
-
-      const error: ValidationError = {
-        type: ValidationErrorType.VERTICES,
-        columnName: VALIDATION_ERROR_TYPE_FORMATS[ValidationErrorType.VERTICES].columnName,
-        message: `result:${parsedFeature.properties.vertices}, limit: ${maxVerticesAllowed}`,
-      };
-
-      this.addOrUpdateInvalidFeature(parsedFeature.properties.id, chunkId, feature, error);
+      error.message = `result:${parsedFeature.properties.vertices}, limit: ${maxVerticesAllowed}`;
     } catch (err) {
       if (err instanceof ZodError) {
         this.addMetadataError(err.issues, feature, chunkId);
       }
+    } finally {
+      const featureId = this.extractFeatureId(feature);
+      this.addOrUpdateInvalidFeature(featureId, chunkId, feature, error);
     }
   }
 
