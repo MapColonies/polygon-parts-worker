@@ -12,4 +12,5 @@ export const VALIDATION_ERROR_TYPE_FORMATS = {
   [ValidationErrorType.RESOLUTION]: { columnName: 'e_res', countKey: 'resolution' },
   [ValidationErrorType.SMALL_GEOMETRY]: { columnName: 'e_sm_geom', countKey: 'smallGeometries' },
   [ValidationErrorType.SMALL_HOLES]: { columnName: 'e_sm_holes', countKey: 'smallHoles' },
+  [ValidationErrorType.UNKNOWN]: { columnName: 'e_unknown', countKey: 'unknown' },
 } as const satisfies Record<ValidationErrorType, { columnName: string; countKey: keyof ErrorsCount }>;

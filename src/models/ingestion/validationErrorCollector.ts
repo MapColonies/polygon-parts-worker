@@ -38,6 +38,7 @@ export class ValidationErrorCollector {
     resolution: 0,
     smallGeometries: 0,
     smallHoles: 0,
+    unknown: 0,
   };
 
   //Thresholds
@@ -181,6 +182,7 @@ export class ValidationErrorCollector {
       resolution: 0,
       smallGeometries: 0,
       smallHoles: 0,
+      unknown: 0,
     };
 
     this.thresholdsResult = {
@@ -235,11 +237,14 @@ export class ValidationErrorCollector {
     chunkId: number
   ): void {
     partError.errors.forEach((errorType) => {
-      const columnName = VALIDATION_ERROR_TYPE_FORMATS[errorType].columnName;
+      const message = this.mapErrorTypeToMessage(errorType);
+      const isUnknownErrorType = !(errorType in VALIDATION_ERROR_TYPE_FORMATS);
+      errorType = isUnknownErrorType ? ValidationErrorType.UNKNOWN : errorType;
+
       const error: ValidationError = {
         type: errorType,
-        columnName,
-        message: this.mapErrorTypeToMessage(errorType),
+        columnName: VALIDATION_ERROR_TYPE_FORMATS[errorType].columnName,
+        message: message,
       };
 
       this.addOrUpdateInvalidFeature(partError.id, chunkId, feature, error);
@@ -302,7 +307,6 @@ export class ValidationErrorCollector {
 
   private convertToFeatureWithErrorProperties(invalidFeature: InvalidFeature): Feature<Geometry, Record<string, unknown>> {
     const errorProps: Record<string, string> = {};
-
     const errorsByType = new Map<ValidationErrorType, ValidationError[]>();
 
     invalidFeature.errors.forEach((error) => {
