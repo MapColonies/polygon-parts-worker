@@ -190,7 +190,7 @@ describe('ValidationErrorCollector', () => {
 
       collector.addValidationErrors(validationResult, [feature], chunkId);
 
-      expect(collector.hasCriticalErrors()).toBe(false);
+      expect(collector.hasCriticalErrors()).toBe(true);
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.unknown).toBe(1);
 
@@ -677,7 +677,7 @@ describe('ValidationErrorCollector', () => {
       expect(thresholds.smallGeometries.exceeded).toBe(false);
     });
 
-    it('should return false for only unknown error types', () => {
+    it('should return true for unknown error types', () => {
       const feature: Feature<Polygon, { id: string }> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [[[]]] },
@@ -696,7 +696,7 @@ describe('ValidationErrorCollector', () => {
 
       collector.addValidationErrors(validationResult, [feature], 1);
 
-      expect(collector.hasCriticalErrors()).toBe(false);
+      expect(collector.hasCriticalErrors()).toBe(true);
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.unknown).toBe(1);
     });
@@ -1106,6 +1106,267 @@ describe('ValidationErrorCollector', () => {
       const thresholdsAfterReAdding = collector.getThresholdsInfo();
       expect(thresholdsAfterReAdding.smallGeometries.exceeded).toBe(false);
       expect(thresholdsAfterReAdding.smallHoles.exceeded).toBe(false);
+    });
+  });
+
+  describe('hasErrors', () => {
+    it('should return false when no errors collected', () => {
+      expect(collector.hasErrors()).toBe(false);
+    });
+
+    it('should return true when vertices errors are added', () => {
+      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
+      const feature: Feature<Geometry, unknown> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [] },
+        properties: { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) },
+      };
+
+      collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
+
+      expect(collector.hasErrors()).toBe(true);
+    });
+
+    it('should return true when metadata errors are added', () => {
+      const feature: Feature<Geometry, unknown> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [] },
+        properties: { ...createFakeShpFeatureProperties(), updateDate: 2025 },
+      };
+      const zodIssues: ZodIssue[] = [
+        {
+          code: 'invalid_type',
+          expected: 'string',
+          received: 'number',
+          path: ['updateDate'],
+          message: 'Expected string, received number',
+        },
+      ];
+
+      collector.addMetadataError(zodIssues, feature, 1);
+
+      expect(collector.hasErrors()).toBe(true);
+    });
+
+    it('should return true when validation errors are added', () => {
+      const feature: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: [{ id: feature.properties.id, errors: [ValidationErrorType.GEOMETRY_VALIDITY] }],
+        smallHolesCount: 0,
+      };
+
+      collector.addValidationErrors(validationResult, [feature], 1);
+
+      expect(collector.hasErrors()).toBe(true);
+    });
+
+    it('should return true for any error type including non-critical errors below threshold', () => {
+      const totalFeatures = 1000;
+
+      collector.setShapefileStats({ totalFeatures, totalVertices: 5000 });
+
+      const feature: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: [
+          {
+            id: feature.properties.id,
+            errors: [ValidationErrorType.SMALL_GEOMETRY],
+          },
+        ],
+        smallHolesCount: 0,
+      };
+
+      collector.addValidationErrors(validationResult, [feature], 1);
+
+      // hasErrors should return true even though hasCriticalErrors returns false
+      expect(collector.hasErrors()).toBe(true);
+      expect(collector.hasCriticalErrors()).toBe(false);
+    });
+
+    it('should return false after clear', () => {
+      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
+      const feature: Feature<Geometry, unknown> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [] },
+        properties: { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) },
+      };
+
+      collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
+      expect(collector.hasErrors()).toBe(true);
+
+      collector.clear();
+
+      expect(collector.hasErrors()).toBe(false);
+    });
+
+    it('should return false after clearInvalidFeatures', () => {
+      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
+      const feature: Feature<Geometry, unknown> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [] },
+        properties: { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) },
+      };
+
+      collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
+      expect(collector.hasErrors()).toBe(true);
+
+      collector.clearInvalidFeatures();
+
+      expect(collector.hasErrors()).toBe(false);
+    });
+  });
+
+  describe('clearInvalidFeatures', () => {
+    it('should clear the invalid features map', () => {
+      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
+      const feature: Feature<Geometry, unknown> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [] },
+        properties: { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) },
+      };
+
+      collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
+      expect(collector.hasErrors()).toBe(true);
+
+      collector.clearInvalidFeatures();
+
+      expect(collector.hasErrors()).toBe(false);
+      const features = collector.getFeaturesWithErrorProperties();
+      expect(features).toHaveLength(0);
+    });
+
+    it('should not reset error counts', () => {
+      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
+      const feature: Feature<Geometry, unknown> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [] },
+        properties: { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) },
+      };
+
+      collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
+
+      const countsBeforeClear = collector.getErrorCounts();
+      expect(countsBeforeClear.vertices).toBe(1);
+
+      collector.clearInvalidFeatures();
+
+      // Error counts should remain the same
+      const countsAfterClear = collector.getErrorCounts();
+      expect(countsAfterClear.vertices).toBe(1);
+      expect(countsAfterClear).toEqual(countsBeforeClear);
+    });
+
+    it('should not reset thresholds', () => {
+      const totalFeatures = 100;
+      const smallGeometriesCount = 10; // 10% - exceeds threshold
+
+      collector.setShapefileStats({ totalFeatures, totalVertices: 5000 });
+
+      const features: Feature<Polygon, { id: string }>[] = Array.from({ length: smallGeometriesCount }, () => ({
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      }));
+
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: features.map((feature) => ({
+          id: feature.properties.id,
+          errors: [ValidationErrorType.SMALL_GEOMETRY],
+        })),
+        smallHolesCount: 0,
+      };
+
+      collector.addValidationErrors(validationResult, features, 1);
+
+      const thresholdsBeforeClear = collector.getThresholdsInfo();
+      expect(thresholdsBeforeClear.smallGeometries.exceeded).toBe(true);
+
+      collector.clearInvalidFeatures();
+
+      // Thresholds should remain the same
+      const thresholdsAfterClear = collector.getThresholdsInfo();
+      expect(thresholdsAfterClear.smallGeometries.exceeded).toBe(true);
+      expect(thresholdsAfterClear).toEqual(thresholdsBeforeClear);
+    });
+
+    it('should not reset shapefile stats', () => {
+      const totalFeatures = 100;
+      const totalVertices = 5000;
+
+      collector.setShapefileStats({ totalFeatures, totalVertices });
+
+      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
+      const feature: Feature<Geometry, unknown> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [] },
+        properties: { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) },
+      };
+
+      collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
+
+      collector.clearInvalidFeatures();
+
+      // Add errors again and verify threshold calculation still works (uses shapefile stats)
+      const smallGeometriesCount = 10; // 10% of 100 features - should exceed threshold
+      const features: Feature<Polygon, { id: string }>[] = Array.from({ length: smallGeometriesCount }, () => ({
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      }));
+
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: features.map((feature) => ({
+          id: feature.properties.id,
+          errors: [ValidationErrorType.SMALL_GEOMETRY],
+        })),
+        smallHolesCount: 0,
+      };
+
+      collector.addValidationErrors(validationResult, features, 1);
+
+      const thresholds = collector.getThresholdsInfo();
+      // If stats were reset, this would be false (percentage would be calculated against 0)
+      expect(thresholds.smallGeometries.exceeded).toBe(true);
+    });
+
+    it('should only clear features, allowing new features to be added', () => {
+      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
+      const props1 = { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) };
+      const feature1: Feature<Geometry, unknown> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [] },
+        properties: props1,
+      };
+
+      collector.addVerticesErrors([feature1], 1, maxVerticesAllowed);
+      expect(collector.hasErrors()).toBe(true);
+
+      collector.clearInvalidFeatures();
+      expect(collector.hasErrors()).toBe(false);
+
+      // Add new features after clearing
+      const props2 = { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) };
+      const feature2: Feature<Geometry, unknown> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [] },
+        properties: props2,
+      };
+
+      collector.addVerticesErrors([feature2], 2, maxVerticesAllowed);
+      expect(collector.hasErrors()).toBe(true);
+
+      const features = collector.getFeaturesWithErrorProperties();
+      expect(features).toHaveLength(1);
+      expect(features[0].properties.id).toBe(props2.id);
     });
   });
 });

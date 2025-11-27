@@ -120,15 +120,19 @@ export class ValidationErrorCollector {
    * Returns false if only non-critical errors (smallGeometries/smallHoles below thresholds) exist.
    */
   public hasCriticalErrors(): boolean {
-    const { vertices, metadata, geometryValidity, resolution } = this.errorsCount;
+    const { vertices, metadata, geometryValidity, resolution, unknown } = this.errorsCount;
 
     // Check for critical error types
-    const hasCriticalErrorTypes = vertices > 0 || metadata > 0 || geometryValidity > 0 || resolution > 0;
+    const hasCriticalErrors = vertices > 0 || metadata > 0 || geometryValidity > 0 || resolution > 0 || unknown > 0;
 
     // Check if small geometry/holes errors exceeded thresholds
     const hasExceededThresholds = this.thresholdsResult.smallGeometries.exceeded || this.thresholdsResult.smallHoles.exceeded;
 
-    return hasCriticalErrorTypes || hasExceededThresholds;
+    return hasCriticalErrors || hasExceededThresholds;
+  }
+
+  public hasErrors(): boolean {
+    return this.invalidFeaturesMap.size > 0;
   }
 
   /**
@@ -180,7 +184,7 @@ export class ValidationErrorCollector {
    * Clears all collected errors and resets counters
    */
   public clear(): void {
-    this.invalidFeaturesMap.clear();
+    this.clearInvalidFeatures();
 
     this.shapefileStats = {
       totalFeatures: 0,
@@ -206,6 +210,10 @@ export class ValidationErrorCollector {
         count: 0,
       },
     };
+  }
+
+  public clearInvalidFeatures(): void {
+    this.invalidFeaturesMap.clear();
   }
 
   private getInvalidFeatures(): InvalidFeature[] {
