@@ -469,7 +469,6 @@ describe('ValidationErrorCollector', () => {
           };
           collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
         },
-        expectedCritical: true,
       },
       {
         description: 'metadata errors',
@@ -490,7 +489,6 @@ describe('ValidationErrorCollector', () => {
           ];
           collector.addMetadataError(zodIssues, feature, 1);
         },
-        expectedCritical: true,
       },
       {
         description: 'geometry validity errors',
@@ -506,7 +504,6 @@ describe('ValidationErrorCollector', () => {
           };
           collector.addValidationErrors(validationResult, [feature], 1);
         },
-        expectedCritical: true,
       },
       {
         description: 'resolution errors',
@@ -522,12 +519,26 @@ describe('ValidationErrorCollector', () => {
           };
           collector.addValidationErrors(validationResult, [feature], 1);
         },
-        expectedCritical: true,
       },
-    ])('should return $expectedCritical after adding $description', ({ setup, expectedCritical }) => {
+      {
+        description: 'unknown errors',
+        setup: () => {
+          const feature: Feature<Polygon, { id: string }> = {
+            type: 'Feature',
+            geometry: { type: 'Polygon', coordinates: [[[]]] },
+            properties: createFakeShpFeatureProperties(),
+          };
+          const validationResult: PolygonPartsChunkValidationResult = {
+            parts: [{ id: feature.properties.id, errors: ['UNKNOWN_ERROR_TYPE' as PolygonPartValidationErrorsType] }],
+            smallHolesCount: 0,
+          };
+          collector.addValidationErrors(validationResult, [feature], 1);
+        },
+      },
+    ])('should return $expectedCritical after adding $description', ({ setup }) => {
       expect(collector.hasCriticalErrors()).toBe(false);
       setup();
-      expect(collector.hasCriticalErrors()).toBe(expectedCritical);
+      expect(collector.hasCriticalErrors()).toBe(true);
     });
 
     it('should return false for only small geometries errors below threshold', () => {
