@@ -333,6 +333,10 @@ export class ValidationErrorCollector {
 
   private checkThresholdExceeded(errorCount: number, threshold: number): boolean {
     /* eslint-disable @typescript-eslint/no-magic-numbers */
+    if (this.shapefileStats.totalFeatures === 0) {
+      return false;
+    }
+
     const rawPercentage = (errorCount / this.shapefileStats.totalFeatures) * 100;
     const percentage = Number(rawPercentage.toFixed(2));
     /* eslint-enable @typescript-eslint/no-magic-numbers */
