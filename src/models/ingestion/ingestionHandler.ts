@@ -117,9 +117,9 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
 
         if (chunk.skippedFeatures.length > 0) {
           this.validationErrorCollector.addVerticesErrors(chunk.skippedFeatures, chunk.id, this.maxVerticesPerChunk);
+          this.logger.info({ msg: 'vertices errors added', chunkId: chunk.id });
         }
 
-        this.logger.info({ msg: 'vertices errors added', chunkId: chunk.id });
         const validFeatureCollection = this.parseChunk(chunk, job);
 
         const validationResult = await this.validateChunk(job, validFeatureCollection);

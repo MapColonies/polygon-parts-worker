@@ -8,6 +8,7 @@ import {
   PolygonPartValidationErrorsType,
   ValidationAggregatedErrors,
   ValidationErrorType,
+  PolygonPartValidationError,
 } from '@map-colonies/raster-shared';
 import { SERVICES } from '../../common/constants';
 import { exceededVerticesShpFeatureSchema, featureIdSchema } from '../../schemas/shpFile.schema';
@@ -231,11 +232,7 @@ export class ValidationErrorCollector {
     });
   }
 
-  private addPartErrorsToFeature(
-    partError: PolygonPartsChunkValidationResult['parts'][number],
-    feature: Feature<Geometry, unknown>,
-    chunkId: number
-  ): void {
+  private addPartErrorsToFeature(partError: PolygonPartValidationError, feature: Feature<Geometry, unknown>, chunkId: number): void {
     partError.errors.forEach((errorType) => {
       const message = this.mapErrorTypeToMessage(errorType);
       const isUnknownErrorType = !(errorType in VALIDATION_ERROR_TYPE_FORMATS);
