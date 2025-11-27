@@ -40,7 +40,7 @@ describe('ValidationErrorCollector', () => {
 
       collector.addVerticesErrors(features, chunkId, maxVerticesAllowed);
 
-      expect(collector.hasErrors()).toBe(true);
+      expect(collector.hasCriticalErrors()).toBe(true);
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.vertices).toBe(2);
 
@@ -63,7 +63,7 @@ describe('ValidationErrorCollector', () => {
 
       collector.addVerticesErrors([featureWithoutId], chunkId, maxVerticesAllowed);
 
-      expect(collector.hasErrors()).toBe(true);
+      expect(collector.hasCriticalErrors()).toBe(true);
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.vertices).toBe(1);
       expect(errorCounts.metadata).toBe(1);
@@ -130,7 +130,7 @@ describe('ValidationErrorCollector', () => {
 
       collector.addMetadataError(zodIssues, feature, chunkId);
 
-      expect(collector.hasErrors()).toBe(true);
+      expect(collector.hasCriticalErrors()).toBe(true);
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.metadata).toBe(1);
 
@@ -139,7 +139,7 @@ describe('ValidationErrorCollector', () => {
       expect(featuresWithErrors[0].properties.e_metadata).toBeDefined();
       expect(featuresWithErrors[0].properties.e_metadata).toContain(`${zodIssues[0].message}${METADATA_ERROR_SEPARATOR}${zodIssues[1].message}`);
     });
-    it('should be reflected in error counts and hasErrors', () => {
+    it('should be reflected in error counts and hasCriticalErrors', () => {
       const chunkId = 1;
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
@@ -157,13 +157,13 @@ describe('ValidationErrorCollector', () => {
         },
       ];
 
-      expect(collector.hasErrors()).toBe(false);
+      expect(collector.hasCriticalErrors()).toBe(false);
       const countsBefore = collector.getErrorCounts();
       expect(countsBefore.metadata).toBe(0);
 
       collector.addMetadataError(zodIssues, feature, chunkId);
 
-      expect(collector.hasErrors()).toBe(true);
+      expect(collector.hasCriticalErrors()).toBe(true);
       const countsAfter = collector.getErrorCounts();
       expect(countsAfter.metadata).toBe(1);
     });
@@ -190,7 +190,7 @@ describe('ValidationErrorCollector', () => {
 
       collector.addValidationErrors(validationResult, [feature], chunkId);
 
-      expect(collector.hasErrors()).toBe(true);
+      expect(collector.hasCriticalErrors()).toBe(false);
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.unknown).toBe(1);
 
@@ -251,7 +251,7 @@ describe('ValidationErrorCollector', () => {
 
       collector.addValidationErrors(validationResult, [feature], chunkId);
 
-      expect(collector.hasErrors()).toBe(true);
+      expect(collector.hasCriticalErrors()).toBe(true);
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.geometryValidity).toBe(1);
 
@@ -285,7 +285,7 @@ describe('ValidationErrorCollector', () => {
 
       collector.addValidationErrors(validationResult, [feature], chunkId);
 
-      expect(collector.hasErrors()).toBe(true);
+      expect(collector.hasCriticalErrors()).toBe(true);
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.geometryValidity).toBe(1);
       expect(errorCounts.resolution).toBe(1);
@@ -330,7 +330,7 @@ describe('ValidationErrorCollector', () => {
 
       collector.addValidationErrors(validationResult, [feature1, feature2], chunkId);
 
-      expect(collector.hasErrors()).toBe(true);
+      expect(collector.hasCriticalErrors()).toBe(true);
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.geometryValidity).toBe(1);
       expect(errorCounts.resolution).toBe(1);
@@ -440,11 +440,11 @@ describe('ValidationErrorCollector', () => {
     });
   });
 
-  describe('hasErrors', () => {
+  describe('hasCriticalErrors', () => {
     it('should return false when no errors collected', () => {
       const errorCounts = collector.getErrorCounts();
 
-      expect(collector.hasErrors()).toBe(false);
+      expect(collector.hasCriticalErrors()).toBe(false);
       expect(errorCounts.geometryValidity).toBe(0);
       expect(errorCounts.vertices).toBe(0);
       expect(errorCounts.metadata).toBe(0);
@@ -469,6 +469,7 @@ describe('ValidationErrorCollector', () => {
           };
           collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
         },
+        expectedCritical: true,
       },
       {
         description: 'metadata errors',
@@ -489,9 +490,10 @@ describe('ValidationErrorCollector', () => {
           ];
           collector.addMetadataError(zodIssues, feature, 1);
         },
+        expectedCritical: true,
       },
       {
-        description: 'validation errors',
+        description: 'geometry validity errors',
         setup: () => {
           const feature: Feature<Polygon, { id: string }> = {
             type: 'Feature',
@@ -504,11 +506,199 @@ describe('ValidationErrorCollector', () => {
           };
           collector.addValidationErrors(validationResult, [feature], 1);
         },
+        expectedCritical: true,
       },
-    ])('should return true after adding $description', ({ setup }) => {
-      expect(collector.hasErrors()).toBe(false);
+      {
+        description: 'resolution errors',
+        setup: () => {
+          const feature: Feature<Polygon, { id: string }> = {
+            type: 'Feature',
+            geometry: { type: 'Polygon', coordinates: [[[]]] },
+            properties: createFakeShpFeatureProperties(),
+          };
+          const validationResult: PolygonPartsChunkValidationResult = {
+            parts: [{ id: feature.properties.id, errors: [ValidationErrorType.RESOLUTION] }],
+            smallHolesCount: 0,
+          };
+          collector.addValidationErrors(validationResult, [feature], 1);
+        },
+        expectedCritical: true,
+      },
+    ])('should return $expectedCritical after adding $description', ({ setup, expectedCritical }) => {
+      expect(collector.hasCriticalErrors()).toBe(false);
       setup();
-      expect(collector.hasErrors()).toBe(true);
+      expect(collector.hasCriticalErrors()).toBe(expectedCritical);
+    });
+
+    it('should return false for only small geometries errors below threshold', () => {
+      const totalFeatures = 1000;
+      const smallGeometriesCount = 5; // 0.5% - below threshold
+
+      collector.setShapefileStats({ totalFeatures, totalVertices: 5000 });
+
+      const features: Feature<Polygon, { id: string }>[] = Array.from({ length: smallGeometriesCount }, () => ({
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      }));
+
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: features.map((feature) => ({
+          id: feature.properties.id,
+          errors: [ValidationErrorType.SMALL_GEOMETRY],
+        })),
+        smallHolesCount: 0,
+      };
+
+      collector.addValidationErrors(validationResult, features, 1);
+
+      expect(collector.hasCriticalErrors()).toBe(false);
+      const thresholds = collector.getThresholdsInfo();
+      expect(thresholds.smallGeometries.exceeded).toBe(false);
+    });
+
+    it('should return true for small geometries errors exceeding threshold', () => {
+      const totalFeatures = 100;
+      const smallGeometriesCount = 10; // 10% - exceeds threshold
+
+      collector.setShapefileStats({ totalFeatures, totalVertices: 5000 });
+
+      const features: Feature<Polygon, { id: string }>[] = Array.from({ length: smallGeometriesCount }, () => ({
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      }));
+
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: features.map((feature) => ({
+          id: feature.properties.id,
+          errors: [ValidationErrorType.SMALL_GEOMETRY],
+        })),
+        smallHolesCount: 0,
+      };
+
+      collector.addValidationErrors(validationResult, features, 1);
+
+      expect(collector.hasCriticalErrors()).toBe(true);
+      const thresholds = collector.getThresholdsInfo();
+      expect(thresholds.smallGeometries.exceeded).toBe(true);
+    });
+
+    it('should return false for only small holes errors below threshold', () => {
+      const totalFeatures = 1000;
+      const smallHolesCount = 5; // 0.5% - below threshold
+
+      collector.setShapefileStats({ totalFeatures, totalVertices: 5000 });
+
+      const feature: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: [
+          {
+            id: feature.properties.id,
+            errors: [ValidationErrorType.SMALL_HOLES],
+          },
+        ],
+        smallHolesCount: smallHolesCount,
+      };
+
+      collector.addValidationErrors(validationResult, [feature], 1);
+
+      expect(collector.hasCriticalErrors()).toBe(false);
+      const thresholds = collector.getThresholdsInfo();
+      expect(thresholds.smallHoles.exceeded).toBe(false);
+    });
+
+    it('should return true for small holes errors exceeding threshold', () => {
+      const totalFeatures = 100;
+      const smallHolesCount = 10; // 10% - exceeds threshold
+
+      collector.setShapefileStats({ totalFeatures, totalVertices: 5000 });
+
+      const feature: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: [
+          {
+            id: feature.properties.id,
+            errors: [ValidationErrorType.SMALL_HOLES],
+          },
+        ],
+        smallHolesCount: smallHolesCount,
+      };
+
+      collector.addValidationErrors(validationResult, [feature], 1);
+
+      expect(collector.hasCriticalErrors()).toBe(true);
+      const thresholds = collector.getThresholdsInfo();
+      expect(thresholds.smallHoles.exceeded).toBe(true);
+    });
+
+    it('should return true when both critical errors and non-critical errors exist', () => {
+      const totalFeatures = 1000;
+      const smallGeometriesCount = 2; // below threshold
+
+      collector.setShapefileStats({ totalFeatures, totalVertices: 5000 });
+
+      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
+      const criticalFeature: Feature<Geometry, unknown> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [] },
+        properties: { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) },
+      };
+      collector.addVerticesErrors([criticalFeature], 1, maxVerticesAllowed);
+
+      const nonCriticalFeatures: Feature<Polygon, { id: string }>[] = Array.from({ length: smallGeometriesCount }, () => ({
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      }));
+
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: nonCriticalFeatures.map((feature) => ({
+          id: feature.properties.id,
+          errors: [ValidationErrorType.SMALL_GEOMETRY],
+        })),
+        smallHolesCount: 0,
+      };
+
+      collector.addValidationErrors(validationResult, nonCriticalFeatures, 1);
+
+      expect(collector.hasCriticalErrors()).toBe(true);
+      const thresholds = collector.getThresholdsInfo();
+      expect(thresholds.smallGeometries.exceeded).toBe(false);
+    });
+
+    it('should return false for only unknown error types', () => {
+      const feature: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: [
+          {
+            id: feature.properties.id,
+            errors: ['UNKNOWN_ERROR_TYPE' as PolygonPartValidationErrorsType],
+          },
+        ],
+        smallHolesCount: 0,
+      };
+
+      collector.addValidationErrors(validationResult, [feature], 1);
+
+      expect(collector.hasCriticalErrors()).toBe(false);
+      const errorCounts = collector.getErrorCounts();
+      expect(errorCounts.unknown).toBe(1);
     });
   });
 
@@ -862,7 +1052,7 @@ describe('ValidationErrorCollector', () => {
       collector.addValidationErrors(validationResult, features, chunkId);
 
       // Verify errors, counts, and thresholds before clear
-      expect(collector.hasErrors()).toBe(true);
+      expect(collector.hasCriticalErrors()).toBe(true);
       const countsBeforeClear = collector.getErrorCounts();
       expect(countsBeforeClear.vertices).toBeGreaterThan(0);
       expect(countsBeforeClear.metadata).toBeGreaterThan(0);
@@ -883,7 +1073,7 @@ describe('ValidationErrorCollector', () => {
       collector.clear();
 
       // Verify all errors are reset
-      expect(collector.hasErrors()).toBe(false);
+      expect(collector.hasCriticalErrors()).toBe(false);
       const featuresAfterClear = collector.getFeaturesWithErrorProperties();
       expect(featuresAfterClear).toHaveLength(0);
 

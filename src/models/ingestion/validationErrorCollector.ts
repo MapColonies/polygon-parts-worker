@@ -114,10 +114,21 @@ export class ValidationErrorCollector {
   }
 
   /**
-   * Checks if any errors have been collected
+   * Checks if there are critical errors that require report generation.
+   * Critical errors include: vertices, metadata, geometryValidity, resolution
+   * Also returns true if smallGeometries or smallHoles exceed their thresholds.
+   * Returns false if only non-critical errors (smallGeometries/smallHoles below thresholds) exist.
    */
-  public hasErrors(): boolean {
-    return this.invalidFeaturesMap.size > 0;
+  public hasCriticalErrors(): boolean {
+    const { vertices, metadata, geometryValidity, resolution } = this.errorsCount;
+
+    // Check for critical error types
+    const hasCriticalErrorTypes = vertices > 0 || metadata > 0 || geometryValidity > 0 || resolution > 0;
+
+    // Check if small geometry/holes errors exceeded thresholds
+    const hasExceededThresholds = this.thresholdsResult.smallGeometries.exceeded || this.thresholdsResult.smallHoles.exceeded;
+
+    return hasCriticalErrorTypes || hasExceededThresholds;
   }
 
   /**
