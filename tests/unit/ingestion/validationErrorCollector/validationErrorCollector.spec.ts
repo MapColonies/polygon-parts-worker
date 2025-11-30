@@ -2,11 +2,12 @@ import { Feature, Geometry, Polygon } from 'geojson';
 import { ZodIssue } from 'zod';
 import { ValidationErrorType, PolygonPartsChunkValidationResult, PolygonPartValidationErrorsType } from '@map-colonies/raster-shared';
 import { faker } from '@faker-js/faker';
-import { ValidationErrorCollector } from '../../../src/models/ingestion/validationErrorCollector';
-import { configMock, registerDefaultConfig } from '../mocks/configMock';
-import { loggerMock } from '../mocks/telemetryMock';
-import { METADATA_ERROR_SEPARATOR } from '../../../src/models/ingestion/constants';
-import { createFakeShpFeatureProperties } from '../mocks/fakeFeatures';
+import { ValidationErrorCollector } from '../../../../src/models/ingestion/validationErrorCollector';
+import { configMock, registerDefaultConfig } from '../../mocks/configMock';
+import { loggerMock } from '../../mocks/telemetryMock';
+import { METADATA_ERROR_SEPARATOR } from '../../../../src/models/ingestion/constants';
+import { createFakeShpFeatureProperties } from '../../mocks/fakeFeatures';
+import { hasCriticalErrorsTestCases, getFeaturesWithErrorPropertiesTestCases } from './validationErrorCollector.cases';
 
 describe('ValidationErrorCollector', () => {
   let collector: ValidationErrorCollector;
@@ -139,6 +140,7 @@ describe('ValidationErrorCollector', () => {
       expect(featuresWithErrors[0].properties.e_metadata).toBeDefined();
       expect(featuresWithErrors[0].properties.e_metadata).toContain(`${zodIssues[0].message}${METADATA_ERROR_SEPARATOR}${zodIssues[1].message}`);
     });
+
     it('should be reflected in error counts and hasCriticalErrors', () => {
       const chunkId = 1;
       const feature: Feature<Geometry, unknown> = {
@@ -231,7 +233,7 @@ describe('ValidationErrorCollector', () => {
       expect(featuresWithErrors[0].properties.e_unknown).toBeDefined();
     });
 
-    it('should add  validation errors from validation result', () => {
+    it('should add validation errors from validation result', () => {
       const chunkId = 1;
       const feature: Feature<Polygon, { id: string }> = {
         type: 'Feature',
@@ -347,7 +349,7 @@ describe('ValidationErrorCollector', () => {
       expect(feature2WithErrors?.properties.e_sm_geom).toBeDefined();
     });
 
-    it('should update small holes and check threshold when small holes are present', () => {
+    it('should update small holes and check threshold when small holes are present and exceeded', () => {
       const chunkId = 1;
       const totalFeatures = 1;
       const smallHoles = 10;
@@ -380,7 +382,7 @@ describe('ValidationErrorCollector', () => {
       expect(thresholds.smallHoles.exceeded).toBe(true);
     });
 
-    it('should update small geometries threshold when small geometries are present', () => {
+    it('should update small geometries threshold when small geometries are present and exceeded', () => {
       const chunkId = 1;
       const totalFeatures = 100;
       const smallGeometriesCount = 10;
@@ -457,76 +459,9 @@ describe('ValidationErrorCollector', () => {
       expect(features).toHaveLength(0);
     });
 
-    test.each([
-      {
-        description: 'vertices errors',
-        setup: () => {
-          const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
-          const feature: Feature<Geometry, unknown> = {
-            type: 'Feature',
-            geometry: { type: 'Polygon', coordinates: [] },
-            properties: { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) },
-          };
-          collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
-        },
-        expectedCritical: true,
-      },
-      {
-        description: 'metadata errors',
-        setup: () => {
-          const feature: Feature<Geometry, unknown> = {
-            type: 'Feature',
-            geometry: { type: 'Polygon', coordinates: [] },
-            properties: { ...createFakeShpFeatureProperties(), updateDate: 2025 },
-          };
-          const zodIssues: ZodIssue[] = [
-            {
-              code: 'invalid_type',
-              expected: 'string',
-              received: 'number',
-              path: ['updateDate'],
-              message: 'Expected string, received number',
-            },
-          ];
-          collector.addMetadataError(zodIssues, feature, 1);
-        },
-        expectedCritical: true,
-      },
-      {
-        description: 'geometry validity errors',
-        setup: () => {
-          const feature: Feature<Polygon, { id: string }> = {
-            type: 'Feature',
-            geometry: { type: 'Polygon', coordinates: [[[]]] },
-            properties: createFakeShpFeatureProperties(),
-          };
-          const validationResult: PolygonPartsChunkValidationResult = {
-            parts: [{ id: feature.properties.id, errors: [ValidationErrorType.GEOMETRY_VALIDITY] }],
-            smallHolesCount: 0,
-          };
-          collector.addValidationErrors(validationResult, [feature], 1);
-        },
-        expectedCritical: true,
-      },
-      {
-        description: 'resolution errors',
-        setup: () => {
-          const feature: Feature<Polygon, { id: string }> = {
-            type: 'Feature',
-            geometry: { type: 'Polygon', coordinates: [[[]]] },
-            properties: createFakeShpFeatureProperties(),
-          };
-          const validationResult: PolygonPartsChunkValidationResult = {
-            parts: [{ id: feature.properties.id, errors: [ValidationErrorType.RESOLUTION] }],
-            smallHolesCount: 0,
-          };
-          collector.addValidationErrors(validationResult, [feature], 1);
-        },
-        expectedCritical: true,
-      },
-    ])('should return $expectedCritical after adding $description', ({ setup, expectedCritical }) => {
+    test.each(hasCriticalErrorsTestCases)('should return $expectedCritical after adding $description', ({ setup, expectedCritical }) => {
       expect(collector.hasCriticalErrors()).toBe(false);
-      setup();
+      setup(collector);
       expect(collector.hasCriticalErrors()).toBe(expectedCritical);
     });
 
@@ -708,59 +643,8 @@ describe('ValidationErrorCollector', () => {
       expect(features).toEqual([]);
     });
 
-    test.each([
-      {
-        description: 'vertices error properties',
-        setup: () => {
-          const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
-          const feature: Feature<Geometry, unknown> = {
-            type: 'Feature',
-            geometry: { type: 'Polygon', coordinates: [] },
-            properties: { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) },
-          };
-          collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
-        },
-        expectedProperty: 'e_vertices',
-      },
-      {
-        description: 'metadata error properties',
-        setup: () => {
-          const feature: Feature<Geometry, unknown> = {
-            type: 'Feature',
-            geometry: { type: 'Polygon', coordinates: [] },
-            properties: { ...createFakeShpFeatureProperties(), updateDate: 2025 },
-          };
-          const zodIssues: ZodIssue[] = [
-            {
-              code: 'invalid_type',
-              expected: 'string',
-              received: 'number',
-              path: ['updateDate'],
-              message: 'Expected string, received number',
-            },
-          ];
-          collector.addMetadataError(zodIssues, feature, 1);
-        },
-        expectedProperty: 'e_metadata',
-      },
-      {
-        description: 'geometry validity error properties',
-        setup: () => {
-          const feature: Feature<Polygon, { id: string }> = {
-            type: 'Feature',
-            geometry: { type: 'Polygon', coordinates: [[[]]] },
-            properties: createFakeShpFeatureProperties(),
-          };
-          const validationResult: PolygonPartsChunkValidationResult = {
-            parts: [{ id: feature.properties.id, errors: [ValidationErrorType.GEOMETRY_VALIDITY] }],
-            smallHolesCount: 0,
-          };
-          collector.addValidationErrors(validationResult, [feature], 1);
-        },
-        expectedProperty: 'e_validity',
-      },
-    ])('should return features with $description', ({ setup, expectedProperty }) => {
-      setup();
+    test.each(getFeaturesWithErrorPropertiesTestCases)('should return features with $description', ({ setup, expectedProperty }) => {
+      setup(collector);
       const features = collector.getFeaturesWithErrorProperties();
       expect(features).toHaveLength(1);
       expect(features[0].properties[expectedProperty]).toBeDefined();
