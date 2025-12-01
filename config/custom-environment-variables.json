@@ -72,6 +72,14 @@
         "maxAttempts": {
           "__name": "VALIDATION_TASK_MAX_ATTEMPTS",
           "__format": "number"
+        },
+        "smallGeometriesPercentageThreshold": {
+          "__name": "VALIDATION_TASK_SMALL_GEOMETRIES_PERCENTAGE_THRESHOLD",
+          "__format": "number"
+        },
+        "smallHolesPercentageThreshold": {
+          "__name": "VALIDATION_TASK_SMALL_HOLES_PERCENTAGE_THRESHOLD",
+          "__format": "number"
         }
       }
     },

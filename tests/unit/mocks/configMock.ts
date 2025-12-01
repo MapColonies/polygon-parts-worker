@@ -107,6 +107,8 @@ const registerDefaultConfig = (): void => {
           type: 'validation',
           maxAttempts: 3,
           verticesPerChunk: 1000,
+          smallGeometriesPercentageThreshold: 5,
+          smallHolesPercentageThreshold: 5,
         },
       },
       jobs: {

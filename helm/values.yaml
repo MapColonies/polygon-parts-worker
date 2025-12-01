@@ -25,7 +25,9 @@ jobDefinitions:
     validation:
       type: ""
       chunkMaxVertices: 1000
-      maxAttempts: 3
+      maxAttempts: 3,
+      smallGeometriesPercentageThreshold: 5
+      smallHolesPercentageThreshold: 5
 
 serviceUrls:
   jobManager: ""
