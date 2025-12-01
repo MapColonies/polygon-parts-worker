@@ -1118,9 +1118,10 @@ describe('ValidationErrorCollector', () => {
 
       // Act
       collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
+      const hasErrors = collector.hasErrors();
 
       // Assert
-      expect(collector.hasErrors()).toBe(true);
+      expect(hasErrors).toBe(true);
     });
 
     it('should return true when metadata errors are added', () => {
@@ -1142,9 +1143,10 @@ describe('ValidationErrorCollector', () => {
 
       // Act
       collector.addMetadataError(zodIssues, feature, 1);
+      const hasErrors = collector.hasErrors();
 
       // Assert
-      expect(collector.hasErrors()).toBe(true);
+      expect(hasErrors).toBe(true);
     });
 
     it('should return true when validation errors are added', () => {
@@ -1190,10 +1192,12 @@ describe('ValidationErrorCollector', () => {
 
       // Act
       collector.addValidationErrors(validationResult, [feature], 1);
+      const hasErrors = collector.hasErrors();
+      const hasCriticalErrors = collector.hasCriticalErrors();
 
       // Assert - hasErrors should return true even though hasCriticalErrors returns false
-      expect(collector.hasErrors()).toBe(true);
-      expect(collector.hasCriticalErrors()).toBe(false);
+      expect(hasErrors).toBe(true);
+      expect(hasCriticalErrors).toBe(false);
     });
 
     it('should return false after clear', () => {
@@ -1210,9 +1214,10 @@ describe('ValidationErrorCollector', () => {
 
       // Act
       collector.clear();
+      const hasErrors = collector.hasErrors();
 
       // Assert
-      expect(collector.hasErrors()).toBe(false);
+      expect(hasErrors).toBe(false);
     });
 
     it('should return false after clearInvalidFeatures', () => {
@@ -1229,9 +1234,10 @@ describe('ValidationErrorCollector', () => {
 
       // Act
       collector.clearInvalidFeatures();
+      const hasErrors = collector.hasErrors();
 
       // Assert
-      expect(collector.hasErrors()).toBe(false);
+      expect(hasErrors).toBe(false);
     });
   });
 
