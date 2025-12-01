@@ -114,8 +114,23 @@ export class ValidationErrorCollector {
   }
 
   /**
-   * Checks if any errors have been collected
+   * Checks if there are critical errors that require report generation.
+   * Critical errors include: vertices, metadata, geometryValidity, resolution
+   * Also returns true if smallGeometries or smallHoles exceed their thresholds.
+   * Returns false if only non-critical errors (smallGeometries/smallHoles below thresholds) exist.
    */
+  public hasCriticalErrors(): boolean {
+    const { vertices, metadata, geometryValidity, resolution, unknown } = this.errorsCount;
+
+    // Check for critical error types
+    const hasCriticalErrors = vertices > 0 || metadata > 0 || geometryValidity > 0 || resolution > 0 || unknown > 0;
+
+    // Check if small geometry/holes errors exceeded thresholds
+    const hasExceededThresholds = this.thresholdsResult.smallGeometries.exceeded || this.thresholdsResult.smallHoles.exceeded;
+
+    return hasCriticalErrors || hasExceededThresholds;
+  }
+
   public hasErrors(): boolean {
     return this.invalidFeaturesMap.size > 0;
   }
@@ -169,7 +184,7 @@ export class ValidationErrorCollector {
    * Clears all collected errors and resets counters
    */
   public clear(): void {
-    this.invalidFeaturesMap.clear();
+    this.clearInvalidFeatures();
 
     this.shapefileStats = {
       totalFeatures: 0,
@@ -195,6 +210,10 @@ export class ValidationErrorCollector {
         count: 0,
       },
     };
+  }
+
+  public clearInvalidFeatures(): void {
+    this.invalidFeaturesMap.clear();
   }
 
   private getInvalidFeatures(): InvalidFeature[] {
@@ -269,20 +288,22 @@ export class ValidationErrorCollector {
   }
 
   private addVerticesError(feature: Feature<Geometry, unknown>, chunkId: number, maxVerticesAllowed: number): void {
+    const error: ValidationError = {
+      type: ValidationErrorType.VERTICES,
+      columnName: VALIDATION_ERROR_TYPE_FORMATS[ValidationErrorType.VERTICES].columnName,
+      message: `limit: ${maxVerticesAllowed}`,
+    };
+
     try {
       const parsedFeature = exceededVerticesShpFeatureSchema.parse(feature);
-
-      const error: ValidationError = {
-        type: ValidationErrorType.VERTICES,
-        columnName: VALIDATION_ERROR_TYPE_FORMATS[ValidationErrorType.VERTICES].columnName,
-        message: `result:${parsedFeature.properties.vertices}, limit: ${maxVerticesAllowed}`,
-      };
-
-      this.addOrUpdateInvalidFeature(parsedFeature.properties.id, chunkId, feature, error);
+      error.message = `result:${parsedFeature.properties.vertices}, limit: ${maxVerticesAllowed}`;
     } catch (err) {
       if (err instanceof ZodError) {
         this.addMetadataError(err.issues, feature, chunkId);
       }
+    } finally {
+      const featureId = this.extractFeatureId(feature);
+      this.addOrUpdateInvalidFeature(featureId, chunkId, feature, error);
     }
   }
 
@@ -328,6 +349,10 @@ export class ValidationErrorCollector {
 
   private checkThresholdExceeded(errorCount: number, threshold: number): boolean {
     /* eslint-disable @typescript-eslint/no-magic-numbers */
+    if (this.shapefileStats.totalFeatures === 0) {
+      return false;
+    }
+
     const rawPercentage = (errorCount / this.shapefileStats.totalFeatures) * 100;
     const percentage = Number(rawPercentage.toFixed(2));
     /* eslint-enable @typescript-eslint/no-magic-numbers */
