@@ -24,6 +24,7 @@ describe('ValidationErrorCollector', () => {
 
   describe('addVerticesErrors', () => {
     it('should add vertices errors for multiple features', () => {
+      // Arrange
       const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
       const chunkId = 1;
       const features: Feature<Geometry, unknown>[] = [
@@ -39,8 +40,10 @@ describe('ValidationErrorCollector', () => {
         },
       ];
 
+      // Act
       collector.addVerticesErrors(features, chunkId, maxVerticesAllowed);
 
+      // Assert
       expect(collector.hasCriticalErrors()).toBe(true);
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.vertices).toBe(2);
@@ -52,6 +55,7 @@ describe('ValidationErrorCollector', () => {
     });
 
     it('should handle features with missing metadata gracefully', () => {
+      // Arrange
       const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
       const chunkId = 1;
       const { ep90, ...rest } = { ...createFakeShpFeatureProperties() };
@@ -62,8 +66,10 @@ describe('ValidationErrorCollector', () => {
         properties: featureProperties, // Missing 'ep90' property
       };
 
+      // Act
       collector.addVerticesErrors([featureWithoutId], chunkId, maxVerticesAllowed);
 
+      // Assert
       expect(collector.hasCriticalErrors()).toBe(true);
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.vertices).toBe(1);
@@ -76,6 +82,7 @@ describe('ValidationErrorCollector', () => {
     });
 
     it('should increment error counter and be reflected in getErrorCounts', () => {
+      // Arrange
       const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
       const chunkId = 1;
       const features: Feature<Geometry, unknown>[] = [
@@ -94,8 +101,10 @@ describe('ValidationErrorCollector', () => {
       const countsBefore = collector.getErrorCounts();
       expect(countsBefore.vertices).toBe(0);
 
+      // Act
       collector.addVerticesErrors(features, chunkId, maxVerticesAllowed);
 
+      // Assert
       const countsAfter = collector.getErrorCounts();
       expect(countsAfter.vertices).toBe(2);
     });
@@ -103,6 +112,7 @@ describe('ValidationErrorCollector', () => {
 
   describe('addMetadataError', () => {
     it('should add metadata validation errors from Zod issues', () => {
+      // Arrange
       const chunkId = 1;
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
@@ -129,8 +139,10 @@ describe('ValidationErrorCollector', () => {
         },
       ];
 
+      // Act
       collector.addMetadataError(zodIssues, feature, chunkId);
 
+      // Assert
       expect(collector.hasCriticalErrors()).toBe(true);
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.metadata).toBe(1);
@@ -142,6 +154,7 @@ describe('ValidationErrorCollector', () => {
     });
 
     it('should be reflected in error counts and hasCriticalErrors', () => {
+      // Arrange
       const chunkId = 1;
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
@@ -163,8 +176,10 @@ describe('ValidationErrorCollector', () => {
       const countsBefore = collector.getErrorCounts();
       expect(countsBefore.metadata).toBe(0);
 
+      // Act
       collector.addMetadataError(zodIssues, feature, chunkId);
 
+      // Assert
       expect(collector.hasCriticalErrors()).toBe(true);
       const countsAfter = collector.getErrorCounts();
       expect(countsAfter.metadata).toBe(1);
@@ -173,6 +188,7 @@ describe('ValidationErrorCollector', () => {
 
   describe('addValidationErrors', () => {
     it('should handle unknown error types gracefully', () => {
+      // Arrange
       const chunkId = 1;
       const feature: Feature<Polygon, { id: string }> = {
         type: 'Feature',
@@ -190,8 +206,10 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: 0,
       };
 
+      // Act
       collector.addValidationErrors(validationResult, [feature], chunkId);
 
+      // Assert
       expect(collector.hasCriticalErrors()).toBe(true);
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.unknown).toBe(1);
@@ -203,6 +221,7 @@ describe('ValidationErrorCollector', () => {
     });
 
     it('should handle mix of known and unknown error types', () => {
+      // Arrange
       const chunkId = 1;
       const feature: Feature<Polygon, { id: string }> = {
         type: 'Feature',
@@ -220,8 +239,10 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: 0,
       };
 
+      // Act
       collector.addValidationErrors(validationResult, [feature], chunkId);
 
+      // Assert
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.geometryValidity).toBe(1);
       expect(errorCounts.resolution).toBe(1);
@@ -234,6 +255,7 @@ describe('ValidationErrorCollector', () => {
     });
 
     it('should add validation errors from validation result', () => {
+      // Arrange
       const chunkId = 1;
       const feature: Feature<Polygon, { id: string }> = {
         type: 'Feature',
@@ -251,8 +273,10 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: 0,
       };
 
+      // Act
       collector.addValidationErrors(validationResult, [feature], chunkId);
 
+      // Assert
       expect(collector.hasCriticalErrors()).toBe(true);
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.geometryValidity).toBe(1);
@@ -263,6 +287,7 @@ describe('ValidationErrorCollector', () => {
     });
 
     it('should handle multiple error types for single feature', () => {
+      // Arrange
       const chunkId = 1;
       const feature: Feature<Polygon, { id: string }> = {
         type: 'Feature',
@@ -285,8 +310,10 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: 1,
       };
 
+      // Act
       collector.addValidationErrors(validationResult, [feature], chunkId);
 
+      // Assert
       expect(collector.hasCriticalErrors()).toBe(true);
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.geometryValidity).toBe(1);
@@ -304,6 +331,7 @@ describe('ValidationErrorCollector', () => {
     });
 
     it('should handle multiple features with errors', () => {
+      // Arrange
       const chunkId = 1;
       const feature1: Feature<Polygon, { id: string }> = {
         type: 'Feature',
@@ -330,8 +358,10 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: 0,
       };
 
+      // Act
       collector.addValidationErrors(validationResult, [feature1, feature2], chunkId);
 
+      // Assert
       expect(collector.hasCriticalErrors()).toBe(true);
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.geometryValidity).toBe(1);
@@ -350,6 +380,7 @@ describe('ValidationErrorCollector', () => {
     });
 
     it('should update small holes and check threshold when small holes are present and exceeded', () => {
+      // Arrange
       const chunkId = 1;
       const totalFeatures = 1;
       const smallHoles = 10;
@@ -372,8 +403,10 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: smallHoles,
       };
 
+      // Act
       collector.addValidationErrors(validationResult, [feature], chunkId);
 
+      // Assert
       const thresholds = collector.getThresholdsInfo();
       const errorCounts = collector.getErrorCounts();
 
@@ -383,6 +416,7 @@ describe('ValidationErrorCollector', () => {
     });
 
     it('should update small geometries threshold when small geometries are present and exceeded', () => {
+      // Arrange
       const chunkId = 1;
       const totalFeatures = 100;
       const smallGeometriesCount = 10;
@@ -403,8 +437,10 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: 0,
       };
 
+      // Act
       collector.addValidationErrors(validationResult, features, chunkId);
 
+      // Assert
       const thresholds = collector.getThresholdsInfo();
       const errorCounts = collector.getErrorCounts();
 
@@ -413,6 +449,7 @@ describe('ValidationErrorCollector', () => {
     });
 
     it('should be reflected in error counts', () => {
+      // Arrange
       const chunkId = 1;
       const feature: Feature<Polygon, { id: string }> = {
         type: 'Feature',
@@ -434,8 +471,10 @@ describe('ValidationErrorCollector', () => {
       expect(countsBefore.geometryValidity).toBe(0);
       expect(countsBefore.resolution).toBe(0);
 
+      // Act
       collector.addValidationErrors(validationResult, [feature], chunkId);
 
+      // Assert
       const countsAfter = collector.getErrorCounts();
       expect(countsAfter.geometryValidity).toBe(1);
       expect(countsAfter.resolution).toBe(1);
@@ -444,8 +483,12 @@ describe('ValidationErrorCollector', () => {
 
   describe('hasCriticalErrors', () => {
     it('should return false when no errors collected', () => {
+      // Arrange - collector is already initialized with no errors
+
+      // Act
       const errorCounts = collector.getErrorCounts();
 
+      // Assert
       expect(collector.hasCriticalErrors()).toBe(false);
       expect(errorCounts.geometryValidity).toBe(0);
       expect(errorCounts.vertices).toBe(0);
@@ -460,12 +503,18 @@ describe('ValidationErrorCollector', () => {
     });
 
     test.each(hasCriticalErrorsTestCases)('should return $expectedCritical after adding $description', ({ setup, expectedCritical }) => {
+      // Arrange
       expect(collector.hasCriticalErrors()).toBe(false);
+
+      // Act
       setup(collector);
+
+      // Assert
       expect(collector.hasCriticalErrors()).toBe(expectedCritical);
     });
 
     it('should return false for only small geometries errors below threshold', () => {
+      // Arrange
       const totalFeatures = 1000;
       const smallGeometriesCount = 5; // 0.5% - below threshold
 
@@ -485,14 +534,17 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: 0,
       };
 
+      // Act
       collector.addValidationErrors(validationResult, features, 1);
 
+      // Assert
       expect(collector.hasCriticalErrors()).toBe(false);
       const thresholds = collector.getThresholdsInfo();
       expect(thresholds.smallGeometries.exceeded).toBe(false);
     });
 
     it('should return true for small geometries errors exceeding threshold', () => {
+      // Arrange
       const totalFeatures = 100;
       const smallGeometriesCount = 10; // 10% - exceeds threshold
 
@@ -512,14 +564,17 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: 0,
       };
 
+      // Act
       collector.addValidationErrors(validationResult, features, 1);
 
+      // Assert
       expect(collector.hasCriticalErrors()).toBe(true);
       const thresholds = collector.getThresholdsInfo();
       expect(thresholds.smallGeometries.exceeded).toBe(true);
     });
 
     it('should return false for only small holes errors below threshold', () => {
+      // Arrange
       const totalFeatures = 1000;
       const smallHolesCount = 5; // 0.5% - below threshold
 
@@ -541,14 +596,17 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: smallHolesCount,
       };
 
+      // Act
       collector.addValidationErrors(validationResult, [feature], 1);
 
+      // Assert
       expect(collector.hasCriticalErrors()).toBe(false);
       const thresholds = collector.getThresholdsInfo();
       expect(thresholds.smallHoles.exceeded).toBe(false);
     });
 
     it('should return true for small holes errors exceeding threshold', () => {
+      // Arrange
       const totalFeatures = 100;
       const smallHolesCount = 10; // 10% - exceeds threshold
 
@@ -570,14 +628,17 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: smallHolesCount,
       };
 
+      // Act
       collector.addValidationErrors(validationResult, [feature], 1);
 
+      // Assert
       expect(collector.hasCriticalErrors()).toBe(true);
       const thresholds = collector.getThresholdsInfo();
       expect(thresholds.smallHoles.exceeded).toBe(true);
     });
 
     it('should return true when both critical errors and non-critical errors exist', () => {
+      // Arrange
       const totalFeatures = 1000;
       const smallGeometriesCount = 2; // below threshold
 
@@ -589,7 +650,6 @@ describe('ValidationErrorCollector', () => {
         geometry: { type: 'Polygon', coordinates: [] },
         properties: { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) },
       };
-      collector.addVerticesErrors([criticalFeature], 1, maxVerticesAllowed);
 
       const nonCriticalFeatures: Feature<Polygon, { id: string }>[] = Array.from({ length: smallGeometriesCount }, () => ({
         type: 'Feature',
@@ -605,14 +665,18 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: 0,
       };
 
+      // Act
+      collector.addVerticesErrors([criticalFeature], 1, maxVerticesAllowed);
       collector.addValidationErrors(validationResult, nonCriticalFeatures, 1);
 
+      // Assert
       expect(collector.hasCriticalErrors()).toBe(true);
       const thresholds = collector.getThresholdsInfo();
       expect(thresholds.smallGeometries.exceeded).toBe(false);
     });
 
     it('should return true for unknown error types', () => {
+      // Arrange
       const feature: Feature<Polygon, { id: string }> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [[[]]] },
@@ -629,8 +693,10 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: 0,
       };
 
+      // Act
       collector.addValidationErrors(validationResult, [feature], 1);
 
+      // Assert
       expect(collector.hasCriticalErrors()).toBe(true);
       const errorCounts = collector.getErrorCounts();
       expect(errorCounts.unknown).toBe(1);
@@ -639,18 +705,29 @@ describe('ValidationErrorCollector', () => {
 
   describe('getFeaturesWithErrorProperties', () => {
     it('should return empty array when no errors', () => {
+      // Arrange - collector is already initialized with no errors
+
+      // Act
       const features = collector.getFeaturesWithErrorProperties();
+
+      // Assert
       expect(features).toEqual([]);
     });
 
     test.each(getFeaturesWithErrorPropertiesTestCases)('should return features with $description', ({ setup, expectedProperty }) => {
+      // Arrange
       setup(collector);
+
+      // Act
       const features = collector.getFeaturesWithErrorProperties();
+
+      // Assert
       expect(features).toHaveLength(1);
       expect(features[0].properties[expectedProperty]).toBeDefined();
     });
 
     it('should preserve original feature properties', () => {
+      // Arrange
       const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
       const originalProperties = { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) };
       const feature: Feature<Geometry, unknown> = {
@@ -659,8 +736,10 @@ describe('ValidationErrorCollector', () => {
         properties: originalProperties,
       };
 
+      // Act
       collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
 
+      // Assert
       const featuresWithErrors = collector.getFeaturesWithErrorProperties();
       expect(featuresWithErrors).toHaveLength(1);
 
@@ -676,7 +755,12 @@ describe('ValidationErrorCollector', () => {
 
   describe('getErrorCounts', () => {
     it('should return initial zero counts', () => {
+      // Arrange - collector is already initialized with no errors
+
+      // Act
       const counts = collector.getErrorCounts();
+
+      // Assert
       expect(counts).toEqual({
         geometryValidity: 0,
         vertices: 0,
@@ -689,6 +773,7 @@ describe('ValidationErrorCollector', () => {
     });
 
     it('should return correct counts after adding various error types', () => {
+      // Arrange
       const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
       const chunkId = 1;
 
@@ -698,8 +783,6 @@ describe('ValidationErrorCollector', () => {
         geometry: { type: 'Polygon', coordinates: [] },
         properties: { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) },
       };
-      collector.addVerticesErrors([verticesFeature], chunkId, maxVerticesAllowed);
-
       // Add metadata error
       const metadataFeature: Feature<Geometry, unknown> = {
         type: 'Feature',
@@ -715,8 +798,6 @@ describe('ValidationErrorCollector', () => {
           message: 'Expected string, received number',
         },
       ];
-      collector.addMetadataError(zodIssues, metadataFeature, chunkId);
-
       // Add validation errors
       const validationFeature: Feature<Polygon, { id: string }> = {
         type: 'Feature',
@@ -737,8 +818,13 @@ describe('ValidationErrorCollector', () => {
         ],
         smallHolesCount: 1,
       };
+
+      // Act
+      collector.addVerticesErrors([verticesFeature], chunkId, maxVerticesAllowed);
+      collector.addMetadataError(zodIssues, metadataFeature, chunkId);
       collector.addValidationErrors(validationResult, [validationFeature], chunkId);
 
+      // Assert
       const counts = collector.getErrorCounts();
       expect(counts.vertices).toBe(1);
       expect(counts.metadata).toBe(1);
@@ -752,7 +838,12 @@ describe('ValidationErrorCollector', () => {
 
   describe('getThresholdsInfo', () => {
     it('should return initial threshold state', () => {
+      // Arrange - collector is already initialized with no errors
+
+      // Act
       const thresholds = collector.getThresholdsInfo();
+
+      // Assert
       expect(thresholds).toEqual({
         smallGeometries: {
           exceeded: false,
@@ -765,6 +856,7 @@ describe('ValidationErrorCollector', () => {
     });
 
     it('should update when small geometries threshold is exceeded', () => {
+      // Arrange
       const totalFeatures = 100;
       const smallGeometriesCount = 10; // 10% of total features
 
@@ -784,13 +876,16 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: 0,
       };
 
+      // Act
       collector.addValidationErrors(validationResult, features, 1);
 
+      // Assert
       const thresholds = collector.getThresholdsInfo();
       expect(thresholds.smallGeometries.exceeded).toBe(true);
     });
 
     it('should update when small holes threshold is exceeded', () => {
+      // Arrange
       const totalFeatures = 100;
       const smallHolesCount = 10; // 10% of total features
 
@@ -812,8 +907,10 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: smallHolesCount,
       };
 
+      // Act
       collector.addValidationErrors(validationResult, [feature], 1);
 
+      // Assert
       const thresholds = collector.getThresholdsInfo();
       expect(thresholds.smallHoles.count).toBe(smallHolesCount);
       expect(thresholds.smallHoles.exceeded).toBe(true);
@@ -822,7 +919,12 @@ describe('ValidationErrorCollector', () => {
 
   describe('getStatistics', () => {
     it('should return both error counts and thresholds', () => {
+      // Arrange - collector is already initialized
+
+      // Act
       const stats = collector.getStatistics();
+
+      // Assert
       expect(stats).toHaveProperty('errorsCount');
       expect(stats).toHaveProperty('thresholds');
     });
@@ -830,6 +932,7 @@ describe('ValidationErrorCollector', () => {
 
   describe('setShapefileStats', () => {
     it('should affect threshold calculations', () => {
+      // Arrange
       const totalFeatures = 100;
       const smallGeometriesCount = 10; // 10% of total features
 
@@ -849,11 +952,6 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: 0,
       };
 
-      collector.addValidationErrors(validationResult, features, 1);
-
-      const thresholds = collector.getThresholdsInfo();
-      expect(thresholds.smallGeometries.exceeded).toBe(true);
-
       // Test with lower percentage that shouldn't exceed threshold
       const collector2 = new ValidationErrorCollector(loggerMock, configMock);
       collector2.setShapefileStats({ totalFeatures: 1000, totalVertices: 50000 });
@@ -872,7 +970,13 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: 0,
       };
 
+      // Act
+      collector.addValidationErrors(validationResult, features, 1);
       collector2.addValidationErrors(validationResult2, smallFeatureSet, 1);
+
+      // Assert
+      const thresholds = collector.getThresholdsInfo();
+      expect(thresholds.smallGeometries.exceeded).toBe(true);
 
       const thresholds2 = collector2.getThresholdsInfo();
       expect(thresholds2.smallGeometries.exceeded).toBe(false);
@@ -881,6 +985,7 @@ describe('ValidationErrorCollector', () => {
 
   describe('clear', () => {
     it('should reset all errors, counts, thresholds, and shapefile stats', () => {
+      // Arrange
       const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
       const chunkId = 1;
       const totalFeatures = 100;
@@ -889,13 +994,11 @@ describe('ValidationErrorCollector', () => {
       // Set shapefile stats
       collector.setShapefileStats({ totalFeatures, totalVertices: 5000 });
 
-      // Add vertices error
       const verticesFeature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
         properties: { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) },
       };
-      collector.addVerticesErrors([verticesFeature], chunkId, maxVerticesAllowed);
 
       // Add metadata error
       const metadataFeature: Feature<Geometry, unknown> = {
@@ -912,7 +1015,6 @@ describe('ValidationErrorCollector', () => {
           message: 'Expected string, received number',
         },
       ];
-      collector.addMetadataError(zodIssues, metadataFeature, chunkId);
 
       // Add validation errors that exceed thresholds
       const features: Feature<Polygon, { id: string }>[] = Array.from({ length: smallGeometriesCount }, () => ({
@@ -933,6 +1035,9 @@ describe('ValidationErrorCollector', () => {
         })),
         smallHolesCount: 10,
       };
+
+      collector.addVerticesErrors([verticesFeature], chunkId, maxVerticesAllowed);
+      collector.addMetadataError(zodIssues, metadataFeature, chunkId);
       collector.addValidationErrors(validationResult, features, chunkId);
 
       // Verify errors, counts, and thresholds before clear
@@ -953,9 +1058,10 @@ describe('ValidationErrorCollector', () => {
       const featuresBeforeClear = collector.getFeaturesWithErrorProperties();
       expect(featuresBeforeClear.length).toBeGreaterThan(0);
 
-      // Clear
+      // Act
       collector.clear();
 
+      // Assert
       // Verify all errors are reset
       expect(collector.hasCriticalErrors()).toBe(false);
       const featuresAfterClear = collector.getFeaturesWithErrorProperties();
@@ -995,10 +1101,14 @@ describe('ValidationErrorCollector', () => {
 
   describe('hasErrors', () => {
     it('should return false when no errors collected', () => {
+      // Arrange - collector is already initialized with no errors
+
+      // Act & Assert
       expect(collector.hasErrors()).toBe(false);
     });
 
     it('should return true when vertices errors are added', () => {
+      // Arrange
       const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
@@ -1006,12 +1116,15 @@ describe('ValidationErrorCollector', () => {
         properties: { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) },
       };
 
+      // Act
       collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
 
+      // Assert
       expect(collector.hasErrors()).toBe(true);
     });
 
     it('should return true when metadata errors are added', () => {
+      // Arrange
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
@@ -1027,12 +1140,15 @@ describe('ValidationErrorCollector', () => {
         },
       ];
 
+      // Act
       collector.addMetadataError(zodIssues, feature, 1);
 
+      // Assert
       expect(collector.hasErrors()).toBe(true);
     });
 
     it('should return true when validation errors are added', () => {
+      // Arrange
       const feature: Feature<Polygon, { id: string }> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [[[]]] },
@@ -1043,12 +1159,15 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: 0,
       };
 
+      // Act
       collector.addValidationErrors(validationResult, [feature], 1);
 
+      // Assert
       expect(collector.hasErrors()).toBe(true);
     });
 
     it('should return true for any error type including non-critical errors below threshold', () => {
+      // Arrange
       const totalFeatures = 1000;
 
       collector.setShapefileStats({ totalFeatures, totalVertices: 5000 });
@@ -1069,14 +1188,16 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: 0,
       };
 
+      // Act
       collector.addValidationErrors(validationResult, [feature], 1);
 
-      // hasErrors should return true even though hasCriticalErrors returns false
+      // Assert - hasErrors should return true even though hasCriticalErrors returns false
       expect(collector.hasErrors()).toBe(true);
       expect(collector.hasCriticalErrors()).toBe(false);
     });
 
     it('should return false after clear', () => {
+      // Arrange
       const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
@@ -1087,12 +1208,15 @@ describe('ValidationErrorCollector', () => {
       collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
       expect(collector.hasErrors()).toBe(true);
 
+      // Act
       collector.clear();
 
+      // Assert
       expect(collector.hasErrors()).toBe(false);
     });
 
     it('should return false after clearInvalidFeatures', () => {
+      // Arrange
       const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
@@ -1103,14 +1227,17 @@ describe('ValidationErrorCollector', () => {
       collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
       expect(collector.hasErrors()).toBe(true);
 
+      // Act
       collector.clearInvalidFeatures();
 
+      // Assert
       expect(collector.hasErrors()).toBe(false);
     });
   });
 
   describe('clearInvalidFeatures', () => {
     it('should clear the invalid features map', () => {
+      // Arrange
       const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
@@ -1121,14 +1248,17 @@ describe('ValidationErrorCollector', () => {
       collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
       expect(collector.hasErrors()).toBe(true);
 
+      // Act
       collector.clearInvalidFeatures();
 
+      // Assert
       expect(collector.hasErrors()).toBe(false);
       const features = collector.getFeaturesWithErrorProperties();
       expect(features).toHaveLength(0);
     });
 
     it('should not reset error counts', () => {
+      // Arrange
       const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
@@ -1141,15 +1271,17 @@ describe('ValidationErrorCollector', () => {
       const countsBeforeClear = collector.getErrorCounts();
       expect(countsBeforeClear.vertices).toBe(1);
 
+      // Act
       collector.clearInvalidFeatures();
 
-      // Error counts should remain the same
+      // Assert - Error counts should remain the same
       const countsAfterClear = collector.getErrorCounts();
       expect(countsAfterClear.vertices).toBe(1);
       expect(countsAfterClear).toEqual(countsBeforeClear);
     });
 
     it('should not reset thresholds', () => {
+      // Arrange
       const totalFeatures = 100;
       const smallGeometriesCount = 10; // 10% - exceeds threshold
 
@@ -1174,15 +1306,17 @@ describe('ValidationErrorCollector', () => {
       const thresholdsBeforeClear = collector.getThresholdsInfo();
       expect(thresholdsBeforeClear.smallGeometries.exceeded).toBe(true);
 
+      // Act
       collector.clearInvalidFeatures();
 
-      // Thresholds should remain the same
+      // Assert - Thresholds should remain the same
       const thresholdsAfterClear = collector.getThresholdsInfo();
       expect(thresholdsAfterClear.smallGeometries.exceeded).toBe(true);
       expect(thresholdsAfterClear).toEqual(thresholdsBeforeClear);
     });
 
     it('should not reset shapefile stats', () => {
+      // Arrange
       const totalFeatures = 100;
       const totalVertices = 5000;
 
@@ -1196,8 +1330,6 @@ describe('ValidationErrorCollector', () => {
       };
 
       collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
-
-      collector.clearInvalidFeatures();
 
       // Add errors again and verify threshold calculation still works (uses shapefile stats)
       const smallGeometriesCount = 10; // 10% of 100 features - should exceed threshold
@@ -1215,14 +1347,17 @@ describe('ValidationErrorCollector', () => {
         smallHolesCount: 0,
       };
 
+      // Act
+      collector.clearInvalidFeatures();
       collector.addValidationErrors(validationResult, features, 1);
 
+      // Assert - If stats were reset, this would be false (percentage would be calculated against 0)
       const thresholds = collector.getThresholdsInfo();
-      // If stats were reset, this would be false (percentage would be calculated against 0)
       expect(thresholds.smallGeometries.exceeded).toBe(true);
     });
 
     it('should only clear features, allowing new features to be added', () => {
+      // Arrange
       const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
       const props1 = { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) };
       const feature1: Feature<Geometry, unknown> = {
@@ -1234,9 +1369,6 @@ describe('ValidationErrorCollector', () => {
       collector.addVerticesErrors([feature1], 1, maxVerticesAllowed);
       expect(collector.hasErrors()).toBe(true);
 
-      collector.clearInvalidFeatures();
-      expect(collector.hasErrors()).toBe(false);
-
       // Add new features after clearing
       const props2 = { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) };
       const feature2: Feature<Geometry, unknown> = {
@@ -1245,7 +1377,13 @@ describe('ValidationErrorCollector', () => {
         properties: props2,
       };
 
+      // Act
+      collector.clearInvalidFeatures();
+      expect(collector.hasErrors()).toBe(false);
+
       collector.addVerticesErrors([feature2], 2, maxVerticesAllowed);
+
+      // Assert
       expect(collector.hasErrors()).toBe(true);
 
       const features = collector.getFeaturesWithErrorProperties();
