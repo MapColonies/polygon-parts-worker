@@ -11,7 +11,7 @@ import {
   PolygonPartValidationError,
 } from '@map-colonies/raster-shared';
 import { SERVICES } from '../../common/constants';
-import { exceededVerticesShpFeatureSchema, featureIdSchema } from '../../schemas/shpFile.schema';
+import { exceededVerticesShpFeatureSchema, ExceededVerticesShpProperties, featureIdSchema, verticesSchema } from '../../schemas/shpFile.schema';
 import { IConfig } from '../../common/interfaces';
 import { ErrorsCount, InvalidFeature, ThresholdsResult, ValidationError } from './types';
 import { VALIDATION_ERROR_TYPE_FORMATS, METADATA_ERROR_SEPARATOR, UNKNOWN_ID } from './constants';
@@ -144,6 +144,7 @@ export class ValidationErrorCollector {
    * - e_res: Resolution errors
    * - e_sm_geom: Small geometry errors
    * - e_sm_holes: Small holes errors
+   * - e_unknown: Unknown errors
    */
   public getFeaturesWithErrorProperties(): Feature<Geometry, Record<string, unknown>>[] {
     return this.getInvalidFeatures().map((invalidFeature) => this.convertToFeatureWithErrorProperties(invalidFeature));
@@ -163,7 +164,7 @@ export class ValidationErrorCollector {
   /**
    * Gets comprehensive validation statistics
    */
-  public getStatistics(): ValidationAggregatedErrors {
+  public getErrorsSummary(): ValidationAggregatedErrors {
     return {
       errorsCount: this.getErrorCounts(),
       thresholds: this.getThresholdsInfo(),
@@ -288,15 +289,21 @@ export class ValidationErrorCollector {
   }
 
   private addVerticesError(feature: Feature<Geometry, unknown>, chunkId: number, maxVerticesAllowed: number): void {
+    const result = verticesSchema.safeParse(feature.properties);
     const error: ValidationError = {
       type: ValidationErrorType.VERTICES,
       columnName: VALIDATION_ERROR_TYPE_FORMATS[ValidationErrorType.VERTICES].columnName,
-      message: `limit: ${maxVerticesAllowed}`,
+      message: `result:${result.success ? result.data.vertices : 'unknown'}, limit: ${maxVerticesAllowed}`,
     };
+    // Check if vertices property exists before attempting to remove it
+    const properties = feature.properties as ExceededVerticesShpProperties;
+    if ('vertices' in properties) {
+      const { vertices, ...propsWithoutVertices } = properties;
+      feature.properties = propsWithoutVertices;
+    }
 
     try {
-      const parsedFeature = exceededVerticesShpFeatureSchema.parse(feature);
-      error.message = `result:${parsedFeature.properties.vertices}, limit: ${maxVerticesAllowed}`;
+      exceededVerticesShpFeatureSchema.parse(feature);
     } catch (err) {
       if (err instanceof ZodError) {
         this.addMetadataError(err.issues, feature, chunkId);
