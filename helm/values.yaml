@@ -37,6 +37,7 @@ serviceUrls:
   jobTracker: ""
 
 storage:
+  reportStorageProvider: "" # FS | S3
   fs: 
     internalPvc:
       name: ""
@@ -46,7 +47,12 @@ storage:
       enabled: true
       name: ""
       mountPath: ""
-      subPath: ""     
+      subPath: ""
+  s3:
+    endpointUrl: ""
+    artifactsBucket: ""
+    sslEnabled: false
+    secretName: ""        
 
 cloudProvider:
   dockerRegistryUrl: 'my-registry-url.io'

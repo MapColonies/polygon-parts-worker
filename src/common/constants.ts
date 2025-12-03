@@ -13,6 +13,7 @@ export const SERVICES = {
   CONFIG: Symbol('Config'),
   TRACER: Symbol('Tracer'),
   METRICS_REGISTRY: Symbol('MetricsRegistry'),
+  S3CONFIG: Symbol('S3Config'),
   QUEUE_CLIENT: Symbol('QueueClient'),
   SHAPE_FILE_PROCESSOR: Symbol('ShapeFileProcessor'),
   TASK_METRICS: Symbol('TaskMetrics'),

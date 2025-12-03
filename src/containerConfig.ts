@@ -13,6 +13,7 @@ import { InjectionObject, registerDependencies } from './common/dependencyRegist
 import { IJobManagerConfig } from './common/interfaces';
 import { IngestionJobHandler } from './models/ingestion/ingestionHandler';
 import { ExportJobHandler } from './models/export/exportJobHandler';
+import { IS3Config } from './common/storage/s3Service';
 
 const queueClientFactory = (container: DependencyContainer): QueueClient => {
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
@@ -37,10 +38,9 @@ export interface RegisterOptions {
 export const registerExternalValues = (options?: RegisterOptions): DependencyContainer => {
   const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
   const logger = jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, mixin: getOtelMixin() });
-
   const metricsRegistry = new Registry();
-
   const tracer = trace.getTracer(SERVICE_NAME);
+  const s3Config = config.get<IS3Config>('S3');
 
   const dependencies: InjectionObject<unknown>[] = [
     { token: SERVICES.CONFIG, provider: { useValue: config } },
@@ -51,6 +51,12 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     { token: HANDLERS.UPDATE, provider: { useClass: IngestionJobHandler } },
     { token: HANDLERS.SWAP, provider: { useClass: IngestionJobHandler } },
     { token: HANDLERS.EXPORT, provider: { useClass: ExportJobHandler } },
+    {
+      token: SERVICES.S3CONFIG,
+      provider: {
+        useValue: s3Config,
+      },
+    },
     {
       token: SERVICES.METRICS_REGISTRY,
       provider: {
