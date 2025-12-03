@@ -106,9 +106,10 @@ const registerDefaultConfig = (): void => {
         validation: {
           type: 'validation',
           maxAttempts: 3,
-          verticesPerChunk: 1000,
+          verticesPerChunk: 10000,
           smallGeometriesPercentageThreshold: 5,
           smallHolesPercentageThreshold: 5,
+          reportsPath: '/home/almogk/Documents/raster-team/large-capacity-ingestion/reports',
         },
       },
       jobs: {

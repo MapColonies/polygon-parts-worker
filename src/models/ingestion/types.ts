@@ -1,6 +1,14 @@
-import { featuresErrorCountSchema, thresholdCheckSchema, thresholdsSchema, ValidationErrorType } from '@map-colonies/raster-shared';
+import { IJobResponse } from '@map-colonies/mc-priority-queue';
+import {
+  featuresErrorCountSchema,
+  thresholdCheckSchema,
+  thresholdsSchema,
+  ValidationAggregatedErrors,
+  ValidationErrorType,
+} from '@map-colonies/raster-shared';
 import { Feature, Geometry } from 'geojson';
 import { z } from 'zod';
+import { IngestionJobParams, ValidationTaskParameters } from '../../common/interfaces';
 
 /**
  * A single validation error message
@@ -37,4 +45,38 @@ export type ThresholdsResult = z.infer<typeof thresholdsSchema>;
  */
 export interface ValidationStatistics {
   count: ErrorsCount;
+}
+
+/**
+ * QMD metadata structure for validation error summary
+ */
+
+export interface QmdMetadataKeyword {
+  vocabulary: string;
+  items: string[];
+}
+
+export interface QmdMetadata {
+  identifier: string;
+  parentIdentifier: string;
+  title: string;
+  type: string;
+  abstract: string;
+  language?: string;
+  keywords: QmdMetadataKeyword[];
+}
+
+export interface QmdFileParams {
+  jobId: string;
+  jobType: string;
+  taskId: string;
+  reportTitle: string;
+  errorSummary: ValidationAggregatedErrors;
+}
+
+export interface ShapefileFinalizationParams {
+  job: IJobResponse<IngestionJobParams, ValidationTaskParameters>;
+  taskId: string;
+  errorSummary: ValidationAggregatedErrors;
+  hasCriticalErrors: boolean;
 }

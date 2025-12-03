@@ -53,7 +53,11 @@ export type ShpFeatureProperties = z.infer<typeof shpFeaturePropertiesSchema>;
 
 export const featureIdSchema = shpFeaturePropertiesSchema.pick({ id: true });
 
-export const exceededVerticesFeaturePropertiesSchema = shpFeaturePropertiesSchema.extend({ vertices: z.number().int().positive() });
+export const verticesSchema = z.object({
+  vertices: z.number().int().positive(),
+});
+
+export const exceededVerticesFeaturePropertiesSchema = shpFeaturePropertiesSchema.extend(verticesSchema.shape);
 
 export const shpFeatureBaseSchema = z.object({
   type: z.literal('Feature'),
@@ -66,11 +70,13 @@ export const shpFeatureSchema = shpFeatureBaseSchema.extend({
   properties: shpFeaturePropertiesSchema,
 });
 
-export type ShpFeature = z.infer<typeof shpFeatureSchema>;
-
 export const exceededVerticesShpFeatureSchema = shpFeatureBaseSchema.extend({
   geometry: z.any(),
-  properties: exceededVerticesFeaturePropertiesSchema,
+  properties: shpFeaturePropertiesSchema,
 });
+
+export type ShpFeature = z.infer<typeof shpFeatureSchema>;
+
+export type ExceededVerticesShpProperties = z.infer<typeof exceededVerticesFeaturePropertiesSchema>;
 
 export type PolygonPartFeature = PolygonPartsFeatureCollection['features'][number];
