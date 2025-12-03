@@ -21,4 +21,4 @@ export const flexibleDateCoerce = z.preprocess((val) => {
     return `${year}-${month}-${day}`;
   }
   return val;
-}, z.coerce.date());
+}, z.coerce.date({ errorMap: () => ({ message: 'Expected a valid date format (ISO 8601 or DD/MM/YYYY)' }) }));
