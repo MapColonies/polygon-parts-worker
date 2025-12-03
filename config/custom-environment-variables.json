@@ -80,6 +80,10 @@
         "smallHolesPercentageThreshold": {
           "__name": "VALIDATION_TASK_SMALL_HOLES_PERCENTAGE_THRESHOLD",
           "__format": "number"
+        },
+        "reportsPath": {
+          "__name": "VALIDATION_TASK_REPORTS_PATH",
+          "__format": "string"
         }
       }
     },

@@ -64,7 +64,8 @@
         "maxAttempts": 3,
         "chunkMaxVertices": 1001,
         "smallGeometriesPercentageThreshold": 5,
-        "smallHolesPercentageThreshold": 5
+        "smallHolesPercentageThreshold": 5,
+        "reportsPath": "/validation-reports"
       }
     },
     "jobs": {

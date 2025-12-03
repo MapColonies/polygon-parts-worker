@@ -28,6 +28,7 @@ jobDefinitions:
       maxAttempts: 3,
       smallGeometriesPercentageThreshold: 5
       smallHolesPercentageThreshold: 5
+      reportsPath: &validationReportsPath "/validation-reports"
 
 serviceUrls:
   jobManager: ""
@@ -89,7 +90,10 @@ podAnnotations: {}
 
 extraVolumes: []
 
-extraVolumeMounts: []
+extraVolumeMounts:
+  - name: validation-reports
+    mountPath: *validationReportsPath
+    subPath: "raster/artifacts/validation-reports" 
 
 extraEnvVars: []
 
