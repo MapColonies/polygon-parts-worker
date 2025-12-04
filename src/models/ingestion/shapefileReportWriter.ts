@@ -20,7 +20,7 @@ import {
   ShpWritingMode,
   THRESHOLD_VALIDATION_STATUS,
 } from './constants';
-import { ErrorsCount, QmdFileParams, QmdMetadata, QmdMetadataKeyword, ShapefileFinalizationParams } from './types';
+import { ErrorsCount, QmdFileParams, QmdMetadata, QmdMetadataKeyword, Report, ShapefileFinalizationParams } from './types';
 
 interface Ogr2OgrOptions {
   command?: string;
@@ -96,7 +96,7 @@ export class ShapefileReportWriter {
    * @param hasCriticalErrors - Flag indicating if there are critical errors to report
    * @returns Path to the completed zip file or null if no file was created
    */
-  public async finalize(params: ShapefileFinalizationParams): Promise<FileMetadata | null> {
+  public async finalize(params: ShapefileFinalizationParams): Promise<Report | null> {
     const outputPath = this.getJobShapefilePath(params.job.id);
     try {
       const exists = await this.shapefileExists(outputPath);
@@ -132,7 +132,7 @@ export class ShapefileReportWriter {
     }
   }
 
-  private async createFinalReport(finalizationParams: ShapefileFinalizationParams, outputPath: string): Promise<FileMetadata> {
+  private async createFinalReport(finalizationParams: ShapefileFinalizationParams, outputPath: string): Promise<Report> {
     const { job, taskId, errorSummary } = finalizationParams;
     const reportTitle = this.getReportTitle(job);
 
@@ -152,7 +152,7 @@ export class ShapefileReportWriter {
       msg: 'Error shapefile finalized and zipped',
       jobId: job.id,
       outputPath,
-      zipPath: report.url,
+      zipPath: report.path,
     });
     return report;
   }
@@ -235,7 +235,7 @@ export class ShapefileReportWriter {
     return qmdContent;
   }
 
-  private async createZipArchive(jobId: string, reportTitle: string): Promise<FileMetadata> {
+  private async createZipArchive(jobId: string, reportTitle: string): Promise<Report> {
     const outputDir = this.getJobShapefilePath(jobId);
     const reportFileName = this.getReportFileName(reportTitle);
     const zipPath = path.join(outputDir, reportFileName);
@@ -258,7 +258,7 @@ export class ShapefileReportWriter {
       });
 
       return {
-        url: zipPath,
+        path: zipPath,
         fileName: reportFileName,
         fileSize: fileSize,
       };
