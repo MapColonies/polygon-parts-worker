@@ -199,7 +199,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     featureCollection: PolygonPartsFeatureCollection
   ): PolygonPartsPayload {
     const validProductType = rasterProductTypeSchema.parse(job.productType);
-    const validCatalogId = polygonPartsPayloadSchema.pick({ catalogId: true }).parse(job.internalId).catalogId;
+    const validCatalogId = polygonPartsPayloadSchema.pick({ catalogId: true }).shape.catalogId.parse(job.internalId);
 
     const request: PolygonPartsPayload = {
       jobType: job.type,
