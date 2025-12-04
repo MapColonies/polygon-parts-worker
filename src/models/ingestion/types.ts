@@ -1,6 +1,7 @@
 import { IJobResponse } from '@map-colonies/mc-priority-queue';
 import {
   featuresErrorCountSchema,
+  FileMetadata,
   thresholdCheckSchema,
   thresholdsSchema,
   ValidationAggregatedErrors,
@@ -80,3 +81,5 @@ export interface ShapefileFinalizationParams {
   errorSummary: ValidationAggregatedErrors;
   hasCriticalErrors: boolean;
 }
+
+export type Report = Omit<FileMetadata, 'url'> & { path: string };

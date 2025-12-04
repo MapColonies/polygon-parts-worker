@@ -69,7 +69,6 @@ export type ExportPolygonPartsResponse = FeatureCollection<Polygon, Omit<Polygon
 export interface ValidationTaskParameters extends IngestionValidationTaskParams {
   processingState: ProcessingState | null;
   errorsSummary: ValidationAggregatedErrors;
-  report: FileMetadata | null;
 }
 
 export interface FeatureResolutions {
