@@ -917,16 +917,16 @@ describe('ValidationErrorCollector', () => {
     });
   });
 
-  describe('getStatistics', () => {
+  describe('getErrorsSummary', () => {
     it('should return both error counts and thresholds', () => {
       // Arrange - collector is already initialized
 
       // Act
-      const stats = collector.getStatistics();
+      const errorsSummary = collector.getErrorsSummary();
 
       // Assert
-      expect(stats).toHaveProperty('errorsCount');
-      expect(stats).toHaveProperty('thresholds');
+      expect(errorsSummary).toHaveProperty('errorsCount');
+      expect(errorsSummary).toHaveProperty('thresholds');
     });
   });
 
