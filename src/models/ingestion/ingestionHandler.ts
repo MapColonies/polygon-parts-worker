@@ -11,31 +11,43 @@ import {
   polygonPartsPayloadSchema,
   rasterProductTypeSchema,
   SHAPEFILE_EXTENSIONS_LIST,
+  ValidationAggregatedErrors,
 } from '@map-colonies/raster-shared';
 import { ZodError } from 'zod';
 import { FeatureResolutions, IConfig, IJobHandler, IngestionJobParams, ValidationTaskParameters } from '../../common/interfaces';
 import { PolygonPartsManagerClient } from '../../clients/polygonPartsManagerClient';
-import { SERVICES } from '../../common/constants';
+import { S3_VALIDATION_REPORTS_FOLDER, SERVICES, StorageProvider, ZIP_CONTENT_TYPE } from '../../common/constants';
 import { PolygonPartFeature, ShpFeature, shpFeatureSchema } from '../../schemas/shpFile.schema';
 import { ShapefileMetrics } from '../../common/otel/metrics/shapeFileMetrics';
 import { ShapefileNotFoundError } from '../../common/errors';
+import { S3Service, UploadFile } from '../../common/storage/s3Service';
 import { calculateResMeterFromDegree } from '../../utils/utils';
 import { ValidationErrorCollector } from './validationErrorCollector';
+import { ShapefileReportWriter } from './shapefileReportWriter';
 
 @injectable()
 export class IngestionJobHandler implements IJobHandler<IngestionJobParams, ValidationTaskParameters> {
   private readonly maxVerticesPerChunk: number;
   private readonly ingestionSourcesDirPath: string;
+  private readonly shouldUploadToS3: boolean;
+  private readonly downloadServerUrl: string;
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
     @inject(PolygonPartsManagerClient) private readonly polygonPartsManager: PolygonPartsManagerClient,
     @inject(ValidationErrorCollector) private readonly validationErrorCollector: ValidationErrorCollector,
     @inject(ShapefileMetrics) private readonly shapeFileMetrics: ShapefileMetrics,
-    @inject(SERVICES.CONFIG) private readonly config: IConfig
+    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    @inject(ShapefileReportWriter) private readonly shapefileReportWriter: ShapefileReportWriter,
+    @inject(S3Service) private readonly s3Service: S3Service
   ) {
-    this.maxVerticesPerChunk = config.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+    this.maxVerticesPerChunk = this.config.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
     this.ingestionSourcesDirPath = this.config.get<string>('ingestionSourcesDirPath');
+    const provider = this.config.get<StorageProvider>('reportStorageProvider');
+    this.shouldUploadToS3 = provider === StorageProvider.S3;
+    const downloadServerPublicDns = this.config.get<string>('downloadServer.publicDns');
+    const reportsDownloadPath = this.config.get<string>('downloadServer.reportsDownloadPath');
+    this.downloadServerUrl = `${downloadServerPublicDns}/${reportsDownloadPath}`;
   }
 
   public async processJob(
@@ -52,6 +64,32 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
 
       const chunkProcessor = this.setupChunkProcessor(job);
       await shpReader.readAndProcess(job.parameters.inputFiles.metadataShapefilePath, chunkProcessor);
+
+      const hasCriticalErrors = this.validationErrorCollector.hasCriticalErrors();
+      const errorsSummary = this.validationErrorCollector.getErrorsSummary();
+      const report = await this.shapefileReportWriter.finalize({
+        job,
+        taskId: task.id,
+        errorSummary: errorsSummary,
+        hasCriticalErrors,
+      });
+
+      if (this.shouldUploadToS3 && report) {
+        const s3Key = `${S3_VALIDATION_REPORTS_FOLDER}/${job.id}/${report.fileName}`;
+        const fileToUpload: UploadFile = { filePath: report.path, s3Key, contentType: ZIP_CONTENT_TYPE };
+        await this.s3Service.uploadFiles([fileToUpload], { deleteAfterUpload: true });
+      }
+
+      const updatedTask = await this.queueClient.jobManagerClient.getTask<ValidationTaskParameters>(job.id, task.id);
+
+      await this.queueClient.jobManagerClient.updateTask(job.id, task.id, {
+        parameters: {
+          ...updatedTask.parameters,
+          isValid: !hasCriticalErrors,
+          errorsSummary,
+          ...(report && { report: { ...report, url: `${this.downloadServerUrl}/${job.id}/${report.fileName}` } }),
+        },
+      });
 
       this.logger.info({ msg: 'all chunks processed' });
     } catch (error) {
@@ -88,7 +126,8 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     const stateManager: StateManager = {
       loadState: () => task.parameters.processingState,
       saveState: async (state) => {
-        await this.updateTaskParams(state, job, task);
+        const errorsSummary = this.validationErrorCollector.getErrorsSummary();
+        await this.updateTaskParams(state, errorsSummary, job, task);
       },
     };
 
@@ -124,6 +163,12 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
 
         const validationResult = await this.validateChunk(job, validFeatureCollection);
         this.validationErrorCollector.addValidationErrors(validationResult, chunk.features, chunk.id);
+
+        if (this.validationErrorCollector.hasErrors()) {
+          const featuresWithErrors = this.validationErrorCollector.getFeaturesWithErrorProperties();
+          await this.shapefileReportWriter.writeChunk(featuresWithErrors, job.id, chunk.id);
+          this.validationErrorCollector.clearInvalidFeatures();
+        }
         this.logger.info({ msg: 'chunk processed', chunkId: chunk.id, featuresCount: validFeatureCollection.features.length });
       },
     };
@@ -215,6 +260,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
 
   private async updateTaskParams(
     state: ProcessingState,
+    errorsSummary: ValidationAggregatedErrors,
     job: IJobResponse<IngestionJobParams, unknown>,
     task: ITaskResponse<ValidationTaskParameters>
   ): Promise<void> {
@@ -223,6 +269,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     const newParameters: ValidationTaskParameters = {
       ...task.parameters,
       processingState: { ...task.parameters.processingState, ...state },
+      errorsSummary,
     };
     const taskUpdateBody: IUpdateTaskBody<Partial<ValidationTaskParameters>> = {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
