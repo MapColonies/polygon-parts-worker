@@ -3,7 +3,6 @@ import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import type { FeatureCollection, Polygon } from 'geojson';
 import { ProcessingState } from '@map-colonies/mc-utils';
 import {
-  FileMetadata,
   IngestionValidationTaskParams,
   PartFeatureProperties,
   polygonPartsPayloadSchema,

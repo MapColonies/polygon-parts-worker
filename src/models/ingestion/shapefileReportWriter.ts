@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import { createWriteStream } from 'fs';
 import { inject, injectable } from 'tsyringe';
 import { create } from 'xmlbuilder2';
-import { FileMetadata, getEntityName, rasterProductTypeSchema, ValidationAggregatedErrors } from '@map-colonies/raster-shared';
+import { getEntityName, rasterProductTypeSchema } from '@map-colonies/raster-shared';
 import { Logger } from '@map-colonies/js-logger';
 import ogr2ogr from 'ogr2ogr';
 import archiver from 'archiver';
