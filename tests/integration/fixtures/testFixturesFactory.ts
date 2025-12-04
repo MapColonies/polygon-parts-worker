@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 import { randomUUID } from 'crypto';
+import { faker } from '@faker-js/faker';
 import { IJobResponse, ITaskResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { ProductType } from '@map-colonies/mc-model-types';
 import { IngestionJobParams, ValidationTaskParameters } from '../../../src/common/interfaces';
@@ -58,7 +59,7 @@ export function createIngestionJob(options: CreateJobOptions = {}): IJobResponse
     isCleaned: false,
     priority: 0,
     expirationDate: new Date('2025-12-31T23:59:59Z'),
-    internalId: 'internal-test-id',
+    internalId: faker.string.uuid(),
     producerName: 'test-producer',
     productName: 'test-product',
     productType,
@@ -90,6 +91,27 @@ export function createTask(options: CreateTaskOptions = {}): ITaskResponse<Valid
     description: 'Integration test validation task',
     parameters: {
       processingState,
+      errorsSummary: {
+        errorsCount: {
+          vertices: 0,
+          metadata: 0,
+          geometryValidity: 0,
+          resolution: 0,
+          smallGeometries: 0,
+          smallHoles: 0,
+          unknown: 0,
+        },
+        thresholds: {
+          smallGeometries: {
+            exceeded: false,
+          },
+          smallHoles: {
+            count: 50,
+            exceeded: false,
+          },
+        },
+      },
+      isValid: false,
     },
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
