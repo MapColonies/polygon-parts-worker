@@ -54,25 +54,33 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     job: IJobResponse<IngestionJobParams, ValidationTaskParameters>,
     task: ITaskResponse<ValidationTaskParameters>
   ): Promise<void> {
+    const logger = this.logger.child({ jobId: job.id, taskId: task.id });
     try {
       this.validateShapefilesExists(job.parameters.inputFiles.metadataShapefilePath);
       const shpReader = this.setupShapefileChunkReader(job, task);
 
       const shapeFileStats = await shpReader.getShapefileStats(job.parameters.inputFiles.metadataShapefilePath);
-      this.logger.info({ msg: 'shapefile stats retrieved', shapeFileStats });
+      logger.info({ msg: 'shapefile stats retrieved', shapeFileStats });
       this.validationErrorCollector.setShapefileStats(shapeFileStats);
 
       const chunkProcessor = this.setupChunkProcessor(job);
       await shpReader.readAndProcess(job.parameters.inputFiles.metadataShapefilePath, chunkProcessor);
+      logger.info({ msg: 'all chunks processed' });
 
       const hasCriticalErrors = this.validationErrorCollector.hasCriticalErrors();
+      logger.info({ msg: 'has critical errors', hasCriticalErrors });
+
       const errorsSummary = this.validationErrorCollector.getErrorsSummary();
+      logger.info({ msg: 'errors summary', errorsSummary });
+
       const report = await this.shapefileReportWriter.finalize({
         job,
         taskId: task.id,
         errorSummary: errorsSummary,
         hasCriticalErrors,
       });
+
+      logger.info({ msg: 'report finalized', report });
 
       if (this.shouldUploadToS3 && report) {
         const s3Key = `${S3_VALIDATION_REPORTS_FOLDER}/${job.id}/${report.fileName}`;
@@ -82,18 +90,21 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
 
       const updatedTask = await this.queueClient.jobManagerClient.getTask<ValidationTaskParameters>(job.id, task.id);
 
+      const taskParameters: Omit<ValidationTaskParameters, 'processingState'> = {
+        errorsSummary,
+        isValid: !hasCriticalErrors,
+        ...(report && { report: { ...report, url: `${this.downloadServerUrl}/${job.id}/${report.fileName}` } }),
+      };
+
+      logger.info({ msg: 'updating task parameters', taskParameters });
       await this.queueClient.jobManagerClient.updateTask(job.id, task.id, {
         parameters: {
           ...updatedTask.parameters,
-          isValid: !hasCriticalErrors,
-          errorsSummary,
-          ...(report && { report: { ...report, url: `${this.downloadServerUrl}/${job.id}/${report.fileName}` } }),
+          ...taskParameters,
         },
       });
-
-      this.logger.info({ msg: 'all chunks processed' });
     } catch (error) {
-      this.logger.error({ msg: 'error while processing job', error });
+      logger.error({ msg: 'error while processing job', error });
       throw error;
     }
   }
