@@ -28,3 +28,14 @@ export const HANDLERS = {
   SWAP: config.get<string>('jobDefinitions.jobs.swapUpdate.type'),
   EXPORT: config.get<string>('jobDefinitions.jobs.export.type'),
 } satisfies Record<string, string>;
+
+export const StorageProvider = {
+  FS: 'FS',
+  S3: 'S3',
+} as const;
+
+export type StorageProvider = (typeof StorageProvider)[keyof typeof StorageProvider];
+
+export const S3_VALIDATION_REPORTS_FOLDER = 'validation-reports';
+
+export const ZIP_CONTENT_TYPE = 'application/zip';

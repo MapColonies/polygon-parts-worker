@@ -29,12 +29,14 @@ jobDefinitions:
       smallGeometriesPercentageThreshold: 5
       smallHolesPercentageThreshold: 5
       reportsPath: &validationReportsPath "/validation-reports"
+      reportsDownloadPath: "/downloads/validation-reports"
 
 serviceUrls:
   jobManager: ""
   heartbeatManager: ""
   polygonPartsManager: ""
   jobTracker: ""
+  downloadServerPublicDNS: ""
 
 storage:
   reportStorageProvider: "" # FS | S3

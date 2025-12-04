@@ -53,4 +53,7 @@ data:
   S3_ARTIFACTS_BUCKET: {{ $storage.s3.artifactsBucket | quote }}
   S3_SSL_ENABLED: {{ $storage.s3.sslEnabled | quote }}
   {{- end }}
+  REPORT_STORAGE_PROVIDER: {{ $storage.reportStorageProvider }}
+  DOWNLOAD_SERVER_PUBLIC_DNS: {{ $serviceUrls.downloadServerPublicDNS | quote }}
+  DOWNLOAD_SERVER_REPORTS_DOWNLOAD_PATH: {{$jobDefinitions.tasks.validation.reportsDownloadPath | quote }}
 {{- end }}

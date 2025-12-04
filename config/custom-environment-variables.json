@@ -52,6 +52,10 @@
   "polygonPartsManager": {
     "baseUrl": "POLYGON_PARTS_MANAGER_BASE_URL"
   },
+  "downloadServer": {
+    "baseUrl": "DOWNLOAD_SERVER_PUBLIC_DNS",
+    "reportsDownloadPath": "DOWNLOAD_SERVER_REPORTS_DOWNLOAD_PATH"
+  },
   "gpkgsLocation": "GPKGS_LOCATION",
   "ingestionSourcesDirPath": "INGESTION_SOURCES_DIR_PATH",
   "jobDefinitions": {
@@ -123,6 +127,7 @@
       "__format": "boolean"
     }
   },
+  "reportStorageProvider": "REPORT_STORAGE_PROVIDER",
   "disableHttpClientLogs": {
     "__name": "DISABLE_HTTP_CLIENT_LOGS",
     "__format": "boolean"

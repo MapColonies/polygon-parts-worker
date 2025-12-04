@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as fs from 'fs';
+import * as path from 'path';
 import { inject, injectable } from 'tsyringe';
 import { Upload } from '@aws-sdk/lib-storage';
 import { S3Client } from '@aws-sdk/client-s3';
@@ -123,13 +124,30 @@ export class S3Service {
     this.logger.info({ msg: 'Deleting uploaded files from filesystem' });
     activeSpan?.addEvent('fs.delete.start');
 
+    const parentDirs = new Set<string>();
+
     await Promise.all(
       filePaths.map(async (filePath) => {
         try {
           await fs.promises.unlink(filePath);
           this.logger.debug({ msg: 'Deleted file from filesystem', filePath });
+          parentDirs.add(path.dirname(filePath));
         } catch (unlinkError) {
           this.logger.warn({ msg: 'Failed to delete file from filesystem', filePath, error: unlinkError });
+        }
+      })
+    );
+
+    activeSpan?.addEvent('fs.delete.files.complete');
+
+    // Delete parent directories
+    await Promise.all(
+      [...parentDirs].map(async (dir) => {
+        try {
+          await fs.promises.rmdir(dir);
+          this.logger.debug({ msg: 'Deleted parent directory from filesystem', dir });
+        } catch (rmdirError) {
+          this.logger.warn({ msg: 'Failed to delete parent directory from filesystem', dir, error: rmdirError });
         }
       })
     );
