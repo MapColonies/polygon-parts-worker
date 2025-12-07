@@ -53,7 +53,7 @@
     "baseUrl": "POLYGON_PARTS_MANAGER_BASE_URL"
   },
   "downloadServer": {
-    "baseUrl": "DOWNLOAD_SERVER_PUBLIC_DNS",
+    "publicDns": "DOWNLOAD_SERVER_PUBLIC_DNS",
     "reportsDownloadPath": "DOWNLOAD_SERVER_REPORTS_DOWNLOAD_PATH"
   },
   "gpkgsLocation": "GPKGS_LOCATION",
@@ -85,10 +85,7 @@
           "__name": "VALIDATION_TASK_SMALL_HOLES_PERCENTAGE_THRESHOLD",
           "__format": "number"
         },
-        "reportsPath": {
-          "__name": "VALIDATION_TASK_REPORTS_PATH",
-          "__format": "string"
-        }
+        "reportsPath": "VALIDATION_TASK_REPORTS_PATH"
       }
     },
     "jobs": {

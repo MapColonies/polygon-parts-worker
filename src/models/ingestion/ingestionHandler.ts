@@ -1,10 +1,11 @@
 import path from 'path';
 import fs from 'fs';
 import { inject, injectable } from 'tsyringe';
-import { IJobResponse, ITaskResponse, IUpdateTaskBody, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import { IJobResponse, ITaskResponse, IUpdateTaskBody, OperationStatus, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { Logger } from '@map-colonies/js-logger';
-import { MetricsCollector, ShapefileChunkReader, ProcessingState, ChunkProcessor, ShapefileChunk, StateManager } from '@map-colonies/mc-utils';
+import { MetricsCollector, ShapefileChunkReader, ChunkProcessor, ShapefileChunk, StateManager } from '@map-colonies/mc-utils';
 import {
+  CallbackResponse,
   PolygonPartsChunkValidationResult,
   PolygonPartsFeatureCollection,
   PolygonPartsPayload,
@@ -12,8 +13,9 @@ import {
   rasterProductTypeSchema,
   SHAPEFILE_EXTENSIONS_LIST,
   ValidationAggregatedErrors,
+  ValidationCallbackData,
 } from '@map-colonies/raster-shared';
-import { ZodError } from 'zod';
+import { late, ZodError } from 'zod';
 import { FeatureResolutions, IConfig, IJobHandler, IngestionJobParams, ValidationTaskParameters } from '../../common/interfaces';
 import { PolygonPartsManagerClient } from '../../clients/polygonPartsManagerClient';
 import { S3_VALIDATION_REPORTS_FOLDER, SERVICES, StorageProvider, ZIP_CONTENT_TYPE } from '../../common/constants';
@@ -24,6 +26,7 @@ import { S3Service, UploadFile } from '../../common/storage/s3Service';
 import { calculateResMeterFromDegree } from '../../utils/utils';
 import { ValidationErrorCollector } from './validationErrorCollector';
 import { ShapefileReportWriter } from './shapefileReportWriter';
+import { Report } from './types';
 
 @injectable()
 export class IngestionJobHandler implements IJobHandler<IngestionJobParams, ValidationTaskParameters> {
@@ -47,7 +50,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     this.shouldUploadToS3 = provider === StorageProvider.S3;
     const downloadServerPublicDns = this.config.get<string>('downloadServer.publicDns');
     const reportsDownloadPath = this.config.get<string>('downloadServer.reportsDownloadPath');
-    this.downloadServerUrl = `${downloadServerPublicDns}/${reportsDownloadPath}`;
+    this.downloadServerUrl = path.join(downloadServerPublicDns, reportsDownloadPath);
   }
 
   public async processJob(
@@ -56,15 +59,15 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
   ): Promise<void> {
     const logger = this.logger.child({ jobId: job.id, taskId: task.id });
     try {
-      this.validateShapefilesExists(job.parameters.inputFiles.metadataShapefilePath);
+      const shapefileFullPath = this.validateShapefilesExists(job.parameters.inputFiles.metadataShapefilePath);
       const shpReader = this.setupShapefileChunkReader(job, task);
 
-      const shapeFileStats = await shpReader.getShapefileStats(job.parameters.inputFiles.metadataShapefilePath);
+      const shapeFileStats = await shpReader.getShapefileStats(shapefileFullPath);
       logger.info({ msg: 'shapefile stats retrieved', shapeFileStats });
       this.validationErrorCollector.setShapefileStats(shapeFileStats);
 
       const chunkProcessor = this.setupChunkProcessor(job);
-      await shpReader.readAndProcess(job.parameters.inputFiles.metadataShapefilePath, chunkProcessor);
+      await shpReader.readAndProcess(shapefileFullPath, chunkProcessor);
       logger.info({ msg: 'all chunks processed' });
 
       const hasCriticalErrors = this.validationErrorCollector.hasCriticalErrors();
@@ -83,26 +86,10 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
       logger.info({ msg: 'report finalized', report });
 
       if (this.shouldUploadToS3 && report) {
-        const s3Key = `${S3_VALIDATION_REPORTS_FOLDER}/${job.id}/${report.fileName}`;
-        const fileToUpload: UploadFile = { filePath: report.path, s3Key, contentType: ZIP_CONTENT_TYPE };
-        await this.s3Service.uploadFiles([fileToUpload], { deleteAfterUpload: true });
+        await this.uploadReportToS3(job.id, report);
       }
 
-      const updatedTask = await this.queueClient.jobManagerClient.getTask<ValidationTaskParameters>(job.id, task.id);
-
-      const taskParameters: Omit<ValidationTaskParameters, 'processingState'> = {
-        errorsSummary,
-        isValid: !hasCriticalErrors,
-        ...(report && { report: { ...report, url: `${this.downloadServerUrl}/${job.id}/${report.fileName}` } }),
-      };
-
-      logger.info({ msg: 'updating task parameters', taskParameters });
-      await this.queueClient.jobManagerClient.updateTask(job.id, task.id, {
-        parameters: {
-          ...updatedTask.parameters,
-          ...taskParameters,
-        },
-      });
+      const callBackTask = await this.updateTaskValidationResult(job.id, task.id, errorsSummary, hasCriticalErrors, report);
     } catch (error) {
       logger.error({ msg: 'error while processing job', error });
       throw error;
@@ -135,10 +122,16 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     };
 
     const stateManager: StateManager = {
-      loadState: () => task.parameters.processingState,
+      loadState: () => task.parameters.processingState ?? null,
       saveState: async (state) => {
         const errorsSummary = this.validationErrorCollector.getErrorsSummary();
-        await this.updateTaskParams(state, errorsSummary, job, task);
+        const processingState = task.parameters.processingState ? { ...task.parameters.processingState, ...state } : state;
+        const newParameters: ValidationTaskParameters = {
+          ...task.parameters,
+          processingState,
+          errorsSummary,
+        };
+        await this.updateTaskParams(job.id, task.id, newParameters);
       },
     };
 
@@ -171,8 +164,10 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
         }
 
         const validFeatureCollection = this.parseChunk(chunk, job);
+        this.logger.info({ msg: 'chunk parsed', validFeaturesCount: validFeatureCollection.features.length });
 
         const validationResult = await this.validateChunk(job, validFeatureCollection);
+        this.logger.info({ msg: 'chunk validated', validationResult });
         this.validationErrorCollector.addValidationErrors(validationResult, chunk.features, chunk.id);
 
         if (this.validationErrorCollector.hasErrors()) {
@@ -209,7 +204,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     return { type: 'FeatureCollection', features: validFeatures };
   }
 
-  private validateShapefilesExists(shapefileRelativePath: string): void {
+  private validateShapefilesExists(shapefileRelativePath: string): string {
     const shapefileFullPath = path.join(this.ingestionSourcesDirPath, shapefileRelativePath);
     const parsed = path.parse(shapefileFullPath);
     const basePath = path.join(parsed.dir, parsed.name);
@@ -226,6 +221,8 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
       this.logger.error({ msg: 'shapefiles are missing required files', basePath, missingFiles: missing });
       throw new ShapefileNotFoundError(basePath, missing);
     }
+
+    return shapefileFullPath;
   }
 
   private mapShpPropertiesSchemaToPartProperties(feature: ShpFeature, resolutions: FeatureResolutions): PolygonPartFeature {
@@ -269,24 +266,76 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     return request;
   }
 
-  private async updateTaskParams(
-    state: ProcessingState,
-    errorsSummary: ValidationAggregatedErrors,
-    job: IJobResponse<IngestionJobParams, unknown>,
-    task: ITaskResponse<ValidationTaskParameters>
-  ): Promise<void> {
-    this.logger.info({ msg: 'update task parameters', state });
-
-    const newParameters: ValidationTaskParameters = {
-      ...task.parameters,
-      processingState: { ...task.parameters.processingState, ...state },
-      errorsSummary,
-    };
+  private async updateTaskParams(jobId: string, taskId: string, newTaskParameters: ValidationTaskParameters): Promise<void> {
+    this.logger.info({ msg: 'updating task parameters', jobId, taskId, newTaskParameters });
     const taskUpdateBody: IUpdateTaskBody<Partial<ValidationTaskParameters>> = {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      percentage: Number(state.progress?.percentage.toFixed()),
-      parameters: newParameters,
+      percentage: Number(newTaskParameters.processingState?.progress?.percentage.toFixed()),
+      parameters: newTaskParameters,
     };
-    await this.queueClient.jobManagerClient.updateTask(job.id, task.id, taskUpdateBody);
+    await this.queueClient.jobManagerClient.updateTask(jobId, taskId, taskUpdateBody);
   }
+
+  private generateReportDownloadUrl(jobId: string, reportFileName: string): string {
+    return `${this.downloadServerUrl}/${jobId}/${reportFileName}`;
+  }
+
+  private async uploadReportToS3(jobId: string, report: Report): Promise<void> {
+    const s3Key = `${S3_VALIDATION_REPORTS_FOLDER}/${jobId}/${report.fileName}`;
+    const fileToUpload: UploadFile = { filePath: report.path, s3Key, contentType: ZIP_CONTENT_TYPE };
+    this.logger.info({ msg: 'uploading validation report to S3', jobId, s3Key });
+
+    await this.s3Service.uploadFiles([fileToUpload], { deleteAfterUpload: true });
+    this.logger.info({ msg: 'validation report uploaded to S3', jobId, s3Key });
+  }
+
+  private async updateTaskValidationResult(
+    jobId: string,
+    taskId: string,
+    errorsSummary: ValidationAggregatedErrors,
+    hasCriticalErrors: boolean,
+    report: Report | null
+  ): Promise<ITaskResponse<ValidationTaskParameters>> {
+    const latestTask = await this.queueClient.jobManagerClient.getTask<ValidationTaskParameters>(jobId, taskId);
+    const taskParameters: ValidationTaskParameters = {
+      ...latestTask.parameters,
+      errorsSummary,
+      isValid: !hasCriticalErrors,
+      ...(report && {
+        report: { fileName: report.fileName, fileSize: report.fileSize, url: this.generateReportDownloadUrl(jobId, report.fileName) },
+      }),
+    };
+    this.logger.info({ msg: 'updating task parameters', jobId, taskId: latestTask.id, newTaskParameters: taskParameters });
+    await this.updateTaskParams(jobId, latestTask.id, taskParameters);
+    latestTask.parameters = taskParameters;
+    return latestTask;
+  }
+
+  // private async sendCallBacks(
+  //   job: IJobResponse<IngestionJobParams, unknown>,
+  //   task: ITaskResponse<ValidationTaskParameters>,
+  //   status: OperationStatus
+  // ): Promise<void> {
+  //   const callbackUrls = job.parameters.callbackUrls;
+  //   const validProductType = rasterProductTypeSchema.parse(job.productType);
+  //   const report = task.parameters.report;
+  //   const links = report ? [report] : [];
+  //   if (callbackUrls && callbackUrls.length > 0) {
+  //     const callbackResponse: CallbackResponse<ValidationCallbackData> = {
+  //       jobId: job.id,
+  //       jobType: job.type,
+  //       productId: job.resourceId,
+  //       productType: validProductType,
+  //       status,
+  //       version: job.version,
+  //       taskId: task.id,
+  //       taskType: task.type,
+  //       data: {
+  //         isValid: task.parameters.isValid ?? false,
+  //         sourceName: '',
+  //         links,
+  //       },
+  //     };
+  //   }
+  // }
 }

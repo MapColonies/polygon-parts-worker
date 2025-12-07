@@ -4,6 +4,8 @@
 {{- $jobDefinitions := (include "common.jobDefinitions.merged" .) | fromYaml }}
 {{- $fs := (include "common.fs.merged" .) | fromYaml }}
 {{ $gpkgLocation := (printf "%s/%s" $fs.internalPvc.outputPath $fs.internalPvc.gpkgSubPath) }}
+{{- $storage := (include "common.storage.merged" .) | fromYaml }}
+
 
 {{- if .Values.enabled -}}
 apiVersion: v1
@@ -53,7 +55,7 @@ data:
   S3_ARTIFACTS_BUCKET: {{ $storage.s3.artifactsBucket | quote }}
   S3_SSL_ENABLED: {{ $storage.s3.sslEnabled | quote }}
   {{- end }}
-  REPORT_STORAGE_PROVIDER: {{ $storage.reportStorageProvider }}
+  REPORT_STORAGE_PROVIDER: {{ $storage.reportProvider }}
   DOWNLOAD_SERVER_PUBLIC_DNS: {{ $serviceUrls.downloadServerPublicDNS | quote }}
   DOWNLOAD_SERVER_REPORTS_DOWNLOAD_PATH: {{$jobDefinitions.tasks.validation.reportsDownloadPath | quote }}
 {{- end }}
