@@ -356,9 +356,9 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
       jobType: job.type,
       productId: job.resourceId,
       productType: validProductType,
-      status,
       version: job.version,
       taskType: task.type,
+      status,
       ...callbackInfo,
     };
 
