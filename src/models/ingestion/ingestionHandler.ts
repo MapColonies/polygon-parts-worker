@@ -6,6 +6,7 @@ import { Logger } from '@map-colonies/js-logger';
 import { MetricsCollector, ShapefileChunkReader, ChunkProcessor, ShapefileChunk, StateManager } from '@map-colonies/mc-utils';
 import {
   CallbackResponse,
+  getEntityName,
   PolygonPartsChunkValidationResult,
   PolygonPartsFeatureCollection,
   PolygonPartsPayload,
@@ -15,7 +16,7 @@ import {
   ValidationAggregatedErrors,
   ValidationCallbackData,
 } from '@map-colonies/raster-shared';
-import { late, ZodError } from 'zod';
+import { ZodError } from 'zod';
 import { FeatureResolutions, IConfig, IJobHandler, IngestionJobParams, ValidationTaskParameters } from '../../common/interfaces';
 import { PolygonPartsManagerClient } from '../../clients/polygonPartsManagerClient';
 import { S3_VALIDATION_REPORTS_FOLDER, SERVICES, StorageProvider, ZIP_CONTENT_TYPE } from '../../common/constants';
@@ -23,6 +24,7 @@ import { PolygonPartFeature, ShpFeature, shpFeatureSchema } from '../../schemas/
 import { ShapefileMetrics } from '../../common/otel/metrics/shapeFileMetrics';
 import { ShapefileNotFoundError } from '../../common/errors';
 import { S3Service, UploadFile } from '../../common/storage/s3Service';
+import { CallbackClient } from '../../clients/callbackClient';
 import { calculateResMeterFromDegree } from '../../utils/utils';
 import { ValidationErrorCollector } from './validationErrorCollector';
 import { ShapefileReportWriter } from './shapefileReportWriter';
@@ -34,6 +36,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
   private readonly ingestionSourcesDirPath: string;
   private readonly shouldUploadToS3: boolean;
   private readonly downloadServerUrl: string;
+  private readonly validationTaskMaxAttempts: number;
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
@@ -42,7 +45,8 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     @inject(ShapefileMetrics) private readonly shapeFileMetrics: ShapefileMetrics,
     @inject(SERVICES.CONFIG) private readonly config: IConfig,
     @inject(ShapefileReportWriter) private readonly shapefileReportWriter: ShapefileReportWriter,
-    @inject(S3Service) private readonly s3Service: S3Service
+    @inject(S3Service) private readonly s3Service: S3Service,
+    @inject(CallbackClient) private readonly callbackClient: CallbackClient
   ) {
     this.maxVerticesPerChunk = this.config.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
     this.ingestionSourcesDirPath = this.config.get<string>('ingestionSourcesDirPath');
@@ -51,6 +55,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     const downloadServerPublicDns = this.config.get<string>('downloadServer.publicDns');
     const reportsDownloadPath = this.config.get<string>('downloadServer.reportsDownloadPath');
     this.downloadServerUrl = path.join(downloadServerPublicDns, reportsDownloadPath);
+    this.validationTaskMaxAttempts = this.config.get<number>('jobDefinitions.tasks.validation.maxAttempts');
   }
 
   public async processJob(
@@ -58,6 +63,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     task: ITaskResponse<ValidationTaskParameters>
   ): Promise<void> {
     const logger = this.logger.child({ jobId: job.id, taskId: task.id });
+
     try {
       const shapefileFullPath = this.validateShapefilesExists(job.parameters.inputFiles.metadataShapefilePath);
       const shpReader = this.setupShapefileChunkReader(job, task);
@@ -90,8 +96,14 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
       }
 
       const callBackTask = await this.updateTaskValidationResult(job.id, task.id, errorsSummary, hasCriticalErrors, report);
+
+      await this.sendCallBacks(job, callBackTask, OperationStatus.COMPLETED);
     } catch (error) {
       logger.error({ msg: 'error while processing job', error });
+      const reachedMaxAttempts = task.attempts + 1 >= this.validationTaskMaxAttempts;
+      if (reachedMaxAttempts) {
+        await this.sendCallBacks(job, task, OperationStatus.FAILED);
+      }
       throw error;
     }
   }
@@ -311,31 +323,45 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     return latestTask;
   }
 
-  // private async sendCallBacks(
-  //   job: IJobResponse<IngestionJobParams, unknown>,
-  //   task: ITaskResponse<ValidationTaskParameters>,
-  //   status: OperationStatus
-  // ): Promise<void> {
-  //   const callbackUrls = job.parameters.callbackUrls;
-  //   const validProductType = rasterProductTypeSchema.parse(job.productType);
-  //   const report = task.parameters.report;
-  //   const links = report ? [report] : [];
-  //   if (callbackUrls && callbackUrls.length > 0) {
-  //     const callbackResponse: CallbackResponse<ValidationCallbackData> = {
-  //       jobId: job.id,
-  //       jobType: job.type,
-  //       productId: job.resourceId,
-  //       productType: validProductType,
-  //       status,
-  //       version: job.version,
-  //       taskId: task.id,
-  //       taskType: task.type,
-  //       data: {
-  //         isValid: task.parameters.isValid ?? false,
-  //         sourceName: '',
-  //         links,
-  //       },
-  //     };
-  //   }
-  // }
+  private async sendCallBacks(
+    job: IJobResponse<IngestionJobParams, ValidationTaskParameters>,
+    task: ITaskResponse<ValidationTaskParameters>,
+    status: OperationStatus
+  ): Promise<void> {
+    const callbackUrls = job.parameters.callbackUrls;
+
+    if (!callbackUrls || callbackUrls.length === 0) {
+      this.logger.info({ msg: 'no callback urls provided, skipping callbacks', jobId: job.id });
+      return;
+    }
+
+    const validProductType = rasterProductTypeSchema.parse(job.productType);
+    const report = task.parameters.report;
+    const links = report ? [report] : [];
+    const callbackInfo =
+      status === OperationStatus.FAILED
+        ? { error: 'Validation task failed' }
+        : {
+            message: 'Validation task completed successfully',
+            data: {
+              isValid: task.parameters.isValid ?? false,
+              links,
+              sourceName: getEntityName(job.resourceId, validProductType),
+            },
+          };
+
+    const callbackResponse: CallbackResponse<ValidationCallbackData> = {
+      jobId: job.id,
+      taskId: task.id,
+      jobType: job.type,
+      productId: job.resourceId,
+      productType: validProductType,
+      status,
+      version: job.version,
+      taskType: task.type,
+      ...callbackInfo,
+    };
+
+    await this.callbackClient.send(callbackUrls, callbackResponse);
+  }
 }
