@@ -41,7 +41,7 @@ export class ShapefileReportWriter {
   private readonly shapefileReportBasePath: string;
 
   public constructor(@inject(SERVICES.LOGGER) private readonly logger: Logger, @inject(SERVICES.CONFIG) private readonly config: IConfig) {
-    this.shapefileReportBasePath = this.config.get<string>('jobDefinitions.tasks.validation.reportsPath');
+    this.shapefileReportBasePath = this.config.get<string>('reportsPath');
   }
 
   /**
@@ -158,7 +158,7 @@ export class ShapefileReportWriter {
   }
 
   private async createQmdFile(params: QmdFileParams): Promise<void> {
-    const outputDir = path.join(this.shapefileReportBasePath, params.jobId);
+    const outputDir = this.getJobShapefilePath(params.jobId);
     const qmdPath = path.join(outputDir, QMD_REPORT_FILE_NAME);
 
     const metadata = this.createQmdMetadata(params);

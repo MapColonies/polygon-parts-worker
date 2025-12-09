@@ -37,6 +37,7 @@
   },
   "reportStorageProvider": "FS",
   "gpkgsLocation": "/app/tiles_outputs/gpkgs",
+  "reportsPath": "/validation-reports",
   "ingestionSourcesDirPath": "",
   "server": {
     "port": "8080",
@@ -76,8 +77,7 @@
         "maxAttempts": 3,
         "chunkMaxVertices": 1001,
         "smallGeometriesPercentageThreshold": 5,
-        "smallHolesPercentageThreshold": 5,
-        "reportsPath": "/validation-reports"
+        "smallHolesPercentageThreshold": 5
       }
     },
     "jobs": {

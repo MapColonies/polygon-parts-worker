@@ -57,6 +57,7 @@
     "reportsDownloadPath": "DOWNLOAD_SERVER_REPORTS_DOWNLOAD_PATH"
   },
   "gpkgsLocation": "GPKGS_LOCATION",
+  "reportsPath": "VALIDATION_TASK_REPORTS_PATH",
   "ingestionSourcesDirPath": "INGESTION_SOURCES_DIR_PATH",
   "jobDefinitions": {
     "tasks": {
@@ -84,8 +85,7 @@
         "smallHolesPercentageThreshold": {
           "__name": "VALIDATION_TASK_SMALL_HOLES_PERCENTAGE_THRESHOLD",
           "__format": "number"
-        },
-        "reportsPath": "VALIDATION_TASK_REPORTS_PATH"
+        }
       }
     },
     "jobs": {

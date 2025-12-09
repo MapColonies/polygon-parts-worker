@@ -4,6 +4,7 @@
 {{- $jobDefinitions := (include "common.jobDefinitions.merged" .) | fromYaml }}
 {{- $fs := (include "common.fs.merged" .) | fromYaml }}
 {{ $gpkgLocation := (printf "%s/%s" $fs.internalPvc.outputPath $fs.internalPvc.gpkgSubPath) }}
+{{ $validationReportsLocation := (printf "%s/%s" $fs.internalPvc.outputPath $fs.internalPvc.reportsPath) }}
 {{- $storage := (include "common.storage.merged" .) | fromYaml }}
 
 
@@ -36,7 +37,7 @@ data:
   VALIDATION_TASK_CHUNK_MAX_VERTICES: {{ $jobDefinitions.tasks.validation.chunkMaxVertices | quote }}
   VALIDATION_TASK_SMALL_GEOMETRIES_PERCENTAGE_THRESHOLD: {{ $jobDefinitions.tasks.validation.smallGeometriesPercentageThreshold | quote }}
   VALIDATION_TASK_SMALL_HOLES_PERCENTAGE_THRESHOLD: {{ $jobDefinitions.tasks.validation.smallHolesPercentageThreshold | quote }}
-  VALIDATION_TASK_REPORTS_PATH: {{ $jobDefinitions.tasks.validation.reportsPath | quote }}
+  VALIDATION_TASK_REPORTS_PATH: {{ $validationReportsLocation | quote }}
   INGESTION_NEW_JOB_TYPE: {{ $jobDefinitions.jobs.new.type }}
   INGESTION_UPDATE_JOB_TYPE: {{ $jobDefinitions.jobs.update.type }}
   INGESTION_SWAP_UPDATE_JOB_TYPE: {{ $jobDefinitions.jobs.swapUpdate.type }}
