@@ -39,7 +39,7 @@ serviceUrls:
   downloadServerPublicDNS: ""
 
 storage:
-  reportStorageProvider: "" # FS | S3
+  reportProvider: "" # FS | S3
   fs: 
     internalPvc:
       name: ""
