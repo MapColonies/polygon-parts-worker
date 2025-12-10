@@ -2,10 +2,21 @@ global:
   cloudProvider: {}
   tracing: {}
   metrics: {}
-  environment: ''
+  environment: 'development'
   jobDefinitions: {}
   serviceUrls: {}
   storage: {}
+
+mclabels:
+  environment: development
+  component: backend
+  partOf: ingestion
+  owner: raster
+  gisDomain: raster
+  prometheus:
+    enabled: true
+    port: 8080
+  logScraping: true
 
 jobDefinitions:
   jobs:
