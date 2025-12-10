@@ -20,7 +20,6 @@ jobDefinitions:
   tasks:
     polygonParts:
       type: ""
-      config:
       maxAttempts: 3  
     validation:
       type: ""

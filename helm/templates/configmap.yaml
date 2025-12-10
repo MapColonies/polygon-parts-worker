@@ -50,7 +50,7 @@ data:
   HTTP_RETRY_RESET_TIMEOUT: {{ .Values.env.httpRetry.resetTimeout | quote }}
   DISABLE_HTTP_CLIENT_LOGS: {{ .Values.env.disableHttpClientLogs | quote }}
   INGESTION_SOURCES_DIR_PATH: {{ printf "/%s" $fs.ingestionSourcePvc.mountPath | quote }}
-  {{- if eq (upper $storage.reportProvider) "S3" }}
+  {{ if eq (upper $storage.reportProvider) "S3" }}
   {{- $s3HttpProtocol := ternary "https://" "http://" $storage.s3.sslEnabled -}}
   S3_ENDPOINT_URL: {{ printf "%s%s" $s3HttpProtocol $storage.s3.endpointUrl | quote }}
   S3_ARTIFACTS_BUCKET: {{ $storage.s3.artifactsBucket | quote }}
@@ -58,5 +58,5 @@ data:
   {{- end }}
   REPORT_STORAGE_PROVIDER: {{ $storage.reportProvider }}
   DOWNLOAD_SERVER_PUBLIC_DNS: {{ $serviceUrls.downloadServerPublicDNS | quote }}
-  DOWNLOAD_SERVER_REPORTS_DOWNLOAD_PATH: {{$jobDefinitions.tasks.validation.reportsDownloadPath | quote }}
+  DOWNLOAD_SERVER_REPORTS_DOWNLOAD_PATH: {{ $jobDefinitions.tasks.validation.reportsDownloadPath | quote }}
 {{- end }}

@@ -80,6 +80,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
       logger.info({ msg: 'has critical errors', hasCriticalErrors });
 
       const errorsSummary = this.validationErrorCollector.getErrorsSummary();
+      this.validationErrorCollector.clear();
       logger.info({ msg: 'errors summary', errorsSummary });
 
       const report = await this.shapefileReportWriter.finalize({
