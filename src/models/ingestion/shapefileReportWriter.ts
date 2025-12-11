@@ -204,7 +204,6 @@ export class ShapefileReportWriter {
 
   private buildQmdXmlContent(metadata: QmdMetadata): string {
     const doc = create({ version: '1.0', encoding: 'UTF-8' })
-      .dtd({ name: 'qgis', pubID: 'http://mrcc.com/qgis.dtd', sysID: 'SYSTEM' })
       .ele('qgis')
       .ele('identifier')
       .txt(metadata.identifier)
