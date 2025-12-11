@@ -319,7 +319,7 @@ export class ShapefileReportWriter {
       features,
     };
 
-    const options = [...OGR2OGR_SHP_REPORT_OPTIONS, ...(mode === ShpWritingMode.Append ? ['-update', '-append'] : [])];
+    const options = [...OGR2OGR_SHP_REPORT_OPTIONS, ...(mode === ShpWritingMode.Append ? ['-append'] : [])];
 
     const opts: Ogr2OgrOptions = {
       format: 'ESRI Shapefile',
