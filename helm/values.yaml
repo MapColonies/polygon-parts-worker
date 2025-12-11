@@ -10,7 +10,7 @@ global:
 mclabels:
   environment: development
   component: backend
-  partOf: ingestion
+  partOf: core
   owner: raster
   gisDomain: raster
   prometheus:
