@@ -98,24 +98,31 @@ export class ShapefileReportWriter {
    */
   public async finalize(params: ShapefileFinalizationParams): Promise<Report | null> {
     const outputPath = this.getJobShapefilePath(params.job.id);
-    try {
-      const exists = await this.shapefileExists(outputPath);
+    const logger = this.logger.child({ jobId: params.job.id, taskId: params.taskId, outputPath });
 
-      if (!exists) {
-        this.logger.info({
+    try {
+      const existingReport = await this.getExistingZippedReport(params.job, outputPath);
+      if (existingReport) {
+        logger.info({
+          msg: 'Using existing zipped report',
+          zipPath: existingReport.path,
+        });
+        return existingReport;
+      }
+
+      const shapefileExists = await this.shapefileExists(outputPath);
+
+      if (!shapefileExists) {
+        logger.info({
           msg: 'No shapefile to finalize (no errors found)',
-          jobId: params.job.id,
-          outputPath,
         });
         return null;
       }
 
       if (!params.hasCriticalErrors) {
         await this.cleanupShapefileComponents(outputPath);
-        this.logger.info({
+        logger.info({
           msg: 'Deleted shapefile report due to absence of critical errors',
-          jobId: params.job.id,
-          outputPath,
         });
         return null;
       }
@@ -123,12 +130,55 @@ export class ShapefileReportWriter {
       const report = await this.createFinalReport(params, outputPath);
       return report;
     } catch (error) {
-      this.logger.error({
+      logger.error({
         msg: 'Failed to finalize shapefile',
-        jobId: params.job.id,
         error,
       });
       throw error;
+    }
+  }
+
+  private async getExistingZippedReport(job: IJobResponse<IngestionJobParams, ValidationTaskParameters>, outputPath: string): Promise<Report | null> {
+    const reportTitle = this.getReportTitle(job);
+    const zipFileRegex = new RegExp(`^${reportTitle}_report_.*\\.zip$`);
+
+    try {
+      const files = await fs.readdir(outputPath);
+      const zipFile = files.find((file) => zipFileRegex.test(file));
+
+      if (zipFile === undefined) {
+        this.logger.debug({
+          msg: 'Zipped report does not exist',
+          jobId: job.id,
+          outputPath,
+          pattern: zipFileRegex.source,
+        });
+        return null;
+      }
+
+      const zipPath = path.join(outputPath, zipFile);
+      const stats = await fs.stat(zipPath);
+
+      this.logger.info({
+        msg: 'Found existing zipped report',
+        jobId: job.id,
+        zipPath,
+        fileSize: stats.size,
+      });
+
+      return {
+        path: zipPath,
+        fileName: zipFile,
+        fileSize: stats.size,
+      };
+    } catch (error) {
+      this.logger.debug({
+        msg: 'Could not check for existing zipped report',
+        jobId: job.id,
+        outputPath,
+        error,
+      });
+      return null;
     }
   }
 
