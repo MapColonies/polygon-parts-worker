@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import { createWriteStream } from 'fs';
 import { inject, injectable } from 'tsyringe';
 import { create } from 'xmlbuilder2';
-import { getEntityName, rasterProductTypeSchema } from '@map-colonies/raster-shared';
+import { getEntityName, rasterProductTypeSchema, resourceIdSchema } from '@map-colonies/raster-shared';
 import { Logger } from '@map-colonies/js-logger';
 import ogr2ogr from 'ogr2ogr';
 import archiver from 'archiver';
@@ -373,7 +373,8 @@ export class ShapefileReportWriter {
   private getReportTitle(job: IJobResponse<IngestionJobParams, ValidationTaskParameters>): string {
     const { productType, resourceId, version } = job;
     const validProductType = rasterProductTypeSchema.parse(productType);
-    const entityName = getEntityName(resourceId, validProductType);
+    const validResourceId = resourceIdSchema.parse(resourceId);
+    const entityName = getEntityName(validResourceId, validProductType);
     const reportName = `${entityName}_v${version}`;
     this.logger.info({
       msg: 'Generated shapefile report name',
