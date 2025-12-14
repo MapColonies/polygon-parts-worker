@@ -1,3 +1,4 @@
+import { accessSync } from 'fs';
 import config, { IConfig } from 'config';
 import { getOtelMixin } from '@map-colonies/telemetry';
 import { trace } from '@opentelemetry/api';
@@ -30,6 +31,34 @@ const queueClientFactory = (container: DependencyContainer): QueueClient => {
   );
 };
 
+const validateRequiredDirectories = (config: IConfig, logger: Logger): void => {
+  const requiredDirectories = [
+    { name: 'reportsPath', path: config.get<string>('reportsPath') },
+    { name: 'ingestionSourcesDirPath', path: config.get<string>('ingestionSourcesDirPath') },
+    // Add more required directories here in the future
+  ];
+
+  const missingDirectories: string[] = [];
+
+  for (const dir of requiredDirectories) {
+    try {
+      accessSync(dir.path);
+      logger.info({
+        msg: 'Required directory exists',
+        name: dir.name,
+        path: dir.path,
+      });
+    } catch (error) {
+      missingDirectories.push(`${dir.name}: ${dir.path}`);
+    }
+  }
+
+  if (missingDirectories.length > 0) {
+    const errorMessage = `Required directories do not exist:${missingDirectories.join(', ')}`;
+    logger.fatal({ msg: errorMessage });
+    throw new Error(errorMessage);
+  }
+};
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
   useChild?: boolean;
@@ -38,6 +67,7 @@ export interface RegisterOptions {
 export const registerExternalValues = (options?: RegisterOptions): DependencyContainer => {
   const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
   const logger = jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, mixin: getOtelMixin() });
+  validateRequiredDirectories(config, logger);
   const metricsRegistry = new Registry();
   const tracer = trace.getTracer(SERVICE_NAME);
   const s3Config = config.get<IS3Config>('S3');
