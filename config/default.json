@@ -75,7 +75,7 @@
       "validation": {
         "type": "validation",
         "maxAttempts": 3,
-        "chunkMaxVertices": 1001,
+        "chunkMaxVertices": 2500,
         "smallGeometriesPercentageThreshold": 5,
         "smallHolesPercentageThreshold": 5
       }

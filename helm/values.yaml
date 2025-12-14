@@ -23,8 +23,8 @@ jobDefinitions:
       maxAttempts: 3  
     validation:
       type: ""
-      chunkMaxVertices: 1000
-      maxAttempts: 3,
+      chunkMaxVertices: 2500
+      maxAttempts: 3
       smallGeometriesPercentageThreshold: 5
       smallHolesPercentageThreshold: 5
       reportsDownloadPath: "/downloads/validation-reports"

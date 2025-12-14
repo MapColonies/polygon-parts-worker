@@ -153,7 +153,7 @@ Example structure for config/default.json:
           },
           "validation": {
             "type": "validation",
-            "chunkMaxVertices": 1000
+            "chunkMaxVertices": 2500
           }
         },
         "jobs": {
