@@ -25,7 +25,7 @@ import { ShapefileMetrics } from '../../common/otel/metrics/shapeFileMetrics';
 import { ShapefileNotFoundError } from '../../common/errors';
 import { S3Service, UploadFile } from '../../common/storage/s3Service';
 import { CallbackClient } from '../../clients/callbackClient';
-import { calculateResMeterFromDegree } from '../../utils/utils';
+import { buildUrl, calculateResMeterFromDegree } from '../../utils/utils';
 import { ValidationErrorCollector } from './validationErrorCollector';
 import { ShapefileReportWriter } from './shapefileReportWriter';
 import { Report } from './types';
@@ -54,7 +54,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     this.shouldUploadToS3 = provider === StorageProvider.S3;
     const downloadServerPublicDns = this.config.get<string>('downloadServer.publicDns');
     const reportsDownloadPath = this.config.get<string>('downloadServer.reportsDownloadPath');
-    this.downloadServerUrl = path.join(downloadServerPublicDns, reportsDownloadPath);
+    this.downloadServerUrl = buildUrl(downloadServerPublicDns, reportsDownloadPath);
     this.validationTaskMaxAttempts = this.config.get<number>('jobDefinitions.tasks.validation.maxAttempts');
   }
 
