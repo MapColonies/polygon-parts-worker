@@ -74,7 +74,7 @@ describe('Validation Task Flow', () => {
 
     it('should complete validation task successfully for shapefile with teranova data', async () => {
       const job = createIngestionJob({
-        shapefilePath: 'tests/integration/shapeFiles/teranova_shapefile/ShapeMetadata.shp',
+        shapefilePath: 'tests/integration/shapeFiles/producer_shapefile/ShapeMetadata.shp',
       });
 
       const task = createTask({ jobId: job.id });
