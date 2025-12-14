@@ -109,7 +109,7 @@ const registerDefaultConfig = (): void => {
           verticesPerChunk: 10000,
           smallGeometriesPercentageThreshold: 5,
           smallHolesPercentageThreshold: 5,
-          reportsPath: '/home/almogk/Documents/raster-team/large-capacity-ingestion/reports',
+          reportsPath: '/validation-reports',
         },
       },
       jobs: {
