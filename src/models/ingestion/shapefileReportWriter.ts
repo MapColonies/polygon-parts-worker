@@ -9,7 +9,7 @@ import ogr2ogr from 'ogr2ogr';
 import archiver from 'archiver';
 import { IJobResponse } from '@map-colonies/mc-priority-queue';
 import type { Feature, Geometry } from 'geojson';
-import { SERVICES } from '../../common/constants';
+import { OgrFormat, SERVICES, utf8Encoding } from '../../common/constants';
 import { IConfig, IngestionJobParams, ValidationTaskParameters } from '../../common/interfaces';
 import {
   OGR2OGR_SHP_REPORT_OPTIONS,
@@ -128,6 +128,10 @@ export class ShapefileReportWriter {
       }
 
       const report = await this.createFinalReport(params, outputPath);
+      logger.info({
+        msg: 'Shapefile zipped report created successfully',
+        reportPath: report.path,
+      });
       return report;
     } catch (error) {
       logger.error({
@@ -192,7 +196,7 @@ export class ShapefileReportWriter {
     const metadata = this.createQmdMetadata(params);
     const qmdContent = this.buildQmdXmlContent(metadata);
 
-    await fs.writeFile(qmdPath, qmdContent, 'utf-8');
+    await fs.writeFile(qmdPath, qmdContent, utf8Encoding);
 
     this.logger.info({
       msg: 'QMD metadata file created',
@@ -350,7 +354,7 @@ export class ShapefileReportWriter {
     const options = [...OGR2OGR_SHP_REPORT_OPTIONS, ...(mode === ShpWritingMode.Append ? ['-append'] : [])];
 
     const opts: Ogr2OgrOptions = {
-      format: 'ESRI Shapefile',
+      format: OgrFormat.ESRI_SHAPEFILE,
       destination: outputPath,
       options,
     };
