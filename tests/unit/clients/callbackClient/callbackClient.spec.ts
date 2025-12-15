@@ -1,5 +1,4 @@
 import jsLogger from '@map-colonies/js-logger';
-import { faker } from '@faker-js/faker';
 import nock from 'nock';
 import { tracerMock } from '../../mocks/telemetryMock';
 import { configMock, registerDefaultConfig } from '../../mocks/configMock';
