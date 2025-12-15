@@ -106,7 +106,7 @@ const registerDefaultConfig = (): void => {
         validation: {
           type: 'validation',
           maxAttempts: 3,
-          verticesPerChunk: 10000,
+          chunkMaxVertices: 10000,
           smallGeometriesPercentageThreshold: 5,
           smallHolesPercentageThreshold: 5,
           reportsPath: '/validation-reports',

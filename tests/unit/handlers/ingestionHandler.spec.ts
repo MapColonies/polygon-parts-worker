@@ -42,8 +42,8 @@ describe('IngestionJobHandler', () => {
       expect(ingestionJobHandler).toBeInstanceOf(IngestionJobHandler);
     });
 
-    it('should set maxVerticesPerChunk from config', () => {
-      const expectedMaxVertices = configMock.get<number>('jobDefinitions.tasks.validation.verticesPerChunk');
+    it('should set maxchunkMaxVertices from config', () => {
+      const expectedMaxVertices = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
       expect(expectedMaxVertices).toBe(1000);
     });
   });

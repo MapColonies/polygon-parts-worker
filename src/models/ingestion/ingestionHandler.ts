@@ -32,7 +32,7 @@ import { Report } from './types';
 
 @injectable()
 export class IngestionJobHandler implements IJobHandler<IngestionJobParams, ValidationTaskParameters> {
-  private readonly maxVerticesPerChunk: number;
+  private readonly chunkMaxVertices: number;
   private readonly ingestionSourcesDirPath: string;
   private readonly shouldUploadToS3: boolean;
   private readonly downloadServerUrl: string;
@@ -48,7 +48,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     @inject(S3Service) private readonly s3Service: S3Service,
     @inject(CallbackClient) private readonly callbackClient: CallbackClient
   ) {
-    this.maxVerticesPerChunk = this.config.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+    this.chunkMaxVertices = this.config.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
     this.ingestionSourcesDirPath = this.config.get<string>('ingestionSourcesDirPath');
     const provider = this.config.get<StorageProvider>('reportStorageProvider');
     this.shouldUploadToS3 = provider === StorageProvider.S3;
@@ -152,13 +152,13 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
 
     const reader = new ShapefileChunkReader({
       logger: this.logger,
-      maxVerticesPerChunk: this.maxVerticesPerChunk,
+      maxVerticesPerChunk: this.chunkMaxVertices,
       metricsCollector,
       stateManager,
       generateFeatureId: false,
     });
 
-    this.logger.info({ msg: 'shapefile chunk reader initialized', maxVerticesPerChunk: this.maxVerticesPerChunk });
+    this.logger.info({ msg: 'shapefile chunk reader initialized', chunkMaxVertices: this.chunkMaxVertices });
     return reader;
   }
 
@@ -174,7 +174,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
         });
 
         if (chunk.skippedFeatures.length > 0) {
-          this.validationErrorCollector.addVerticesErrors(chunk.skippedFeatures, chunk.id, this.maxVerticesPerChunk);
+          this.validationErrorCollector.addVerticesErrors(chunk.skippedFeatures, chunk.id, this.chunkMaxVertices);
           this.logger.info({ msg: 'vertices errors added', chunkId: chunk.id });
         }
 
