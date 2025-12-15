@@ -1,11 +1,11 @@
-import { IJobResponse } from '@map-colonies/mc-priority-queue';
+import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import {
   featuresErrorCountSchema,
-  FileMetadata,
   thresholdCheckSchema,
   thresholdsSchema,
   ValidationAggregatedErrors,
   ValidationErrorType,
+  ValidationReport,
 } from '@map-colonies/raster-shared';
 import { Feature, Geometry } from 'geojson';
 import { z } from 'zod';
@@ -77,9 +77,9 @@ export interface QmdFileParams {
 
 export interface ShapefileFinalizationParams {
   job: IJobResponse<IngestionJobParams, ValidationTaskParameters>;
-  taskId: string;
+  task: ITaskResponse<ValidationTaskParameters>;
   errorSummary: ValidationAggregatedErrors;
   hasCriticalErrors: boolean;
 }
 
-export type Report = Omit<FileMetadata, 'url'> & { path: string };
+export type Report = Required<Omit<ValidationReport, 'url'>>;

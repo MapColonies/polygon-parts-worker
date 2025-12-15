@@ -32,6 +32,8 @@ interface Ogr2OgrOptions {
   maxBuffer?: number;
 }
 
+const SHAPEFILE_REPORT_FILE_NAME = 'report.shp';
+
 /**
  * Handles writing features with validation errors to an ESRI Shapefile incrementally.
  * Uses ogr2ogr to create and append to shapefiles for each chunk of processed data.
@@ -54,31 +56,29 @@ export class ShapefileReportWriter {
    */
   public async writeChunk(features: Feature<Geometry, Record<string, unknown>>[], jobId: string, chunkId: number): Promise<void> {
     const outputPath = this.getJobShapefilePath(jobId);
+    const shpPath = this.getShapefilePath(outputPath);
+    const logger = this.logger.child({ jobId, chunkId, shpPath });
 
     try {
-      const shapefileExists = await this.shapefileExists(outputPath);
+      const shapefileExists = await this.fileExists(shpPath);
       const mode = shapefileExists ? ShpWritingMode.Append : ShpWritingMode.Create;
 
-      this.logger.info({
+      logger.info({
         msg: `Writing error features to shapefile (${mode} mode)`,
-        chunkId,
         featuresCount: features.length,
-        outputPath,
       });
 
       await this.writeFeaturesToShapefile(features, outputPath, mode);
 
-      this.logger.info({
+      logger.info({
         msg: 'Successfully wrote error features to shapefile',
-        chunkId,
         featuresCount: features.length,
         mode,
       });
     } catch (error) {
-      this.logger.error({
+      logger.error({
         msg: 'Failed to write features to shapefile',
         chunkId,
-        outputPath,
         error,
       });
       throw error;
@@ -98,10 +98,10 @@ export class ShapefileReportWriter {
    */
   public async finalize(params: ShapefileFinalizationParams): Promise<Report | null> {
     const outputPath = this.getJobShapefilePath(params.job.id);
-    const logger = this.logger.child({ jobId: params.job.id, taskId: params.taskId, outputPath });
+    const logger = this.logger.child({ jobId: params.job.id, taskId: params.task.id, outputPath });
 
     try {
-      const existingReport = await this.getExistingZippedReport(params.job, outputPath);
+      const existingReport = await this.getExistingZippedReport(params.task.parameters.report?.path);
       if (existingReport) {
         logger.info({
           msg: 'Using existing zipped report',
@@ -109,8 +109,8 @@ export class ShapefileReportWriter {
         });
         return existingReport;
       }
-
-      const shapefileExists = await this.shapefileExists(outputPath);
+      const shpPath = this.getShapefilePath(outputPath);
+      const shapefileExists = await this.fileExists(shpPath);
 
       if (!shapefileExists) {
         logger.info({
@@ -138,44 +138,22 @@ export class ShapefileReportWriter {
     }
   }
 
-  private async getExistingZippedReport(job: IJobResponse<IngestionJobParams, ValidationTaskParameters>, outputPath: string): Promise<Report | null> {
-    const reportTitle = this.getReportTitle(job);
-    const zipFileRegex = new RegExp(`^${reportTitle}_report_.*\\.zip$`);
-
+  private async getExistingZippedReport(zipPath: string | undefined): Promise<Report | null> {
+    if (zipPath === undefined) {
+      return null;
+    }
     try {
-      const files = await fs.readdir(outputPath);
-      const zipFile = files.find((file) => zipFileRegex.test(file));
-
-      if (zipFile === undefined) {
-        this.logger.debug({
-          msg: 'Zipped report does not exist',
-          jobId: job.id,
-          outputPath,
-          pattern: zipFileRegex.source,
-        });
-        return null;
-      }
-
-      const zipPath = path.join(outputPath, zipFile);
-      const stats = await fs.stat(zipPath);
-
-      this.logger.info({
-        msg: 'Found existing zipped report',
-        jobId: job.id,
-        zipPath,
-        fileSize: stats.size,
-      });
-
+      const zipStats = await fs.stat(zipPath);
+      const fileName = path.basename(zipPath);
       return {
         path: zipPath,
-        fileName: zipFile,
-        fileSize: stats.size,
+        fileName: fileName,
+        fileSize: zipStats.size,
       };
     } catch (error) {
-      this.logger.debug({
-        msg: 'Could not check for existing zipped report',
-        jobId: job.id,
-        outputPath,
+      this.logger.warn({
+        msg: 'Existing zip report path is invalid or inaccessible',
+        zipPath,
         error,
       });
       return null;
@@ -183,13 +161,13 @@ export class ShapefileReportWriter {
   }
 
   private async createFinalReport(finalizationParams: ShapefileFinalizationParams, outputPath: string): Promise<Report> {
-    const { job, taskId, errorSummary } = finalizationParams;
+    const { job, task, errorSummary } = finalizationParams;
     const reportTitle = this.getReportTitle(job);
 
     // Create .qmd metadata file
     await this.createQmdFile({
       jobId: job.id,
-      taskId: taskId,
+      taskId: task.id,
       reportTitle,
       jobType: job.type,
       errorSummary,
@@ -396,10 +374,9 @@ export class ShapefileReportWriter {
     }
   }
 
-  private async shapefileExists(basePath: string): Promise<boolean> {
-    const shpPath = `${basePath}/report.shp`;
+  private async fileExists(filePath: string): Promise<boolean> {
     try {
-      await fs.access(shpPath);
+      await fs.access(filePath);
       return true;
     } catch {
       return false;
@@ -408,6 +385,10 @@ export class ShapefileReportWriter {
 
   private getJobShapefilePath(jobId: string): string {
     return path.join(this.shapefileReportBasePath, jobId);
+  }
+
+  private getShapefilePath(outputPath: string): string {
+    return path.join(outputPath, SHAPEFILE_REPORT_FILE_NAME);
   }
 
   private getReportFileName(reportTitle: string): string {

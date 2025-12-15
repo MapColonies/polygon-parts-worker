@@ -87,18 +87,18 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
 
       const report = await this.shapefileReportWriter.finalize({
         job,
-        taskId: task.id,
+        task,
         errorSummary: errorsSummary,
         hasCriticalErrors,
       });
 
       logger.info({ msg: 'report finalized', report });
 
+      const callBackTask = await this.updateTaskValidationResult(job.id, task.id, errorsSummary, hasCriticalErrors, report);
+
       if (this.shouldUploadToS3 && report) {
         await this.uploadReportToS3(job.id, report);
       }
-
-      const callBackTask = await this.updateTaskValidationResult(job.id, task.id, errorsSummary, hasCriticalErrors, report);
 
       await this.sendCallBacks(job, callBackTask, OperationStatus.COMPLETED);
     } catch (error) {
@@ -296,7 +296,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
   }
 
   private async uploadReportToS3(jobId: string, report: Report): Promise<void> {
-    const s3Key = `${S3_VALIDATION_REPORTS_FOLDER}/${jobId}/${report.fileName}`;
+    const s3Key = path.join(S3_VALIDATION_REPORTS_FOLDER, jobId, report.fileName);
     const fileToUpload: UploadFile = { filePath: report.path, s3Key, contentType: ZIP_CONTENT_TYPE };
     this.logger.info({ msg: 'uploading validation report to S3', jobId, s3Key });
 
@@ -317,7 +317,12 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
       errorsSummary,
       isValid: !hasCriticalErrors,
       ...(report && {
-        report: { fileName: report.fileName, fileSize: report.fileSize, url: this.generateReportDownloadUrl(jobId, report.fileName) },
+        report: {
+          fileName: report.fileName,
+          fileSize: report.fileSize,
+          path: report.path,
+          url: this.generateReportDownloadUrl(jobId, report.fileName),
+        },
       }),
     };
     this.logger.info({ msg: 'updating task parameters', jobId, taskId: latestTask.id, newTaskParameters: taskParameters });
