@@ -35,12 +35,11 @@ export class CallbackClient extends HttpClient {
 
       await Promise.all(
         callbackUrls.map(async (callbackUrl) =>
-          this.post(callbackUrl, data).catch((err) => {
-            const error = err instanceof Error ? err.message : String(err);
+          this.post(callbackUrl, data).catch((err: Error) => {
             this.logger.error({
               msg: 'Failed to send callback',
               url: callbackUrl,
-              error,
+              error: err.message,
             });
             if (err instanceof Error) {
               activeSpan?.recordException(err);

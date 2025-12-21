@@ -748,6 +748,9 @@ describe('ValidationErrorCollector', () => {
 
       // Verify all original properties are preserved
       Object.keys(originalProperties).forEach((key) => {
+        if (key === 'vertices') {
+          return; // We are removing this property in the error feature
+        }
         expect(featuresWithErrors[0].properties[key]).toEqual(originalProperties[key as keyof typeof originalProperties]);
       });
     });

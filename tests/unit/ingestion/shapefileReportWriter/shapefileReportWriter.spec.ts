@@ -2,8 +2,8 @@ import path from 'path';
 import * as fsAsync from 'fs/promises';
 import fs from 'fs';
 import { faker } from '@faker-js/faker';
-import { IJobResponse } from '@map-colonies/mc-priority-queue';
-import { ValidationAggregatedErrors } from '@map-colonies/raster-shared';
+import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
+import { ValidationAggregatedErrors, ValidationReport } from '@map-colonies/raster-shared';
 import ogr2ogr from 'ogr2ogr';
 import { OgrFormat } from '../../../../src/common/constants';
 import { ShapefileReportWriter } from '../../../../src/models/ingestion/shapefileReportWriter';
@@ -93,12 +93,104 @@ describe('ShapefileReportWriter', () => {
   });
 
   describe('finalize', () => {
+    it('should return report details when zipped report already exists', async () => {
+      // Arrange
+      const jobId = newJobResponseMock.id;
+      const report: ValidationReport = {
+        fileName: 'existing_report.zip',
+        fileSize: 2048,
+        url: 'http://example.com/existing_report.zip',
+        path: `/validation-reports/${jobId}/existing_report.zip`,
+      };
+
+      const taskWithExistingReport: ITaskResponse<ValidationTaskParameters> = {
+        ...validationTask,
+        parameters: {
+          ...validationTask.parameters,
+          report,
+        },
+      };
+
+      const errorSummary: ValidationAggregatedErrors = createFakeErrorsSummary();
+
+      const params: ShapefileFinalizationParams = {
+        job: newJobResponseMock,
+        task: taskWithExistingReport,
+        errorSummary,
+        hasCriticalErrors: true,
+      };
+
+      // Mock fs.stat to return file stats for existing zip
+      (fsAsync.stat as jest.Mock).mockResolvedValue({
+        size: report.fileSize,
+        isFile: () => true,
+      });
+
+      // Act
+      const result = await writer.finalize(params);
+
+      // Assert
+      expect(fsAsync.stat).toHaveBeenCalledWith(report.path);
+
+      // Verify result contains existing report details
+      expect(result).not.toBeNull();
+      expect(result?.fileName).toBe(report.fileName);
+      expect(result?.path).toBe(report.path);
+      expect(result?.fileSize).toBe(report.fileSize);
+    });
+
+    it('should return null when existing report path is invalid or inaccessible', async () => {
+      // Arrange
+      const jobId = newJobResponseMock.id;
+      const report: ValidationReport = {
+        fileName: 'invalid_report.zip',
+        fileSize: 2048,
+        url: 'http://example.com/invalid_report.zip',
+        path: `/invalid-path/${jobId}/invalid_report.zip`,
+      };
+
+      const taskWithInvalidReport: ITaskResponse<ValidationTaskParameters> = {
+        ...validationTask,
+        parameters: {
+          ...validationTask.parameters,
+          report,
+        },
+      };
+
+      const errorSummary: ValidationAggregatedErrors = createFakeErrorsSummary();
+
+      const params: ShapefileFinalizationParams = {
+        job: newJobResponseMock,
+        task: taskWithInvalidReport,
+        errorSummary,
+        hasCriticalErrors: true,
+      };
+
+      const reportsPath = configMock.get<string>('jobDefinitions.tasks.validation.reportsPath');
+      const expectedOutputPath = path.join(reportsPath, jobId);
+      const expectedShpPath = `${expectedOutputPath}/report.shp`;
+
+      // Mock fs.stat to fail for invalid zip path
+      (fsAsync.stat as jest.Mock).mockRejectedValue(new Error('ENOENT: no such file or directory'));
+
+      // No shapefile exists
+      (fsAsync.access as jest.Mock).mockRejectedValue(new Error('File not found'));
+
+      // Act
+      const result = await writer.finalize(params);
+
+      // Assert
+      expect(fsAsync.stat).toHaveBeenCalledWith(report.path);
+      expect(fsAsync.access).toHaveBeenCalledWith(expectedShpPath);
+      expect(result).toBeNull();
+    });
+
     it('should return null when no shapefile exists', async () => {
       // Arrange
       const jobId = faker.string.uuid();
       const params: ShapefileFinalizationParams = {
         job: { id: jobId } as IJobResponse<IngestionJobParams, ValidationTaskParameters>,
-        taskId: faker.string.uuid(),
+        task: validationTask,
         errorSummary: {} as ValidationAggregatedErrors,
         hasCriticalErrors: false,
       };
@@ -122,7 +214,7 @@ describe('ShapefileReportWriter', () => {
       const jobId = faker.string.uuid();
       const params: ShapefileFinalizationParams = {
         job: { id: jobId } as IJobResponse<IngestionJobParams, ValidationTaskParameters>,
-        taskId: faker.string.uuid(),
+        task: validationTask,
         errorSummary: {} as ValidationAggregatedErrors,
         hasCriticalErrors: false,
       };
@@ -148,6 +240,37 @@ describe('ShapefileReportWriter', () => {
       expect(unlinkCalls.length).toBeGreaterThan(0);
     });
 
+    it('should handle errors during cleanup of non-existent files', async () => {
+      // Arrange
+      const jobId = faker.string.uuid();
+      const params: ShapefileFinalizationParams = {
+        job: { id: jobId } as IJobResponse<IngestionJobParams, ValidationTaskParameters>,
+        task: validationTask,
+        errorSummary: {} as ValidationAggregatedErrors,
+        hasCriticalErrors: false,
+      };
+
+      const reportsPath = configMock.get<string>('jobDefinitions.tasks.validation.reportsPath');
+      const expectedOutputPath = path.join(reportsPath, jobId);
+      const expectedShpPath = `${expectedOutputPath}/report.shp`;
+
+      // Shapefile exists
+      (fsAsync.access as jest.Mock).mockResolvedValue(undefined);
+
+      // Mock unlink to fail (simulating files that don't exist)
+      (fsAsync.unlink as jest.Mock).mockRejectedValue(new Error('ENOENT: no such file or directory'));
+
+      // Act
+      const result = await writer.finalize(params);
+
+      // Assert
+      expect(result).toBeNull();
+      expect(fsAsync.access).toHaveBeenCalledWith(expectedShpPath);
+
+      // Verify cleanup was attempted even though files don't exist
+      expect(fsAsync.unlink).toHaveBeenCalled();
+    });
+
     it('should create zipped report when critical errors exist', async () => {
       // Arrange
       const jobId = newJobResponseMock.id;
@@ -157,7 +280,7 @@ describe('ShapefileReportWriter', () => {
 
       const params: ShapefileFinalizationParams = {
         job: newJobResponseMock,
-        taskId,
+        task: validationTask,
         errorSummary,
         hasCriticalErrors: true,
       };
@@ -216,7 +339,7 @@ describe('ShapefileReportWriter', () => {
       const jobId = newJobResponseMock.id;
       const params: ShapefileFinalizationParams = {
         job: newJobResponseMock,
-        taskId: validationTask.id,
+        task: validationTask,
         errorSummary: createFakeErrorsSummary(),
         hasCriticalErrors: true,
       };

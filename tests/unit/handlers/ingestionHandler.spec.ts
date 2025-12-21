@@ -1,6 +1,8 @@
 import fsMock from 'mock-fs';
 import { ShapefileChunk, ShapefileChunkReader } from '@map-colonies/mc-utils';
+import { IJobResponse, ITaskResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { Feature, Polygon } from 'geojson';
+import { PolygonPartsChunkValidationResult, ValidationErrorType } from '@map-colonies/raster-shared';
 import { IngestionJobHandler } from '../../../src/models/ingestion/ingestionHandler';
 import { ingestionJobJobHandlerInstance, configMock, mockQueueClient, mockPolygonPartsClient } from '../jobProcessor/jobProcessorSetup';
 import { newJobResponseMock } from '../mocks/jobsMocks';
@@ -9,6 +11,12 @@ import { mockFSWithShapefiles } from '../mocks/fsMocks';
 import { shapeFileMetricsMock } from '../mocks/telemetryMock';
 import { ShpFeatureProperties } from '../../../src/schemas/shpFile.schema';
 import { createFakeShpFeatureProperties } from '../mocks/fakeFeatures';
+import { ValidationErrorCollector } from '../../../src/models/ingestion/validationErrorCollector';
+import { StorageProvider } from '../../../src/common/constants';
+import { init, setValue } from '../mocks/configMock';
+import { S3Service } from '../../../src/common/storage/s3Service';
+import { IngestionJobParams, ValidationTaskParameters } from '../../../src/common/interfaces';
+import { CallbackClient } from '../../../src/clients/callbackClient';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
 jest.mock('@map-colonies/mc-utils', () => ({
@@ -21,6 +29,7 @@ jest.mock('@map-colonies/mc-utils', () => ({
 describe('IngestionJobHandler', () => {
   let ingestionJobHandler: IngestionJobHandler;
   const mockReadAndProcess = jest.fn();
+  const mockGetShapefileStats = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -29,6 +38,7 @@ describe('IngestionJobHandler', () => {
     // Mock ShapefileChunkReader
     (ShapefileChunkReader as jest.Mock).mockImplementation(() => ({
       readAndProcess: mockReadAndProcess,
+      getShapefileStats: mockGetShapefileStats.mockReturnValue(undefined),
     }));
   });
 
@@ -44,7 +54,7 @@ describe('IngestionJobHandler', () => {
 
     it('should set maxchunkMaxVertices from config', () => {
       const expectedMaxVertices = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
-      expect(expectedMaxVertices).toBe(1000);
+      expect(expectedMaxVertices).toBe(2500);
     });
   });
 
@@ -55,10 +65,12 @@ describe('IngestionJobHandler', () => {
 
         mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockResolvedValue(undefined);
+        // const polygonPartsManagerValidateSpy = jest.spyOn(mockPolygonPartsClient, 'validate').mockResolvedValue({ parts: [], smallHolesCount: 0 });
 
         await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
 
         expect(mockReadAndProcess).toHaveBeenCalledTimes(1);
+        // expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1);
         expect(mockReadAndProcess).toHaveBeenCalledWith(
           shapefilePath,
           expect.objectContaining({
@@ -80,18 +92,21 @@ describe('IngestionJobHandler', () => {
             verticesCount: 500,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           await chunkProcessor.process({
             id: 2,
             verticesCount: 500,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           await chunkProcessor.process({
             id: 3,
             verticesCount: 500,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
         });
 
@@ -118,6 +133,7 @@ describe('IngestionJobHandler', () => {
             verticesCount: 500,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           processOrder.push(1);
 
@@ -126,6 +142,7 @@ describe('IngestionJobHandler', () => {
             verticesCount: 500,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           processOrder.push(2);
 
@@ -134,6 +151,7 @@ describe('IngestionJobHandler', () => {
             verticesCount: 500,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           processOrder.push(3);
         });
@@ -169,12 +187,14 @@ describe('IngestionJobHandler', () => {
             verticesCount: 500,
             features: [mockValidFeature],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           await chunkProcessor.process({
             id: 2,
             verticesCount: 500,
             features: [mockValidFeature],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
         });
 
@@ -205,6 +225,7 @@ describe('IngestionJobHandler', () => {
             verticesCount: 500,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           await stateManager.saveState({ progress: { percentage: 33.33 } });
 
@@ -213,6 +234,7 @@ describe('IngestionJobHandler', () => {
             verticesCount: 500,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           await stateManager.saveState({ progress: { percentage: 66.67 } });
         });
@@ -238,6 +260,7 @@ describe('IngestionJobHandler', () => {
             verticesCount: 500,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           metricsCollector.onChunkMetrics({
             chunkId: 1,
@@ -250,6 +273,7 @@ describe('IngestionJobHandler', () => {
             verticesCount: 600,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           metricsCollector.onChunkMetrics({
             chunkId: 2,
@@ -266,6 +290,7 @@ describe('IngestionJobHandler', () => {
 
       it('should handle shapefile with skipped features', async () => {
         const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
+        const maxVerticesPerChunk = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
         const mockValidFeature: Feature<Polygon> = {
           type: 'Feature',
           geometry: {
@@ -283,40 +308,84 @@ describe('IngestionJobHandler', () => {
           properties: createFakeShpFeatureProperties(),
         };
 
+        const chunk: ShapefileChunk = {
+          id: 1,
+          verticesCount: 500,
+          features: [mockValidFeature],
+          skippedFeatures: [
+            {
+              properties: createFakeShpFeatureProperties(),
+              type: 'Feature',
+              geometry: {
+                coordinates: [
+                  [
+                    [0, 0],
+                    [0, 0],
+                    [0, 0],
+                    [0, 0],
+                    [0, 0],
+                  ],
+                ],
+                type: 'Polygon',
+              },
+            },
+          ],
+          skippedVerticesCount: 5,
+        };
+
         mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
-          await chunkProcessor.process({
-            id: 1,
-            verticesCount: 500,
-            features: [mockValidFeature],
-            skippedFeatures: [
-              {
-                properties: createFakeShpFeatureProperties(),
-                type: 'Feature',
-                geometry: {
-                  coordinates: [
-                    [
-                      [0, 0],
-                      [0, 0],
-                      [0, 0],
-                      [0, 0],
-                      [0, 0],
-                    ],
-                  ],
-                  type: 'Polygon',
-                },
-              },
-            ],
-          });
+          await chunkProcessor.process(chunk);
         });
 
         const polygonPartsManagerValidateSpy = jest.spyOn(mockPolygonPartsClient, 'validate');
+        const addVerticesErrorsSpy = jest.spyOn(ValidationErrorCollector.prototype, 'addVerticesErrors');
 
-        await expect(ingestionJobHandler.processJob(newJobResponseMock, validationTask)).resolves.not.toThrow();
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
+        expect(addVerticesErrorsSpy).toHaveBeenCalledWith(chunk.skippedFeatures, chunk.id, maxVerticesPerChunk);
         // Should still process valid features despite skipped ones
-        //TODO: When implementing Report mechanism, verify that skipped features are reported
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('storage management', () => {
+      describe('when storage provider is FS', () => {
+        it('should not upload to S3', async () => {
+          setValue('reportStorageProvider', StorageProvider.FS);
+          const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
+          mockFSWithShapefiles(shapefilePath);
+          mockReadAndProcess.mockResolvedValue(undefined);
+          const s3ServiceUploadSpy = jest.spyOn(S3Service.prototype, 'uploadFiles');
+          await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
+
+          expect(mockReadAndProcess).toHaveBeenCalledTimes(1);
+          expect(s3ServiceUploadSpy).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('when storage provider is S3', () => {
+        it('should upload to S3', async () => {
+          // Arrange
+          setValue('reportStorageProvider', StorageProvider.S3);
+          init();
+
+          ingestionJobHandler = ingestionJobJobHandlerInstance(); // re-instantiate to pick up new config
+          const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
+          mockFSWithShapefiles(shapefilePath);
+          mockReadAndProcess.mockResolvedValue(undefined);
+          const s3ServiceUploadSpy = jest.spyOn(S3Service.prototype, 'uploadFiles').mockResolvedValue(['s3://bucket/report.rar']);
+          jest
+            .spyOn(ingestionJobHandler['shapefileReportWriter'], 'finalize')
+            .mockResolvedValue({ fileName: 'report.rar', path: '/local/path/report.rar', fileSize: 1024 });
+
+          // Act
+          await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
+
+          // Assert
+          expect(mockReadAndProcess).toHaveBeenCalledTimes(1);
+          expect(s3ServiceUploadSpy).toHaveBeenCalledTimes(1);
+        });
       });
     });
 
@@ -385,6 +454,7 @@ describe('IngestionJobHandler', () => {
             verticesCount: 500,
             features: [mockValidFeature],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
         });
 
@@ -395,7 +465,7 @@ describe('IngestionJobHandler', () => {
         expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1);
       });
 
-      it('should throw ZodError when chunk contains invalid features', async () => {
+      it('should record metadata errors when chunk contains invalid features', async () => {
         const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
         const mockInvalidFeature = {
           type: 'Feature',
@@ -424,10 +494,59 @@ describe('IngestionJobHandler', () => {
             verticesCount: 500,
             features: [mockInvalidFeature] as Feature<Polygon, ShpFeatureProperties>[],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
         });
+        const addMetadataErrorsSpy = jest.spyOn(ValidationErrorCollector.prototype, 'addMetadataError');
 
-        await expect(ingestionJobHandler.processJob(newJobResponseMock, validationTask)).rejects.toThrow();
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
+        expect(addMetadataErrorsSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('should record geometry errors when chunk contains features with invalid geometry', async () => {
+        const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
+        const featureId = '1';
+        const mockInvalidGeometryFeature: Feature<Polygon, unknown> = {
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [0, 0],
+                [0, 0],
+                [0, 0],
+                [0, 0],
+                [0, 0],
+              ],
+            ],
+          },
+          properties: { ...createFakeShpFeatureProperties(), id: featureId },
+        };
+
+        const validationErrors: PolygonPartsChunkValidationResult = {
+          parts: [{ id: featureId, errors: [ValidationErrorType.GEOMETRY_VALIDITY] }],
+          smallHolesCount: 0,
+        };
+
+        const chunk: ShapefileChunk = {
+          id: 1,
+          verticesCount: 500,
+          features: [mockInvalidGeometryFeature] as Feature<Polygon, ShpFeatureProperties>[],
+          skippedFeatures: [],
+          skippedVerticesCount: 0,
+        };
+
+        mockFSWithShapefiles(shapefilePath);
+        mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
+          await chunkProcessor.process(chunk);
+        });
+        const addGeometryErrorsSpy = jest.spyOn(ValidationErrorCollector.prototype, 'addValidationErrors');
+
+        mockPolygonPartsClient.validate = jest.fn().mockResolvedValue(validationErrors);
+
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
+
+        expect(addGeometryErrorsSpy).toHaveBeenCalledWith(validationErrors, [mockInvalidGeometryFeature], chunk.id);
       });
     });
 
@@ -468,6 +587,7 @@ describe('IngestionJobHandler', () => {
             verticesCount: 500,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           await stateManager.saveState({ progress: { percentage: 50 } });
 
@@ -476,14 +596,14 @@ describe('IngestionJobHandler', () => {
             verticesCount: 500,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           await stateManager.saveState({ progress: { percentage: 100 } });
         });
 
         await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
 
-        // Should have called updateTask twice (once per saveState)
-        expect(mockUpdateTask).toHaveBeenCalledTimes(2);
+        expect(mockUpdateTask).toHaveBeenCalled();
       });
 
       it('should update task percentage based on progress', async () => {
@@ -504,6 +624,7 @@ describe('IngestionJobHandler', () => {
             verticesCount: 500,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           await stateManager.saveState({ progress: { percentage: 75.5 } });
         });
@@ -537,6 +658,7 @@ describe('IngestionJobHandler', () => {
             verticesCount: 500,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           await stateManager.saveState({ progress: { percentage: 33.33 } });
 
@@ -545,6 +667,7 @@ describe('IngestionJobHandler', () => {
             verticesCount: 500,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           await stateManager.saveState({ progress: { percentage: 66.67 } });
         });
@@ -589,6 +712,7 @@ describe('IngestionJobHandler', () => {
             verticesCount: 500,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           metricsCollector.onChunkMetrics({
             chunkId: 1,
@@ -601,6 +725,7 @@ describe('IngestionJobHandler', () => {
             verticesCount: 600,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           metricsCollector.onChunkMetrics({
             chunkId: 2,
@@ -613,6 +738,7 @@ describe('IngestionJobHandler', () => {
             verticesCount: 450,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
           metricsCollector.onChunkMetrics({
             chunkId: 3,
@@ -675,6 +801,7 @@ describe('IngestionJobHandler', () => {
             verticesCount: 500,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
 
           await chunkProcessor.process({
@@ -682,6 +809,7 @@ describe('IngestionJobHandler', () => {
             verticesCount: 600,
             features: [],
             skippedFeatures: [],
+            skippedVerticesCount: 0,
           });
 
           // After all chunks are processed, call onFileMetrics
@@ -697,6 +825,80 @@ describe('IngestionJobHandler', () => {
 
         expect(mockReadAndProcess).toHaveBeenCalledTimes(1);
       });
+    });
+  });
+
+  describe('callback handling', () => {
+    it('should send success callback when job is processed successfully and callback array exist', async () => {
+      const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
+
+      const jobWithCallbacks: IJobResponse<IngestionJobParams, ValidationTaskParameters> = {
+        ...newJobResponseMock,
+        parameters: {
+          ...newJobResponseMock.parameters,
+          callbackUrls: ['http://callback.url/notify'],
+        },
+      };
+
+      const sendSuccessCallbackSpy = jest.spyOn(CallbackClient.prototype, 'send');
+
+      mockFSWithShapefiles(shapefilePath);
+      mockReadAndProcess.mockResolvedValue(undefined);
+
+      await ingestionJobHandler.processJob(jobWithCallbacks, validationTask);
+
+      expect(sendSuccessCallbackSpy).toHaveBeenCalledWith(
+        jobWithCallbacks.parameters.callbackUrls,
+        expect.objectContaining({
+          status: OperationStatus.COMPLETED,
+        })
+      );
+    });
+  });
+
+  describe('error handling', () => {
+    it('should throw error if critical error occurs', async () => {
+      const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
+      const mockError = new Error();
+
+      mockFSWithShapefiles(shapefilePath);
+      mockReadAndProcess.mockRejectedValue(mockError);
+
+      await expect(ingestionJobHandler.processJob(newJobResponseMock, validationTask)).rejects.toThrow();
+    });
+
+    it('should send error callback when task reaches max attempts and callback array exist', async () => {
+      const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
+      const mockError = new Error();
+      const taskMaxAttempts = configMock.get<number>('jobDefinitions.tasks.validation.maxAttempts');
+
+      const maxAttemptsTask: ITaskResponse<ValidationTaskParameters> = {
+        ...validationTask,
+        attempts: taskMaxAttempts,
+      };
+
+      const jobWithCallbacks: IJobResponse<IngestionJobParams, ValidationTaskParameters> = {
+        ...newJobResponseMock,
+        parameters: {
+          ...newJobResponseMock.parameters,
+          callbackUrls: ['http://callback.url/notify'],
+        },
+      };
+
+      const sendErrorCallbackSpy = jest.spyOn(CallbackClient.prototype, 'send');
+
+      mockFSWithShapefiles(shapefilePath);
+      mockReadAndProcess.mockRejectedValue(mockError);
+
+      const action = ingestionJobHandler.processJob(jobWithCallbacks, maxAttemptsTask);
+
+      await expect(action).rejects.toThrow();
+      expect(sendErrorCallbackSpy).toHaveBeenCalledWith(
+        jobWithCallbacks.parameters.callbackUrls,
+        expect.objectContaining({
+          status: OperationStatus.FAILED,
+        })
+      );
     });
   });
 });

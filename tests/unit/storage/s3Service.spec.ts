@@ -2,26 +2,16 @@
 import fs from 'fs';
 import { S3Client } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
-import jsLogger from '@map-colonies/js-logger';
-import { IS3Config } from '../../../src/common/storage/s3Service';
 import { S3Service, UploadFile } from '../../../src/common/storage/s3Service';
 import { ZIP_CONTENT_TYPE } from '../../../src/common/constants';
 import { S3Error } from '../../../src/common/errors';
-import { tracerMock } from '../mocks/telemetryMock';
+import { loggerMock, tracerMock } from '../mocks/telemetryMock';
+import { mockS3Config } from './s3Service.setup';
 
 jest.mock('@aws-sdk/client-s3');
 jest.mock('@aws-sdk/lib-storage');
 
 describe('s3Service', () => {
-  const mockS3Config: IS3Config = {
-    accessKeyId: 'accessKeyId',
-    secretAccessKey: 'secretAccessKey',
-    endpointUrl: 'http://localhost:9000',
-    bucket: 'bucket',
-    objectKey: 'objectKey',
-    sslEnabled: false,
-  };
-
   let s3Service: S3Service;
   let createReadStreamSpy: jest.SpyInstance;
   let uploadDoneSpy: jest.Mock;
@@ -48,7 +38,7 @@ describe('s3Service', () => {
       done: uploadDoneSpy,
     }));
 
-    s3Service = new S3Service(jsLogger({ enabled: false }), mockS3Config, tracerMock);
+    s3Service = new S3Service(loggerMock, mockS3Config, tracerMock);
   });
 
   describe('uploadFiles', () => {
