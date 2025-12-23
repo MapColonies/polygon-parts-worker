@@ -96,7 +96,8 @@ const registerDefaultConfig = (): void => {
       baseUrl: 'http://polygon-parts-manager-test',
     },
     gpkgsLocation: '/app/tiles_outputs/gpkgs',
-    ingestionSourcesDirPath: '',
+    ingestionSourcesDirPath: 'tests/integration/shapeFiles',
+    reportsPath: 'tests/integration/validation-reports',
     jobDefinitions: {
       tasks: {
         polygonParts: {
@@ -109,7 +110,6 @@ const registerDefaultConfig = (): void => {
           chunkMaxVertices: 2500,
           smallGeometriesPercentageThreshold: 5,
           smallHolesPercentageThreshold: 5,
-          reportsPath: '/validation-reports',
         },
       },
       jobs: {

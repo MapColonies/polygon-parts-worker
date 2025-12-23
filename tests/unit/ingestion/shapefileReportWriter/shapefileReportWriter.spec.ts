@@ -7,6 +7,7 @@ import { ValidationAggregatedErrors, ValidationReport } from '@map-colonies/rast
 import ogr2ogr from 'ogr2ogr';
 import { OgrFormat } from '../../../../src/common/constants';
 import { ShapefileReportWriter } from '../../../../src/models/ingestion/shapefileReportWriter';
+import { SHAPEFILE_REPORT_FILE_NAME } from '../../../../src/models/ingestion/constants';
 import { newJobResponseMock } from '../../mocks/jobsMocks';
 import { validationTask } from '../../mocks/tasksMocks';
 import { IngestionJobParams, ValidationTaskParameters } from '../../../../src/common/interfaces';
@@ -37,9 +38,9 @@ describe('ShapefileReportWriter', () => {
       // Arrange
       const features = createFakeFeaturesWithErrors(featureCount);
       const jobId = faker.string.uuid();
-      const reportsPath = configMock.get<string>('jobDefinitions.tasks.validation.reportsPath');
+      const reportsPath = configMock.get<string>('reportsPath');
       const expectedOutputPath = path.join(reportsPath, jobId);
-      const expectedShpPath = `${expectedOutputPath}/report.shp`;
+      const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
 
       if (fileExists) {
         (fsAsync.access as jest.Mock).mockResolvedValue(undefined);
@@ -166,9 +167,9 @@ describe('ShapefileReportWriter', () => {
         hasCriticalErrors: true,
       };
 
-      const reportsPath = configMock.get<string>('jobDefinitions.tasks.validation.reportsPath');
+      const reportsPath = configMock.get<string>('reportsPath');
       const expectedOutputPath = path.join(reportsPath, jobId);
-      const expectedShpPath = `${expectedOutputPath}/report.shp`;
+      const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
 
       // Mock fs.stat to fail for invalid zip path
       (fsAsync.stat as jest.Mock).mockRejectedValue(new Error('ENOENT: no such file or directory'));
@@ -195,9 +196,9 @@ describe('ShapefileReportWriter', () => {
         hasCriticalErrors: false,
       };
 
-      const reportsPath = configMock.get<string>('jobDefinitions.tasks.validation.reportsPath');
+      const reportsPath = configMock.get<string>('reportsPath');
       const expectedOutputPath = path.join(reportsPath, jobId);
-      const expectedShpPath = `${expectedOutputPath}/report.shp`;
+      const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
 
       (fsAsync.access as jest.Mock).mockRejectedValue(new Error('File not found'));
 
@@ -219,9 +220,9 @@ describe('ShapefileReportWriter', () => {
         hasCriticalErrors: false,
       };
 
-      const reportsPath = configMock.get<string>('jobDefinitions.tasks.validation.reportsPath');
+      const reportsPath = configMock.get<string>('reportsPath');
       const expectedOutputPath = path.join(reportsPath, jobId);
-      const expectedShpPath = `${expectedOutputPath}/report.shp`;
+      const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
 
       // Shapefile exists
       (fsAsync.access as jest.Mock).mockResolvedValue(undefined);
@@ -250,9 +251,9 @@ describe('ShapefileReportWriter', () => {
         hasCriticalErrors: false,
       };
 
-      const reportsPath = configMock.get<string>('jobDefinitions.tasks.validation.reportsPath');
+      const reportsPath = configMock.get<string>('reportsPath');
       const expectedOutputPath = path.join(reportsPath, jobId);
-      const expectedShpPath = `${expectedOutputPath}/report.shp`;
+      const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
 
       // Shapefile exists
       (fsAsync.access as jest.Mock).mockResolvedValue(undefined);
@@ -285,9 +286,9 @@ describe('ShapefileReportWriter', () => {
         hasCriticalErrors: true,
       };
 
-      const reportsPath = configMock.get<string>('jobDefinitions.tasks.validation.reportsPath');
+      const reportsPath = configMock.get<string>('reportsPath');
       const expectedOutputPath = path.join(reportsPath, jobId);
-      const expectedShpPath = `${expectedOutputPath}/report.shp`;
+      const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
       const expectedQmdPath = path.join(expectedOutputPath, 'report.qmd');
 
       // Shapefile exists
@@ -344,9 +345,9 @@ describe('ShapefileReportWriter', () => {
         hasCriticalErrors: true,
       };
 
-      const reportsPath = configMock.get<string>('jobDefinitions.tasks.validation.reportsPath');
+      const reportsPath = configMock.get<string>('reportsPath');
       const expectedOutputPath = path.join(reportsPath, jobId);
-      const expectedShpPath = `${expectedOutputPath}/report.shp`;
+      const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
 
       // Shapefile exists
       (fsAsync.access as jest.Mock).mockResolvedValue(undefined);
