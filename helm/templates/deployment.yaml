@@ -93,7 +93,7 @@ spec:
             {{- if .Values.extraEnvVars }}
             {{- toYaml .Values.extraEnvVars | nindent 12 }}
             {{- end }}
-            {{- if eq (upper $storage.gpkgProvider) "S3" }}
+            {{- if eq (upper $storage.reportProvider) "S3" }}
             - name: S3_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
