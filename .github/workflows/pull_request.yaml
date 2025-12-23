@@ -1,5 +1,4 @@
 name: pull_request
-
 on: [pull_request]
 
 jobs:
@@ -8,6 +7,30 @@ jobs:
     secrets: inherit
     with:
       enableOpenApiCheck: false
-      preInstallCommands: |
-        sudo apt-get update
-        sudo apt-get install -y gdal-bin libgdal-dev
+      enableTests: false  # Disable tests in shared workflow (if this option exists)
+
+  tests:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20.x, 22.x]
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+      - name: Install GDAL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gdal-bin
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install Node.js dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm run test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Test Reporters Node-${{ matrix.node }}
+          path: reports/**
