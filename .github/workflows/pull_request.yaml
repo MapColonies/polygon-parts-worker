@@ -7,8 +7,6 @@ jobs:
     secrets: inherit
     with:
       enableOpenApiCheck: false
-      enableTests: false  # Disable tests in shared workflow (if this option exists)
-
   tests:
     name: Run Tests
     runs-on: ubuntu-latest
