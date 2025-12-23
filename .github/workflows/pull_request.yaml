@@ -8,3 +8,6 @@ jobs:
     secrets: inherit
     with:
       enableOpenApiCheck: false
+      preInstallCommands: |
+        sudo apt-get update
+        sudo apt-get install -y gdal-bin libgdal-dev

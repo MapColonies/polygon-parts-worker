@@ -35,7 +35,7 @@ describe('Validation Task Flow', () => {
   beforeEach(() => {
     const { container } = getApp({
       override: [
-        // { token: SERVICES.LOGGER, provider: { useValue: loggerMock } },
+        { token: SERVICES.LOGGER, provider: { useValue: loggerMock } },
         { token: SERVICES.TRACER, provider: { useValue: tracerMock } },
         { token: SERVICES.CONFIG, provider: { useValue: config } },
       ],
