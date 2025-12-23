@@ -69,6 +69,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
       const shpReader = this.setupShapefileChunkReader(job, task);
 
       const shapeFileStats = await shpReader.getShapefileStats(shapefileFullPath);
+
       logger.info({ msg: 'shapefile stats retrieved', shapeFileStats });
       this.validationErrorCollector.setShapefileStats(shapeFileStats);
 
@@ -181,9 +182,11 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
         const validFeatureCollection = this.parseChunk(chunk, job);
         this.logger.info({ msg: 'chunk parsed', validFeaturesCount: validFeatureCollection.features.length });
 
-        const validationResult = await this.validateChunk(job, validFeatureCollection);
-        this.logger.info({ msg: 'chunk validated', validationResult });
-        this.validationErrorCollector.addValidationErrors(validationResult, chunk.features, chunk.id);
+        if (validFeatureCollection.features.length > 0) {
+          const validationResult = await this.validateChunk(job, validFeatureCollection);
+          this.logger.info({ msg: 'chunk validated', validationResult });
+          this.validationErrorCollector.addValidationErrors(validationResult, chunk.features, chunk.id);
+        }
 
         if (this.validationErrorCollector.hasErrors()) {
           const featuresWithErrors = this.validationErrorCollector.getFeaturesWithErrorProperties();
