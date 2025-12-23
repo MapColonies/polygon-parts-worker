@@ -31,7 +31,10 @@ const queueClientFactory = (container: DependencyContainer): QueueClient => {
   );
 };
 
-const validateRequiredDirectories = (config: IConfig, logger: Logger): void => {
+const validateRequiredDirectories = (container: DependencyContainer): void => {
+  const config = container.resolve<IConfig>(SERVICES.CONFIG);
+  const logger = container.resolve<Logger>(SERVICES.LOGGER);
+
   const requiredDirectories = [
     { name: 'reportsPath', path: config.get<string>('reportsPath') },
     { name: 'ingestionSourcesDirPath', path: config.get<string>('ingestionSourcesDirPath') },
@@ -59,6 +62,7 @@ const validateRequiredDirectories = (config: IConfig, logger: Logger): void => {
     throw new Error(errorMessage);
   }
 };
+
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
   useChild?: boolean;
@@ -66,8 +70,9 @@ export interface RegisterOptions {
 
 export const registerExternalValues = (options?: RegisterOptions): DependencyContainer => {
   const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
+
   const logger = jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, mixin: getOtelMixin() });
-  validateRequiredDirectories(config, logger);
+
   const metricsRegistry = new Registry();
   const tracer = trace.getTracer(SERVICE_NAME);
   const s3Config = config.get<IS3Config>('S3');
@@ -112,5 +117,8 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     },
   ];
 
-  return registerDependencies(dependencies, options?.override, options?.useChild);
+  const registeredContainer = registerDependencies(dependencies, options?.override, options?.useChild);
+  validateRequiredDirectories(registeredContainer);
+
+  return registeredContainer;
 };
