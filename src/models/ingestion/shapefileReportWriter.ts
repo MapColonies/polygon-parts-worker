@@ -62,6 +62,11 @@ export class ShapefileReportWriter {
       const shapefileExists = await this.fileExists(shpPath);
       const mode = shapefileExists ? ShpWritingMode.Append : ShpWritingMode.Create;
 
+      if (mode === ShpWritingMode.Create) {
+        logger.debug({ msg: 'Shapefile does not exist, creating new shapefile subdirectory', shpPath });
+        await fs.mkdir(outputPath, { recursive: true });
+      }
+
       logger.info({
         msg: `Writing error features to shapefile (${mode} mode)`,
         featuresCount: features.length,
