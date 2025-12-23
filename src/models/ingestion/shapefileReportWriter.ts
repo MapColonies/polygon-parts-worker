@@ -17,6 +17,7 @@ import {
   QMD_REPORT_FILE_NAME,
   QMD_THRESHOLD_LABELS,
   SHAPEFILE_REPORT_EXTENSIONS_LIST,
+  SHAPEFILE_REPORT_FILE_NAME,
   ShpWritingMode,
   THRESHOLD_VALIDATION_STATUS,
 } from './constants';
@@ -31,8 +32,6 @@ interface Ogr2OgrOptions {
   timeout?: number;
   maxBuffer?: number;
 }
-
-const SHAPEFILE_REPORT_FILE_NAME = 'report.shp';
 
 /**
  * Handles writing features with validation errors to an ESRI Shapefile incrementally.
