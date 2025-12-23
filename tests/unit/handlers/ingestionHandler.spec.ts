@@ -1,3 +1,4 @@
+import path from 'path';
 import fsMock from 'mock-fs';
 import { ShapefileChunk, ShapefileChunkReader } from '@map-colonies/mc-utils';
 import { IJobResponse, ITaskResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
@@ -30,9 +31,11 @@ describe('IngestionJobHandler', () => {
   let ingestionJobHandler: IngestionJobHandler;
   const mockReadAndProcess = jest.fn();
   const mockGetShapefileStats = jest.fn();
+  const ingestionSourcePath = configMock.get<string>('ingestionSourcesDirPath');
+  const absoluteShapefilePath = path.join(ingestionSourcePath, newJobResponseMock.parameters.inputFiles.metadataShapefilePath);
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    mockFSWithShapefiles(absoluteShapefilePath);
     ingestionJobHandler = ingestionJobJobHandlerInstance();
 
     // Mock ShapefileChunkReader
@@ -44,6 +47,7 @@ describe('IngestionJobHandler', () => {
 
   afterEach(() => {
     fsMock.restore();
+    jest.clearAllMocks();
   });
 
   describe('constructor', () => {
@@ -61,9 +65,6 @@ describe('IngestionJobHandler', () => {
   describe('processJob', () => {
     describe('successful processing', () => {
       it('should successfully process a job and validation task with valid shapefile containing single chunk', async () => {
-        const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
-
-        mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockResolvedValue(undefined);
         // const polygonPartsManagerValidateSpy = jest.spyOn(mockPolygonPartsClient, 'validate').mockResolvedValue({ parts: [], smallHolesCount: 0 });
 
@@ -72,7 +73,7 @@ describe('IngestionJobHandler', () => {
         expect(mockReadAndProcess).toHaveBeenCalledTimes(1);
         // expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1);
         expect(mockReadAndProcess).toHaveBeenCalledWith(
-          shapefilePath,
+          absoluteShapefilePath,
           expect.objectContaining({
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             process: expect.any(Function),
@@ -81,9 +82,6 @@ describe('IngestionJobHandler', () => {
       });
 
       it('should successfully process a job and validation task with valid shapefile containing multiple chunks', async () => {
-        const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
-
-        mockFSWithShapefiles(shapefilePath);
         // Mock readAndProcess to simulate processing multiple chunks
         mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
           // Simulate processing 3 chunks
@@ -114,7 +112,7 @@ describe('IngestionJobHandler', () => {
 
         expect(mockReadAndProcess).toHaveBeenCalledTimes(1);
         expect(mockReadAndProcess).toHaveBeenCalledWith(
-          shapefilePath,
+          absoluteShapefilePath,
           expect.objectContaining({
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             process: expect.any(Function),
@@ -123,10 +121,8 @@ describe('IngestionJobHandler', () => {
       });
 
       it('should process all chunks sequentially', async () => {
-        const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
         const processOrder: number[] = [];
 
-        mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
           await chunkProcessor.process({
             id: 1,
@@ -162,7 +158,6 @@ describe('IngestionJobHandler', () => {
       });
 
       it('should send all polygon parts to polygon parts manager', async () => {
-        const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
         const mockValidFeature: Feature<Polygon> = {
           type: 'Feature',
           geometry: {
@@ -180,7 +175,6 @@ describe('IngestionJobHandler', () => {
           properties: createFakeShpFeatureProperties(),
         };
 
-        mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
           await chunkProcessor.process({
             id: 1,
@@ -208,11 +202,9 @@ describe('IngestionJobHandler', () => {
       });
 
       it('should update task parameters with processing state after each chunk', async () => {
-        const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
         mockQueueClient.jobManagerClient.updateTask = jest.fn().mockResolvedValue(undefined);
         const mockUpdateTask = jest.spyOn(mockQueueClient.jobManagerClient, 'updateTask');
 
-        mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
           // Simulate state manager saveState callback being called
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -245,9 +237,6 @@ describe('IngestionJobHandler', () => {
       });
 
       it('should record metrics for each chunk processed', async () => {
-        const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
-
-        mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
           // Simulate metrics collector onChunkMetrics callback being called
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -289,7 +278,6 @@ describe('IngestionJobHandler', () => {
       });
 
       it('should handle shapefile with skipped features', async () => {
-        const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
         const maxVerticesPerChunk = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
         const mockValidFeature: Feature<Polygon> = {
           type: 'Feature',
@@ -333,7 +321,6 @@ describe('IngestionJobHandler', () => {
           skippedVerticesCount: 5,
         };
 
-        mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
           await chunkProcessor.process(chunk);
         });
@@ -353,8 +340,7 @@ describe('IngestionJobHandler', () => {
       describe('when storage provider is FS', () => {
         it('should not upload to S3', async () => {
           setValue('reportStorageProvider', StorageProvider.FS);
-          const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
-          mockFSWithShapefiles(shapefilePath);
+
           mockReadAndProcess.mockResolvedValue(undefined);
           const s3ServiceUploadSpy = jest.spyOn(S3Service.prototype, 'uploadFiles');
           await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
@@ -371,8 +357,7 @@ describe('IngestionJobHandler', () => {
           init();
 
           ingestionJobHandler = ingestionJobJobHandlerInstance(); // re-instantiate to pick up new config
-          const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
-          mockFSWithShapefiles(shapefilePath);
+
           mockReadAndProcess.mockResolvedValue(undefined);
           const s3ServiceUploadSpy = jest.spyOn(S3Service.prototype, 'uploadFiles').mockResolvedValue(['s3://bucket/report.rar']);
           jest
@@ -429,7 +414,6 @@ describe('IngestionJobHandler', () => {
 
     describe('feature validation and mapping', () => {
       it('should successfully map valid shapefile features to polygon parts', async () => {
-        const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
         const mockValidFeature = {
           type: 'Feature',
           geometry: {
@@ -447,7 +431,6 @@ describe('IngestionJobHandler', () => {
           properties: createFakeShpFeatureProperties(),
         } as unknown as Feature<Polygon, ShpFeatureProperties>;
 
-        mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
           await chunkProcessor.process({
             id: 1,
@@ -466,7 +449,6 @@ describe('IngestionJobHandler', () => {
       });
 
       it('should record metadata errors when chunk contains invalid features', async () => {
-        const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
         const mockInvalidFeature = {
           type: 'Feature',
           geometry: {
@@ -487,7 +469,6 @@ describe('IngestionJobHandler', () => {
           },
         };
 
-        mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
           await chunkProcessor.process({
             id: 1,
@@ -504,7 +485,6 @@ describe('IngestionJobHandler', () => {
       });
 
       it('should record geometry errors when chunk contains features with invalid geometry', async () => {
-        const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
         const featureId = '1';
         const mockInvalidGeometryFeature: Feature<Polygon, unknown> = {
           type: 'Feature',
@@ -536,7 +516,6 @@ describe('IngestionJobHandler', () => {
           skippedVerticesCount: 0,
         };
 
-        mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
           await chunkProcessor.process(chunk);
         });
@@ -552,9 +531,6 @@ describe('IngestionJobHandler', () => {
 
     describe('state management', () => {
       it('should load initial processing state from task parameters', async () => {
-        const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
-
-        mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockResolvedValue(undefined);
 
         await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
@@ -570,11 +546,9 @@ describe('IngestionJobHandler', () => {
       });
 
       it('should save processing state after each chunk', async () => {
-        const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
         mockQueueClient.jobManagerClient.updateTask = jest.fn().mockResolvedValue(undefined);
         const mockUpdateTask = jest.spyOn(mockQueueClient.jobManagerClient, 'updateTask');
 
-        mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
           // Simulate state manager saveState callback being called after processing chunks
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -607,11 +581,9 @@ describe('IngestionJobHandler', () => {
       });
 
       it('should update task percentage based on progress', async () => {
-        const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
         mockQueueClient.jobManagerClient.updateTask = jest.fn().mockResolvedValue(undefined);
         const mockUpdateTask = jest.spyOn(mockQueueClient.jobManagerClient, 'updateTask');
 
-        mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
           // Simulate state manager saveState callback being called
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -641,11 +613,9 @@ describe('IngestionJobHandler', () => {
       });
 
       it('should round percentage to integer when updating task', async () => {
-        const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
         mockQueueClient.jobManagerClient.updateTask = jest.fn().mockResolvedValue(undefined);
         const mockUpdateTask = jest.spyOn(mockQueueClient.jobManagerClient, 'updateTask');
 
-        mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
           // Simulate state manager saveState callback being called
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -697,9 +667,6 @@ describe('IngestionJobHandler', () => {
 
     describe('metrics collection', () => {
       it('should record chunk metrics during processing', async () => {
-        const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
-
-        mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
           // Simulate metrics collector onChunkMetrics callback being called
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -786,9 +753,6 @@ describe('IngestionJobHandler', () => {
       });
 
       it('should record file metrics after processing completes', async () => {
-        const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
-
-        mockFSWithShapefiles(shapefilePath);
         mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
           // Simulate metrics collector onFileMetrics callback being called after all chunks are processed
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -830,8 +794,6 @@ describe('IngestionJobHandler', () => {
 
   describe('callback handling', () => {
     it('should send success callback when job is processed successfully and callback array exist', async () => {
-      const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
-
       const jobWithCallbacks: IJobResponse<IngestionJobParams, ValidationTaskParameters> = {
         ...newJobResponseMock,
         parameters: {
@@ -842,7 +804,6 @@ describe('IngestionJobHandler', () => {
 
       const sendSuccessCallbackSpy = jest.spyOn(CallbackClient.prototype, 'send');
 
-      mockFSWithShapefiles(shapefilePath);
       mockReadAndProcess.mockResolvedValue(undefined);
 
       await ingestionJobHandler.processJob(jobWithCallbacks, validationTask);
@@ -858,17 +819,14 @@ describe('IngestionJobHandler', () => {
 
   describe('error handling', () => {
     it('should throw error if critical error occurs', async () => {
-      const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
       const mockError = new Error();
 
-      mockFSWithShapefiles(shapefilePath);
       mockReadAndProcess.mockRejectedValue(mockError);
 
       await expect(ingestionJobHandler.processJob(newJobResponseMock, validationTask)).rejects.toThrow();
     });
 
     it('should send error callback when task reaches max attempts and callback array exist', async () => {
-      const shapefilePath = newJobResponseMock.parameters.inputFiles.metadataShapefilePath;
       const mockError = new Error();
       const taskMaxAttempts = configMock.get<number>('jobDefinitions.tasks.validation.maxAttempts');
 
@@ -887,7 +845,6 @@ describe('IngestionJobHandler', () => {
 
       const sendErrorCallbackSpy = jest.spyOn(CallbackClient.prototype, 'send');
 
-      mockFSWithShapefiles(shapefilePath);
       mockReadAndProcess.mockRejectedValue(mockError);
 
       const action = ingestionJobHandler.processJob(jobWithCallbacks, maxAttemptsTask);
