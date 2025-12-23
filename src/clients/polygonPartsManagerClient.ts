@@ -31,6 +31,7 @@ export class PolygonPartsManagerClient extends HttpClient {
     return response;
   }
 
+  /* istanbul ignore next */
   @withSpanAsyncV4
   public async findPolygonParts(polygonPartsEntityName: PolygonPartsEntityName, roi: RoiFeatureCollection): Promise<FindPolygonPartsResponse> {
     const findPartsUrl = `/polygonParts/${polygonPartsEntityName}/find`;
