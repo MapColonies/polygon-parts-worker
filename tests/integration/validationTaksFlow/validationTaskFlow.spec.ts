@@ -35,7 +35,7 @@ describe('Validation Task Flow', () => {
   beforeEach(() => {
     const { container } = getApp({
       override: [
-        // { token: SERVICES.LOGGER, provider: { useValue: loggerMock } },
+        { token: SERVICES.LOGGER, provider: { useValue: loggerMock } },
         { token: SERVICES.TRACER, provider: { useValue: tracerMock } },
         { token: SERVICES.CONFIG, provider: { useValue: config } },
       ],
@@ -129,7 +129,7 @@ describe('Validation Task Flow', () => {
   });
 
   describe('Sad Path - Validation Failures', () => {
-    test.only.each(failedValidationTestCases)('should create report with $description', async (testCase) => {
+    test.each(failedValidationTestCases)('should create report with $description', async (testCase) => {
       const job = createIngestionJob({
         shapefilePath: testCase.shapefilePath,
         callbackUrls: ['http://callback-url.com/task-completed'],
