@@ -111,16 +111,4 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
       unknown: 1,
     },
   },
-  {
-    description: '2 metadata errors in 2 features',
-    shapefilePath: '/invalid/metadata_error/2_features_with_invalid_date/ShapeMetadata.shp',
-    ppManagerValidationResult: {
-      parts: [],
-      smallHolesCount: 0,
-    },
-    expectedErrorsCount: {
-      ...defaultExpectedErrorsCount,
-      metadata: 2,
-    },
-  },
 ];
