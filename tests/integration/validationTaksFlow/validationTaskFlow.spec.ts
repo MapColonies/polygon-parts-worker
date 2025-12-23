@@ -27,12 +27,11 @@ describe('Validation Task Flow', () => {
   let testContainer: DependencyContainer;
   let taskTypesToProcess: string[];
 
-  beforeAll(async () => {
-    await setUpValidationReportsDir(reportsDirPath);
+  beforeAll(() => {
     shpReader = new ShapefileChunkReader({ maxVerticesPerChunk: maxVertices });
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     const { container } = getApp({
       override: [
         { token: SERVICES.LOGGER, provider: { useValue: loggerMock } },
@@ -44,14 +43,12 @@ describe('Validation Task Flow', () => {
     const validationTaskType = config.get<string>('jobDefinitions.tasks.validation.type');
     const polygonPartsTaskType = config.get<string>('jobDefinitions.tasks.polygonParts.type');
     taskTypesToProcess = [validationTaskType, polygonPartsTaskType];
+    await setUpValidationReportsDir(reportsDirPath);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     nock.cleanAll();
     jest.clearAllMocks();
-  });
-
-  afterAll(async () => {
     await tearDownValidationReportsDir(reportsDirPath);
   });
 
