@@ -2,13 +2,13 @@ global:
   cloudProvider: {}
   tracing: {}
   metrics: {}
-  environment: 'development'
+  environment: ''
   jobDefinitions: {}
   serviceUrls: {}
   storage: {}
 
 mclabels:
-  environment: development
+  #environment: development
   component: backend
   partOf: core
   owner: raster
