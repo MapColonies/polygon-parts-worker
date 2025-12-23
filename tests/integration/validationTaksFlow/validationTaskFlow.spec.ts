@@ -52,7 +52,7 @@ describe('Validation Task Flow', () => {
   });
 
   afterAll(async () => {
-    await tearDownValidationReportsDir(reportsDirPath);
+    // await tearDownValidationReportsDir(reportsDirPath);
   });
 
   describe('Happy Path - Successful Validation', () => {
