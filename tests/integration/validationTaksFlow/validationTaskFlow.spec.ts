@@ -143,6 +143,7 @@ describe('Validation Task Flow', () => {
       HttpMockHelper.mockJobManagerRejectTask(job.id, task);
       HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
       HttpMockHelper.mockCallbackClientSend(job.parameters.callbackUrls);
+      HttpMockHelper.mockJobTrackerFinishTask(task.id);
 
       const ingestionHandlerProcessJobSpy = jest.spyOn(IngestionJobHandler.prototype, 'processJob');
       const jobTrackerNotifySpy = jest.spyOn(JobTrackerClient.prototype, 'notifyOnFinishedTask');

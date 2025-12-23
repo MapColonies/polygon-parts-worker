@@ -64,4 +64,9 @@ export class HttpMockHelper {
       nock(callbackUrl).post('').reply(StatusCodes.OK);
     }
   }
+
+  public static mockHeartbeat(taskId: string): nock.Scope {
+    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+    return nock(mockUrls.heartbeatUrl).post(`/heartbeat/${taskId}`).reply(200, 'ok').persist();
+  }
 }
