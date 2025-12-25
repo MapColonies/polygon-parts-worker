@@ -7,6 +7,16 @@ global:
   serviceUrls: {}
   storage: {}
 
+mclabels:
+  #environment: development
+  component: backend
+  partOf: core
+  owner: raster
+  gisDomain: raster
+  prometheus:
+    enabled: true
+    port: 8080
+
 jobDefinitions:
   jobs:
     new:

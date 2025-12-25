@@ -4,3 +4,8 @@ description: A Helm chart for polygon-parts-worker
 type: application
 version: 1.8.2
 appVersion: 1.8.2
+dependencies:
+  - name: mclabels
+    version: 1.0.1
+    repository: oci://acrarolibotnonprod.azurecr.io/helm/infra
+    
