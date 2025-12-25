@@ -111,3 +111,6 @@ dist
 # Jest
 jest_html_reporters.html
 reports
+
+# Helm
+helm/Chart.lock
