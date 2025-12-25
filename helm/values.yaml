@@ -16,7 +16,6 @@ mclabels:
   prometheus:
     enabled: true
     port: 8080
-  logScraping: true
 
 jobDefinitions:
   jobs:
