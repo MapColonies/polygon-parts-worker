@@ -209,6 +209,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     for (const feature of chunk.features) {
       try {
         const parsedFeature = shpFeatureSchema.parse(feature);
+        parsedFeature.id = parsedFeature.properties.id;
         const mappedFeature = this.mapShpPropertiesSchemaToPartProperties(parsedFeature, featureResolutions);
         validFeatures.push(mappedFeature);
       } catch (error) {
