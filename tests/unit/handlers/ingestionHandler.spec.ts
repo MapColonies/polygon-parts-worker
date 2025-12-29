@@ -815,16 +815,6 @@ describe('IngestionJobHandler', () => {
         })
       );
     });
-  });
-
-  describe('error handling', () => {
-    it('should throw error if critical error occurs', async () => {
-      const mockError = new Error();
-
-      mockReadAndProcess.mockRejectedValue(mockError);
-
-      await expect(ingestionJobHandler.processJob(newJobResponseMock, validationTask)).rejects.toThrow();
-    });
 
     it('should send error callback when task reaches max attempts and callback array exist', async () => {
       const mockError = new Error();
@@ -856,6 +846,16 @@ describe('IngestionJobHandler', () => {
           status: OperationStatus.FAILED,
         })
       );
+    });
+  });
+
+  describe('error handling', () => {
+    it('should throw error if critical error occurs', async () => {
+      const mockError = new Error();
+
+      mockReadAndProcess.mockRejectedValue(mockError);
+
+      await expect(ingestionJobHandler.processJob(newJobResponseMock, validationTask)).rejects.toThrow();
     });
   });
 });
