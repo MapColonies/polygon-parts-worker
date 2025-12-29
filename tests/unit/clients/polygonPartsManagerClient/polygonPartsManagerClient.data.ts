@@ -58,6 +58,6 @@ export const createFakePolygonPartsFeatureProperties = (): PartFeatureProperties
     imagingTimeBeginUTC: faker.date.past(),
     imagingTimeEndUTC: faker.date.past(),
     sourceResolutionMeter: faker.number.int({ min: INGESTION_VALIDATIONS.resolutionMeter.min, max: INGESTION_VALIDATIONS.resolutionMeter.max }),
-    description: faker.lorem.sentence(),
+    description: faker.lorem.sentence({ min: 1, max: 3 }),
   };
 };
