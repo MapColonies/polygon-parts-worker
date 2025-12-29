@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0-alpha.0](https://github.com/MapColonies/polygon-parts-worker/compare/v1.8.2...v2.0.0-alpha.0) (2025-12-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* large capacity ingestion(MAPCO-8067) (#32)
+
+### Features
+
+* shp writer(MAPCO-8369) ([#39](https://github.com/MapColonies/polygon-parts-worker/issues/39)) ([71efe9d](https://github.com/MapColonies/polygon-parts-worker/commit/71efe9d2a4a1c90d01a5beeee0c7a526636026a4)), closes [#35](https://github.com/MapColonies/polygon-parts-worker/issues/35) [#36](https://github.com/MapColonies/polygon-parts-worker/issues/36) [#37](https://github.com/MapColonies/polygon-parts-worker/issues/37) [#38](https://github.com/MapColonies/polygon-parts-worker/issues/38) [#41](https://github.com/MapColonies/polygon-parts-worker/issues/41) [#42](https://github.com/MapColonies/polygon-parts-worker/issues/42) [#43](https://github.com/MapColonies/polygon-parts-worker/issues/43)
+
+
+* large capacity ingestion(MAPCO-8067) ([#32](https://github.com/MapColonies/polygon-parts-worker/issues/32)) ([64fad57](https://github.com/MapColonies/polygon-parts-worker/commit/64fad57146359e9ed2b84d1aaf9753dac28a8498))
+
 ### [1.8.2](https://github.com/MapColonies/polygon-parts-worker/compare/v1.8.1...v1.8.2) (2025-10-21)
 
 
