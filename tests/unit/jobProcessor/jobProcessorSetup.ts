@@ -9,8 +9,7 @@ import { loggerMock, shapeFileMetricsMock, taskMetricsMock } from '../mocks/tele
 import { ExportJobHandler } from '../../../src/models/export/exportJobHandler';
 import { ValidationErrorCollector } from '../../../src/models/ingestion/validationErrorCollector';
 import { ShapefileReportWriter } from '../../../src/models/ingestion/shapefileReportWriter';
-import { S3Service } from '../../../src/common/storage/s3Service';
-import { mockS3Config } from '../storage/s3Service.setup';
+import { IS3Config, S3Service } from '../../../src/common/storage/s3Service';
 import { CallbackClient } from '../../../src/clients/callbackClient';
 import { validationTask } from '../mocks/tasksMocks';
 
@@ -24,6 +23,8 @@ const mockQueueClient = new QueueClient(
   configMock.get<number>('jobManagement.config.dequeueIntervalMs'),
   configMock.get<number>('jobManagement.config.heartbeat.intervalMs')
 );
+
+const mockS3Config = configMock.get<IS3Config>('s3');
 
 const mockTracer = trace.getTracer('testingTracer');
 const mockPolygonPartsClient = new PolygonPartsManagerClient(loggerMock, configMock, mockTracer);

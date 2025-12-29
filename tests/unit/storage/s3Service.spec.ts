@@ -2,11 +2,11 @@
 import fs from 'fs';
 import { S3Client } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
-import { S3Service, UploadFile } from '../../../src/common/storage/s3Service';
+import { IS3Config, S3Service, UploadFile } from '../../../src/common/storage/s3Service';
 import { ZIP_CONTENT_TYPE } from '../../../src/common/constants';
 import { S3Error } from '../../../src/common/errors';
+import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { loggerMock, tracerMock } from '../mocks/telemetryMock';
-import { mockS3Config } from './s3Service.setup';
 
 jest.mock('@aws-sdk/client-s3');
 jest.mock('@aws-sdk/lib-storage');
@@ -24,6 +24,8 @@ describe('s3Service', () => {
     { filePath: '/path/to/test/report.zip', s3Key: 'test/file3.zip', contentType: ZIP_CONTENT_TYPE },
   ];
 
+  registerDefaultConfig();
+  const mockS3Config = configMock.get<IS3Config>('s3');
   beforeEach(() => {
     jest.clearAllMocks();
 

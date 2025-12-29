@@ -78,6 +78,13 @@ const registerDefaultConfig = (): void => {
       delay: 'exponential',
       shouldResetTimeout: true,
     },
+    s3: {
+      accessKeyId: 'accessKeyId',
+      secretAccessKey: 'secretAccessKey',
+      endpointUrl: 'http://localhost:9000',
+      bucket: 'bucket',
+      sslEnabled: false,
+    },
     disableHttpClientLogs: true,
     jobManagement: {
       config: {
