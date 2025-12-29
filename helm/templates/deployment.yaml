@@ -6,6 +6,8 @@
 {{- $cloudProviderImagePullSecretName := include "polygon-parts-worker.cloudProviderImagePullSecretName" . -}}
 {{- $imageTag := include "polygon-parts-worker.tag" . -}}
 {{- $fs := (include "common.fs.merged" .) | fromYaml }}
+{{- $storage := (include "common.storage.merged" .) | fromYaml }}
+
 {{- if .Values.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -87,7 +89,19 @@ spec:
             {{- end }}
             {{- if .Values.extraEnvVars }}
             {{- toYaml .Values.extraEnvVars | nindent 12 }}
-            {{- end }}            
+            {{- end }}
+            {{- if eq (upper $storage.reportProvider) "S3" }}
+            - name: S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $storage.s3.secretName }}
+                  key: accessKeyId
+            - name: S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $storage.s3.secretName }}
+                  key: secretAccessKey
+            {{- end }}               
           envFrom:
             - configMapRef:
                 name: {{ printf "%s-configmap" (include "polygon-parts-worker.fullname" .) }}

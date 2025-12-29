@@ -31,7 +31,13 @@
   "polygonPartsManager": {
     "baseUrl": "http://localhost:8084"
   },
+  "downloadServer": {
+    "publicDns": "http://localhost:8085",
+    "reportsDownloadPath": "downloads/validation-reports"
+  },
+  "reportStorageProvider": "FS",
   "gpkgsLocation": "/app/tiles_outputs/gpkgs",
+  "reportsPath": "/validation-reports",
   "ingestionSourcesDirPath": "",
   "server": {
     "port": "8080",
@@ -52,6 +58,13 @@
     "delay": "exponential",
     "shouldResetTimeout": true
   },
+  "S3": {
+    "accessKeyId": "minioadmin",
+    "secretAccessKey": "minioadmin",
+    "endpointUrl": "http://localhost:9000",
+    "bucket": "",
+    "sslEnabled": false
+  },
   "disableHttpClientLogs": false,
   "jobDefinitions": {
     "tasks": {
@@ -62,7 +75,9 @@
       "validation": {
         "type": "validation",
         "maxAttempts": 3,
-        "chunkMaxVertices": 1001
+        "chunkMaxVertices": 2500,
+        "smallGeometriesPercentageThreshold": 5,
+        "smallHolesPercentageThreshold": 5
       }
     },
     "jobs": {

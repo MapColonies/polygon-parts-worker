@@ -52,7 +52,12 @@
   "polygonPartsManager": {
     "baseUrl": "POLYGON_PARTS_MANAGER_BASE_URL"
   },
+  "downloadServer": {
+    "publicDns": "DOWNLOAD_SERVER_PUBLIC_DNS",
+    "reportsDownloadPath": "DOWNLOAD_SERVER_REPORTS_DOWNLOAD_PATH"
+  },
   "gpkgsLocation": "GPKGS_LOCATION",
+  "reportsPath": "VALIDATION_REPORTS_PATH",
   "ingestionSourcesDirPath": "INGESTION_SOURCES_DIR_PATH",
   "jobDefinitions": {
     "tasks": {
@@ -71,6 +76,14 @@
         },
         "maxAttempts": {
           "__name": "VALIDATION_TASK_MAX_ATTEMPTS",
+          "__format": "number"
+        },
+        "smallGeometriesPercentageThreshold": {
+          "__name": "VALIDATION_TASK_SMALL_GEOMETRIES_PERCENTAGE_THRESHOLD",
+          "__format": "number"
+        },
+        "smallHolesPercentageThreshold": {
+          "__name": "VALIDATION_TASK_SMALL_HOLES_PERCENTAGE_THRESHOLD",
           "__format": "number"
         }
       }
@@ -101,6 +114,17 @@
       "__format": "boolean"
     }
   },
+  "S3": {
+    "accessKeyId": "S3_ACCESS_KEY_ID",
+    "secretAccessKey": "S3_SECRET_ACCESS_KEY",
+    "endpointUrl": "S3_ENDPOINT_URL",
+    "bucket": "S3_ARTIFACTS_BUCKET",
+    "sslEnabled": {
+      "__name": "S3_SSL_ENABLED",
+      "__format": "boolean"
+    }
+  },
+  "reportStorageProvider": "REPORT_STORAGE_PROVIDER",
   "disableHttpClientLogs": {
     "__name": "DISABLE_HTTP_CLIENT_LOGS",
     "__format": "boolean"

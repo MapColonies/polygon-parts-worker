@@ -1,3 +1,4 @@
+import path from 'path';
 import { RoiFeatureCollection } from '@map-colonies/raster-shared';
 import { v4 as uuidv4 } from 'uuid';
 import { degreesPerPixelToZoomLevel, zoomLevelToResolutionMeter } from '@map-colonies/mc-utils';
@@ -42,4 +43,10 @@ export const manipulateFeatures = (findFeaturesResponse: FindPolygonPartsRespons
   });
 
   return { ...findFeaturesResponse, features: updatedFeatures };
+};
+
+export const buildUrl = (baseUrl: string, relativePath: string): string => {
+  const url = new URL(baseUrl);
+  url.pathname = path.posix.join(url.pathname, relativePath);
+  return url.href;
 };

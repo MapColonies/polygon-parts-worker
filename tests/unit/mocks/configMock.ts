@@ -78,6 +78,13 @@ const registerDefaultConfig = (): void => {
       delay: 'exponential',
       shouldResetTimeout: true,
     },
+    s3: {
+      accessKeyId: 'accessKeyId',
+      secretAccessKey: 'secretAccessKey',
+      endpointUrl: 'http://localhost:9000',
+      bucket: 'bucket',
+      sslEnabled: false,
+    },
     disableHttpClientLogs: true,
     jobManagement: {
       config: {
@@ -96,7 +103,8 @@ const registerDefaultConfig = (): void => {
       baseUrl: 'http://polygon-parts-manager-test',
     },
     gpkgsLocation: '/app/tiles_outputs/gpkgs',
-    ingestionSourcesDirPath: '',
+    ingestionSourcesDirPath: 'tests/integration/shapeFiles',
+    reportsPath: 'tests/integration/validation-reports',
     jobDefinitions: {
       tasks: {
         polygonParts: {
@@ -106,7 +114,9 @@ const registerDefaultConfig = (): void => {
         validation: {
           type: 'validation',
           maxAttempts: 3,
-          verticesPerChunk: 1000,
+          chunkMaxVertices: 2500,
+          smallGeometriesPercentageThreshold: 5,
+          smallHolesPercentageThreshold: 5,
         },
       },
       jobs: {

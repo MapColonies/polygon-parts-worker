@@ -13,6 +13,7 @@ export const SERVICES = {
   CONFIG: Symbol('Config'),
   TRACER: Symbol('Tracer'),
   METRICS_REGISTRY: Symbol('MetricsRegistry'),
+  S3CONFIG: Symbol('S3Config'),
   QUEUE_CLIENT: Symbol('QueueClient'),
   SHAPE_FILE_PROCESSOR: Symbol('ShapeFileProcessor'),
   TASK_METRICS: Symbol('TaskMetrics'),
@@ -27,3 +28,22 @@ export const HANDLERS = {
   SWAP: config.get<string>('jobDefinitions.jobs.swapUpdate.type'),
   EXPORT: config.get<string>('jobDefinitions.jobs.export.type'),
 } satisfies Record<string, string>;
+
+export const StorageProvider = {
+  FS: 'FS',
+  S3: 'S3',
+} as const;
+
+export type StorageProvider = (typeof StorageProvider)[keyof typeof StorageProvider];
+
+export const OgrFormat = {
+  GPKG: 'GPKG',
+  ESRI_SHAPEFILE: 'ESRI Shapefile',
+};
+export type OgrFormat = (typeof OgrFormat)[keyof typeof OgrFormat];
+
+export const S3_VALIDATION_REPORTS_FOLDER = 'validation-reports';
+
+export const ZIP_CONTENT_TYPE = 'application/zip';
+
+export const UTF8_ENCODING = 'utf-8';

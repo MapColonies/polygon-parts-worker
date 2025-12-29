@@ -31,6 +31,8 @@ export class PolygonPartsManagerClient extends HttpClient {
     return response;
   }
 
+  // TODO: remove ignore when adding integration tests for export job handler
+  /* istanbul ignore next */
   @withSpanAsyncV4
   public async findPolygonParts(polygonPartsEntityName: PolygonPartsEntityName, roi: RoiFeatureCollection): Promise<FindPolygonPartsResponse> {
     const findPartsUrl = `/polygonParts/${polygonPartsEntityName}/find`;

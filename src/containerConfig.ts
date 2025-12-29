@@ -1,3 +1,4 @@
+import { accessSync } from 'fs';
 import config, { IConfig } from 'config';
 import { getOtelMixin } from '@map-colonies/telemetry';
 import { trace } from '@opentelemetry/api';
@@ -13,6 +14,7 @@ import { InjectionObject, registerDependencies } from './common/dependencyRegist
 import { IJobManagerConfig } from './common/interfaces';
 import { IngestionJobHandler } from './models/ingestion/ingestionHandler';
 import { ExportJobHandler } from './models/export/exportJobHandler';
+import { IS3Config } from './common/storage/s3Service';
 
 const queueClientFactory = (container: DependencyContainer): QueueClient => {
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
@@ -29,6 +31,38 @@ const queueClientFactory = (container: DependencyContainer): QueueClient => {
   );
 };
 
+const validateRequiredDirectories = (container: DependencyContainer): void => {
+  const config = container.resolve<IConfig>(SERVICES.CONFIG);
+  const logger = container.resolve<Logger>(SERVICES.LOGGER);
+
+  const requiredDirectories = [
+    { name: 'reportsPath', path: config.get<string>('reportsPath') },
+    { name: 'ingestionSourcesDirPath', path: config.get<string>('ingestionSourcesDirPath') },
+    // Add more required directories here in the future
+  ];
+
+  const missingDirectories: string[] = [];
+
+  for (const dir of requiredDirectories) {
+    try {
+      accessSync(dir.path);
+      logger.info({
+        msg: 'Required directory exists',
+        name: dir.name,
+        path: dir.path,
+      });
+    } catch (error) {
+      missingDirectories.push(`${dir.name}: ${dir.path}`);
+    }
+  }
+
+  if (missingDirectories.length > 0) {
+    const errorMessage = `Required directories do not exist:${missingDirectories.join(', ')}`;
+    logger.fatal({ msg: errorMessage });
+    throw new Error(errorMessage);
+  }
+};
+
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
   useChild?: boolean;
@@ -36,11 +70,12 @@ export interface RegisterOptions {
 
 export const registerExternalValues = (options?: RegisterOptions): DependencyContainer => {
   const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
+
   const logger = jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, mixin: getOtelMixin() });
 
   const metricsRegistry = new Registry();
-
   const tracer = trace.getTracer(SERVICE_NAME);
+  const s3Config = config.get<IS3Config>('S3');
 
   const dependencies: InjectionObject<unknown>[] = [
     { token: SERVICES.CONFIG, provider: { useValue: config } },
@@ -51,6 +86,12 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     { token: HANDLERS.UPDATE, provider: { useClass: IngestionJobHandler } },
     { token: HANDLERS.SWAP, provider: { useClass: IngestionJobHandler } },
     { token: HANDLERS.EXPORT, provider: { useClass: ExportJobHandler } },
+    {
+      token: SERVICES.S3CONFIG,
+      provider: {
+        useValue: s3Config,
+      },
+    },
     {
       token: SERVICES.METRICS_REGISTRY,
       provider: {
@@ -76,5 +117,8 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     },
   ];
 
-  return registerDependencies(dependencies, options?.override, options?.useChild);
+  const registeredContainer = registerDependencies(dependencies, options?.override, options?.useChild);
+  validateRequiredDirectories(registeredContainer);
+
+  return registeredContainer;
 };

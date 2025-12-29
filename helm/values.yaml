@@ -25,35 +25,45 @@ jobDefinitions:
       type: ""
     swapUpdate:
       type: ""
-    export: 
+    export:
       type: ""
   tasks:
     polygonParts:
       type: ""
-      config:
-      maxAttempts: 3  
+      maxAttempts: 3
     validation:
       type: ""
-      chunkMaxVertices: 1000
+      chunkMaxVertices: 2500
       maxAttempts: 3
+      smallGeometriesPercentageThreshold: 5
+      smallHolesPercentageThreshold: 5
+      reportsDownloadPath: "/downloads/validation-reports"
 
 serviceUrls:
   jobManager: ""
   heartbeatManager: ""
   polygonPartsManager: ""
   jobTracker: ""
+  downloadServerPublicDNS: ""
 
 storage:
-  fs: 
+  reportProvider: ""  # FS | S3
+  fs:
     internalPvc:
       name: ""
       gpkgSubPath: ""
       outputPath: ""
+      reportsPath: ""
     ingestionSourcePvc:
       enabled: true
       name: ""
       mountPath: ""
-      subPath: ""     
+      subPath: ""
+  s3:
+    endpointUrl: ""
+    artifactsBucket: ""
+    sslEnabled: false
+    secretName: ""
 
 cloudProvider:
   dockerRegistryUrl: 'my-registry-url.io'
@@ -72,8 +82,8 @@ metrics:
 enabled: true
 environment: development
 replicaCount: 1
-revisionHistoryLimit: 5 # Amount of revisions we keep
-nodePort: 30030 #for minikube deployment only
+revisionHistoryLimit: 5  # Amount of revisions we keep
+nodePort: 30030  # for minikube deployment only
 resetOnConfigChange: false
 
 nameOverride: ""
@@ -125,7 +135,7 @@ env:
   logPrettyPrintEnabled: false
   responseCompressionEnabled: true
   requestPayloadLimit: 1mb
-  disableHttpClientLogs: false     
+  disableHttpClientLogs: false
   httpRetry:
     attempts: 5
     delay: exponential
@@ -149,10 +159,10 @@ resources:
 route:
   enabled: true
   path: /
-  host: 
+  host:
   timeout:
-    enabled: false # defaults to 30s by openshift
-    duration: 60s # supported units (us, ms, s, m, h, d)
+    enabled: false  # defaults to 30s by openshift
+    duration: 60s  # supported units (us, ms, s, m, h, d)
   rewriteTarget: ''
   tls:
     enabled: true

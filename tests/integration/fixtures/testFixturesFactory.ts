@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 import { randomUUID } from 'crypto';
+import { faker } from '@faker-js/faker';
 import { IJobResponse, ITaskResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { ProductType } from '@map-colonies/mc-model-types';
 import { IngestionJobParams, ValidationTaskParameters } from '../../../src/common/interfaces';
@@ -13,6 +14,7 @@ export interface CreateJobOptions {
   productType?: string;
   shapefilePath?: string;
   ingestionResolution?: number;
+  callbackUrls?: string[];
 }
 
 export interface CreateTaskOptions {
@@ -33,6 +35,7 @@ export function createIngestionJob(options: CreateJobOptions = {}): IJobResponse
   const productType = options.productType ?? ProductType.ORTHOPHOTO;
   const shapefilePath = options.shapefilePath ?? '/tmp/ShapeMetadata.shp';
   const ingestionResolution = options.ingestionResolution ?? 0.0006866455078125;
+  const callbackUrls = options.callbackUrls ?? [];
 
   return {
     id: jobId,
@@ -50,6 +53,7 @@ export function createIngestionJob(options: CreateJobOptions = {}): IJobResponse
       additionalParams: {
         jobTrackerServiceURL: 'http://job-tracker-service',
       },
+      callbackUrls,
     },
     status: OperationStatus.IN_PROGRESS,
     percentage: 0,
@@ -58,7 +62,7 @@ export function createIngestionJob(options: CreateJobOptions = {}): IJobResponse
     isCleaned: false,
     priority: 0,
     expirationDate: new Date('2025-12-31T23:59:59Z'),
-    internalId: 'internal-test-id',
+    internalId: faker.string.uuid(),
     producerName: 'test-producer',
     productName: 'test-product',
     productType,
@@ -90,6 +94,28 @@ export function createTask(options: CreateTaskOptions = {}): ITaskResponse<Valid
     description: 'Integration test validation task',
     parameters: {
       processingState,
+      checksums: [{ algorithm: 'XXH64', checksum: 'random-checksum-value', fileName: 'ShapeMetadata.shp' }],
+      errorsSummary: {
+        errorsCount: {
+          vertices: 0,
+          metadata: 0,
+          geometryValidity: 0,
+          resolution: 0,
+          smallGeometries: 0,
+          smallHoles: 0,
+          unknown: 0,
+        },
+        thresholds: {
+          smallGeometries: {
+            exceeded: false,
+          },
+          smallHoles: {
+            count: 50,
+            exceeded: false,
+          },
+        },
+      },
+      isValid: false,
     },
     created: new Date().toISOString(),
     updated: new Date().toISOString(),

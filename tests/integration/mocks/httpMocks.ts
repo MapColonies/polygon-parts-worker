@@ -1,5 +1,7 @@
 import nock from 'nock';
+import config from 'config';
 import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
+import { PolygonPartsChunkValidationResult } from '@map-colonies/raster-shared';
 import { StatusCodes } from 'http-status-codes';
 import { HANDLERS } from '../../../src/common/constants';
 
@@ -11,16 +13,16 @@ export interface MockHttpUrls {
 }
 
 export const mockUrls: MockHttpUrls = {
-  polygonPartsManagerUrl: 'http://polygon-parts-manager-test',
-  jobManagerUrl: 'http://job-manager-test',
-  jobTrackerUrl: 'http://job-tracker-test',
-  heartbeatUrl: 'http://heart-beat-test',
+  polygonPartsManagerUrl: config.get<string>('polygonPartsManager.baseUrl'),
+  jobManagerUrl: config.get<string>('jobManagement.config.jobManagerBaseUrl'),
+  jobTrackerUrl: config.get<string>('jobManagement.config.jobTracker.baseUrl'),
+  heartbeatUrl: config.get<string>('jobManagement.config.heartbeat.baseUrl'),
 };
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class HttpMockHelper {
-  public static mockPolygonPartsValidateSuccess(): nock.Scope {
-    return nock(mockUrls.polygonPartsManagerUrl).post('/polygonParts/validate').reply(StatusCodes.OK).persist();
+  public static mockPolygonPartsValidate(validationResult: PolygonPartsChunkValidationResult): nock.Scope {
+    return nock(mockUrls.polygonPartsManagerUrl).post('/polygonParts/validate').reply(StatusCodes.OK, validationResult).persist();
   }
 
   public static mockJobManagerUpdateTask(jobId: string, taskId: string): nock.Scope {
@@ -52,5 +54,19 @@ export class HttpMockHelper {
 
   public static mockJobTrackerFinishTask(taskId: string): nock.Scope {
     return nock(mockUrls.jobTrackerUrl).post(`/tasks/${taskId}/notify`).reply(StatusCodes.OK);
+  }
+
+  public static mockCallbackClientSend(callbackUrls?: string[]): void {
+    if (!callbackUrls) {
+      return;
+    }
+    for (const callbackUrl of callbackUrls) {
+      nock(callbackUrl).post('').reply(StatusCodes.OK);
+    }
+  }
+
+  public static mockHeartbeat(taskId: string): nock.Scope {
+    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+    return nock(mockUrls.heartbeatUrl).post(`/heartbeat/${taskId}`).reply(200, 'ok').persist();
   }
 }
