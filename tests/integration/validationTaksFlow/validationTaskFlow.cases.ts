@@ -48,7 +48,7 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
   },
   {
     description: 'Small geometries error',
-    shapefilePath: '/invalid/for_pp_invalid_mock/ShapeMetadata.shp',
+    shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
     ppManagerValidationResult: {
       parts: [{ id: '1', errors: ['Small_Geometry'] }],
       smallHolesCount: 0,
@@ -57,7 +57,7 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
   },
   {
     description: 'Small holes error',
-    shapefilePath: '/invalid/for_pp_invalid_mock/ShapeMetadata.shp',
+    shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
     ppManagerValidationResult: {
       parts: [{ id: '1', errors: ['Small_Holes'] }],
       smallHolesCount: 100,
@@ -66,7 +66,7 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
   },
   {
     description: 'Resolution error',
-    shapefilePath: '/invalid/for_pp_invalid_mock/ShapeMetadata.shp',
+    shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
     ppManagerValidationResult: {
       parts: [{ id: '1', errors: ['Resolution'] }],
       smallHolesCount: 0,
@@ -75,7 +75,7 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
   },
   {
     description: 'Unknown error',
-    shapefilePath: '/invalid/for_pp_invalid_mock/ShapeMetadata.shp',
+    shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
     ppManagerValidationResult: {
       parts: [{ id: '1', errors: ['Unknown'] }],
       smallHolesCount: 0,
@@ -97,7 +97,7 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
   },
   {
     description: 'Multiple errors(PolygonPartsManager errors)',
-    shapefilePath: '/invalid/for_pp_invalid_mock/ShapeMetadata.shp',
+    shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
     ppManagerValidationResult: {
       parts: [{ id: '1', errors: ['Resolution', 'Small_Geometry', 'Small_Holes', 'Geometry_Validity', 'Unknown'] }],
       smallHolesCount: 200,
