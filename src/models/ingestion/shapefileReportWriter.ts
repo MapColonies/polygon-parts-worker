@@ -9,7 +9,7 @@ import ogr2ogr from 'ogr2ogr';
 import archiver from 'archiver';
 import { IJobResponse } from '@map-colonies/mc-priority-queue';
 import type { Feature, Geometry } from 'geojson';
-import { OgrFormat, SERVICES, utf8Encoding } from '../../common/constants';
+import { OgrFormat, SERVICES, UTF8_ENCODING } from '../../common/constants';
 import { IConfig, IngestionJobParams, ValidationTaskParameters } from '../../common/interfaces';
 import {
   OGR2OGR_SHP_REPORT_OPTIONS,
@@ -195,7 +195,7 @@ export class ShapefileReportWriter {
     const metadata = this.createQmdMetadata(params);
     const qmdContent = this.buildQmdXmlContent(metadata);
 
-    await fs.writeFile(qmdPath, qmdContent, utf8Encoding);
+    await fs.writeFile(qmdPath, qmdContent, UTF8_ENCODING);
 
     this.logger.info({
       msg: 'QMD metadata file created',

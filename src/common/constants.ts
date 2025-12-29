@@ -46,4 +46,4 @@ export const S3_VALIDATION_REPORTS_FOLDER = 'validation-reports';
 
 export const ZIP_CONTENT_TYPE = 'application/zip';
 
-export const utf8Encoding = 'utf-8';
+export const UTF8_ENCODING = 'utf-8';
