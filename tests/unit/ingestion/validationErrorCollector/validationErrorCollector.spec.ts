@@ -607,12 +607,18 @@ describe('ValidationErrorCollector', () => {
 
     it('should return true for small holes errors exceeding threshold', () => {
       // Arrange
-      const totalFeatures = 100;
-      const smallHolesCount = 10; // 10% - exceeds threshold
+      const totalFeatures = 2;
+      const smallHolesCount = 10;
 
       collector.setShapefileStats({ totalFeatures, totalVertices: 5000 });
 
-      const feature: Feature<Polygon, { id: string }> = {
+      const feature1: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+
+      const feature2: Feature<Polygon, { id: string }> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [[[]]] },
         properties: createFakeShpFeatureProperties(),
@@ -621,7 +627,11 @@ describe('ValidationErrorCollector', () => {
       const validationResult: PolygonPartsChunkValidationResult = {
         parts: [
           {
-            id: feature.properties.id,
+            id: feature1.properties.id,
+            errors: [ValidationErrorType.SMALL_HOLES],
+          },
+          {
+            id: feature2.properties.id,
             errors: [ValidationErrorType.SMALL_HOLES],
           },
         ],
@@ -629,12 +639,12 @@ describe('ValidationErrorCollector', () => {
       };
 
       // Act
-      collector.addValidationErrors(validationResult, [feature], 1);
+      collector.addValidationErrors(validationResult, [feature1, feature2], 1);
 
       // Assert
       expect(collector.hasCriticalErrors()).toBe(true);
       const thresholds = collector.getThresholdsInfo();
-      expect(thresholds.smallHoles.exceeded).toBe(true);
+      expect(thresholds.smallHoles.exceeded).toBe(true); // 2/2 features = 100% > 5% threshold
     });
 
     it('should return true when both critical errors and non-critical errors exist', () => {
@@ -889,12 +899,18 @@ describe('ValidationErrorCollector', () => {
 
     it('should update when small holes threshold is exceeded', () => {
       // Arrange
-      const totalFeatures = 100;
-      const smallHolesCount = 10; // 10% of total features
+      const totalFeatures = 2;
+      const smallHolesCount = 10;
 
-      collector.setShapefileStats({ totalFeatures, totalVertices: 5000 });
+      collector.setShapefileStats({ totalFeatures, totalVertices: 300 });
 
-      const feature: Feature<Polygon, { id: string }> = {
+      const feature1: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+
+      const feature2: Feature<Polygon, { id: string }> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [[[]]] },
         properties: createFakeShpFeatureProperties(),
@@ -903,7 +919,11 @@ describe('ValidationErrorCollector', () => {
       const validationResult: PolygonPartsChunkValidationResult = {
         parts: [
           {
-            id: feature.properties.id,
+            id: feature1.properties.id,
+            errors: [ValidationErrorType.SMALL_HOLES],
+          },
+          {
+            id: feature2.properties.id,
             errors: [ValidationErrorType.SMALL_HOLES],
           },
         ],
@@ -911,12 +931,12 @@ describe('ValidationErrorCollector', () => {
       };
 
       // Act
-      collector.addValidationErrors(validationResult, [feature], 1);
+      collector.addValidationErrors(validationResult, [feature1, feature2], 1);
 
       // Assert
       const thresholds = collector.getThresholdsInfo();
       expect(thresholds.smallHoles.count).toBe(smallHolesCount);
-      expect(thresholds.smallHoles.exceeded).toBe(true);
+      expect(thresholds.smallHoles.exceeded).toBe(true); // 2/2 features = 100% > 5% threshold
     });
   });
 
