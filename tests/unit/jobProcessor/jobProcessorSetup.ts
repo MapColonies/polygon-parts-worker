@@ -38,7 +38,7 @@ function jobProcessorInstance(): JobProcessor {
   return new JobProcessor(loggerMock, mockTracer, mockQueueClient, configMock, mockJobTrackerClient, taskMetricsMock);
 }
 
-function ingestionJobJobHandlerInstance(): IngestionJobHandler {
+function ingestionJobHandlerInstance(): IngestionJobHandler {
   mockPolygonPartsClient.validate = jest.fn().mockResolvedValue({ parts: [], smallHolesCount: 0 });
   mockQueueClient.jobManagerClient.updateTask = jest.fn().mockResolvedValue(undefined);
   mockQueueClient.jobManagerClient.getTask = jest.fn().mockResolvedValue(validationTask);
@@ -67,7 +67,7 @@ export {
   mockJobTrackerClient,
   mockProcessJob,
   mockQueueClient,
-  ingestionJobJobHandlerInstance,
+  ingestionJobHandlerInstance,
   exportJobHandlerInstance,
   mockPolygonPartsClient,
 };

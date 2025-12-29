@@ -34,7 +34,7 @@ describe('ShapefileReportWriter', () => {
   });
 
   describe('writeChunk', () => {
-    it.each(writeChunkTestCases)('should $description', async ({ chunkId, featureCount, fileExists, expectedOptions }) => {
+    it.each(writeChunkTestCases)('should $description', async ({ chunkId, featureCount, reportShapefileExists, expectedOptions }) => {
       // Arrange
       const features = createFakeFeaturesWithErrors(featureCount);
       const jobId = faker.string.uuid();
@@ -42,7 +42,7 @@ describe('ShapefileReportWriter', () => {
       const expectedOutputPath = path.join(reportsPath, jobId);
       const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
 
-      if (fileExists) {
+      if (reportShapefileExists) {
         (fsAsync.access as jest.Mock).mockResolvedValue(undefined);
       } else {
         (fsAsync.access as jest.Mock).mockRejectedValue(new Error('File not found'));
@@ -236,7 +236,7 @@ describe('ShapefileReportWriter', () => {
       expect(fsAsync.access).toHaveBeenCalledWith(expectedShpPath);
 
       // Verify cleanup was called for all shapefile components
-      expect(fsAsync.unlink).toHaveBeenCalled();
+      expect(fsAsync.unlink).toHaveBeenCalledTimes(6); // .shp, .shx, .dbf, .prj, .cpg, .qmd
       const unlinkCalls = (fsAsync.unlink as jest.Mock).mock.calls;
       expect(unlinkCalls.length).toBeGreaterThan(0);
     });
@@ -326,7 +326,7 @@ describe('ShapefileReportWriter', () => {
       expect(qmdContent).toContain('<type>Ingestion_New</type>');
 
       // Verify cleanup was called
-      expect(fsAsync.unlink).toHaveBeenCalled();
+      expect(fsAsync.unlink).toHaveBeenCalledTimes(6); // .shp, .shx, .dbf, .prj, .cpg, .qmd
 
       // Verify result
       expect(result).not.toBeNull();

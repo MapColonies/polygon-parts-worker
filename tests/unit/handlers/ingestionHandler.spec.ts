@@ -5,7 +5,7 @@ import { IJobResponse, ITaskResponse, OperationStatus } from '@map-colonies/mc-p
 import { Feature, Polygon } from 'geojson';
 import { PolygonPartsChunkValidationResult, ValidationErrorType } from '@map-colonies/raster-shared';
 import { IngestionJobHandler } from '../../../src/models/ingestion/ingestionHandler';
-import { ingestionJobJobHandlerInstance, configMock, mockQueueClient, mockPolygonPartsClient } from '../jobProcessor/jobProcessorSetup';
+import { ingestionJobHandlerInstance, configMock, mockQueueClient, mockPolygonPartsClient } from '../jobProcessor/jobProcessorSetup';
 import { newJobResponseMock } from '../mocks/jobsMocks';
 import { validationTask } from '../mocks/tasksMocks';
 import { mockFSWithShapefiles } from '../mocks/fsMocks';
@@ -36,7 +36,7 @@ describe('IngestionJobHandler', () => {
 
   beforeEach(() => {
     mockFSWithShapefiles(absoluteShapefilePath);
-    ingestionJobHandler = ingestionJobJobHandlerInstance();
+    ingestionJobHandler = ingestionJobHandlerInstance();
 
     // Mock ShapefileChunkReader
     (ShapefileChunkReader as jest.Mock).mockImplementation(() => ({
@@ -334,6 +334,16 @@ describe('IngestionJobHandler', () => {
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1);
       });
+
+      describe('error handling', () => {
+        it('should throw error if critical error occurs', async () => {
+          const mockError = new Error();
+
+          mockReadAndProcess.mockRejectedValue(mockError);
+
+          await expect(ingestionJobHandler.processJob(newJobResponseMock, validationTask)).rejects.toThrow();
+        });
+      });
     });
 
     describe('storage management', () => {
@@ -356,7 +366,7 @@ describe('IngestionJobHandler', () => {
           setValue('reportStorageProvider', StorageProvider.S3);
           init();
 
-          ingestionJobHandler = ingestionJobJobHandlerInstance(); // re-instantiate to pick up new config
+          ingestionJobHandler = ingestionJobHandlerInstance(); // re-instantiate to pick up new config
 
           mockReadAndProcess.mockResolvedValue(undefined);
           const s3ServiceUploadSpy = jest.spyOn(S3Service.prototype, 'uploadFiles').mockResolvedValue(['s3://bucket/report.rar']);
@@ -846,16 +856,6 @@ describe('IngestionJobHandler', () => {
           status: OperationStatus.FAILED,
         })
       );
-    });
-  });
-
-  describe('error handling', () => {
-    it('should throw error if critical error occurs', async () => {
-      const mockError = new Error();
-
-      mockReadAndProcess.mockRejectedValue(mockError);
-
-      await expect(ingestionJobHandler.processJob(newJobResponseMock, validationTask)).rejects.toThrow();
     });
   });
 });
