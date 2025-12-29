@@ -56,9 +56,9 @@ describe('IngestionJobHandler', () => {
       expect(ingestionJobHandler).toBeInstanceOf(IngestionJobHandler);
     });
 
-    it('should set maxchunkMaxVertices from config', () => {
+    it('should set maxChunkMaxVertices from config', () => {
       const expectedMaxVertices = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
-      expect(expectedMaxVertices).toBe(2500);
+      expect(expectedMaxVertices).toBe(ingestionJobHandler['chunkMaxVertices']);
     });
   });
 
