@@ -14,6 +14,7 @@ export interface CreateJobOptions {
   productType?: string;
   shapefilePath?: string;
   ingestionResolution?: number;
+  callbackUrls?: string[];
 }
 
 export interface CreateTaskOptions {
@@ -34,6 +35,7 @@ export function createIngestionJob(options: CreateJobOptions = {}): IJobResponse
   const productType = options.productType ?? ProductType.ORTHOPHOTO;
   const shapefilePath = options.shapefilePath ?? '/tmp/ShapeMetadata.shp';
   const ingestionResolution = options.ingestionResolution ?? 0.0006866455078125;
+  const callbackUrls = options.callbackUrls ?? [];
 
   return {
     id: jobId,
@@ -51,6 +53,7 @@ export function createIngestionJob(options: CreateJobOptions = {}): IJobResponse
       additionalParams: {
         jobTrackerServiceURL: 'http://job-tracker-service',
       },
+      callbackUrls,
     },
     status: OperationStatus.IN_PROGRESS,
     percentage: 0,
@@ -91,6 +94,7 @@ export function createTask(options: CreateTaskOptions = {}): ITaskResponse<Valid
     description: 'Integration test validation task',
     parameters: {
       processingState,
+      checksums: [{ algorithm: 'XXH64', checksum: 'random-checksum-value', fileName: 'ShapeMetadata.shp' }],
       errorsSummary: {
         errorsCount: {
           vertices: 0,

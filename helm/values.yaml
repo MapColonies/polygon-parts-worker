@@ -15,12 +15,12 @@ jobDefinitions:
       type: ""
     swapUpdate:
       type: ""
-    export: 
+    export:
       type: ""
   tasks:
     polygonParts:
       type: ""
-      maxAttempts: 3  
+      maxAttempts: 3
     validation:
       type: ""
       chunkMaxVertices: 2500
@@ -37,8 +37,8 @@ serviceUrls:
   downloadServerPublicDNS: ""
 
 storage:
-  reportProvider: "" # FS | S3
-  fs: 
+  reportProvider: ""  # FS | S3
+  fs:
     internalPvc:
       name: ""
       gpkgSubPath: ""
@@ -53,7 +53,7 @@ storage:
     endpointUrl: ""
     artifactsBucket: ""
     sslEnabled: false
-    secretName: ""        
+    secretName: ""
 
 cloudProvider:
   dockerRegistryUrl: 'my-registry-url.io'
@@ -72,8 +72,8 @@ metrics:
 enabled: true
 environment: development
 replicaCount: 1
-revisionHistoryLimit: 5 # Amount of revisions we keep
-nodePort: 30030 #for minikube deployment only
+revisionHistoryLimit: 5  # Amount of revisions we keep
+nodePort: 30030  # for minikube deployment only
 resetOnConfigChange: false
 
 nameOverride: ""
@@ -125,7 +125,7 @@ env:
   logPrettyPrintEnabled: false
   responseCompressionEnabled: true
   requestPayloadLimit: 1mb
-  disableHttpClientLogs: false     
+  disableHttpClientLogs: false
   httpRetry:
     attempts: 5
     delay: exponential
@@ -149,10 +149,10 @@ resources:
 route:
   enabled: true
   path: /
-  host: 
+  host:
   timeout:
-    enabled: false # defaults to 30s by openshift
-    duration: 60s # supported units (us, ms, s, m, h, d)
+    enabled: false  # defaults to 30s by openshift
+    duration: 60s  # supported units (us, ms, s, m, h, d)
   rewriteTarget: ''
   tls:
     enabled: true

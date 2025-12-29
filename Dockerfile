@@ -1,5 +1,4 @@
-FROM node:20 AS build
-
+FROM node:20.15.1-slim as build
 WORKDIR /tmp/buildApp
 
 COPY ./package*.json ./
@@ -9,11 +8,11 @@ COPY . .
 RUN npm run build
 
 # Production stage with GDAL setup
-FROM node:20.3.1-alpine3.17 AS production
-
-RUN apk add dumb-init
-# Install GDAL and dependencies for Alpine
-RUN apk add --no-cache gdal gdal-tools proj-util
+FROM node:20.15.1-slim as production
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    dumb-init \
+    gdal-bin \
+    && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
 ENV SERVER_PORT=8080
 

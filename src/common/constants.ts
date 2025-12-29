@@ -36,6 +36,14 @@ export const StorageProvider = {
 
 export type StorageProvider = (typeof StorageProvider)[keyof typeof StorageProvider];
 
+export const OgrFormat = {
+  GPKG: 'GPKG',
+  ESRI_SHAPEFILE: 'ESRI Shapefile',
+};
+export type OgrFormat = (typeof OgrFormat)[keyof typeof OgrFormat];
+
 export const S3_VALIDATION_REPORTS_FOLDER = 'validation-reports';
 
 export const ZIP_CONTENT_TYPE = 'application/zip';
+
+export const UTF8_ENCODING = 'utf-8';

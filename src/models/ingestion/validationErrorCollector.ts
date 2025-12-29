@@ -276,10 +276,7 @@ export class ValidationErrorCollector {
   private updateThresholdsTracking(smallHolesCount: number): void {
     if (smallHolesCount > 0) {
       this.thresholdsResult.smallHoles.count += smallHolesCount;
-      this.thresholdsResult.smallHoles.exceeded = this.checkThresholdExceeded(
-        this.thresholdsResult.smallHoles.count,
-        this.smallHolesPercentageThreshold
-      );
+      this.thresholdsResult.smallHoles.exceeded = this.checkThresholdExceeded(this.errorsCount.smallHoles, this.smallHolesPercentageThreshold);
     }
 
     this.thresholdsResult.smallGeometries.exceeded = this.checkThresholdExceeded(

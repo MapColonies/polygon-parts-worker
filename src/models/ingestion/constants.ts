@@ -4,6 +4,8 @@ import { ErrorsCount } from './types';
 
 export const UNKNOWN_ID = 'UNKNOWN_ID';
 
+export const SHAPEFILE_REPORT_FILE_NAME = 'report.shp';
+
 export const METADATA_ERROR_SEPARATOR = '; ';
 
 export const VALIDATION_ERROR_TYPE_FORMATS = {

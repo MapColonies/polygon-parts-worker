@@ -1,5 +1,6 @@
 import { ITaskResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { ValidationTaskParameters } from '../../../src/common/interfaces';
+import { createFakeErrorsSummary } from '../ingestion/shapefileReportWriter/shapefileReportWriter.data';
 
 //copied from Ingestion-Trigger, should be moved to a shared library (Mc-Models)
 export interface IPollingTaskParameters {
@@ -13,6 +14,8 @@ export const validationTask: ITaskResponse<ValidationTaskParameters> = {
   description: 'validation task',
   parameters: {
     processingState: null,
+    checksums: [],
+    errorsSummary: createFakeErrorsSummary(),
   },
   created: '2024-07-21T10:59:23.510Z',
   updated: '2024-07-21T10:59:23.510Z',

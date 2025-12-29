@@ -1,10 +1,18 @@
+import * as fs from 'fs';
 import { BadRequestError } from '@map-colonies/error-types';
-import { HANDLERS } from '../../../src/common/constants';
+import { HANDLERS, SERVICES } from '../../../src/common/constants';
 import { initJobHandler } from '../../../src/models/handlerFactory';
 import { IngestionJobHandler } from '../../../src/models/ingestion/ingestionHandler';
 import { configMock } from '../mocks/configMock';
 import { registerExternalValues } from '../../../src/containerConfig';
-import { ingestionJobJobHandlerInstance } from '../jobProcessor/jobProcessorSetup';
+import { ingestionJobHandlerInstance } from '../jobProcessor/jobProcessorSetup';
+import { loggerMock } from '../mocks/telemetryMock';
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+jest.mock('fs', () => ({
+  ...jest.requireActual('fs'),
+  accessSync: jest.fn(),
+}));
 
 describe('HandlerFactory', () => {
   const ingestionNew = configMock.get<string>('jobDefinitions.jobs.new.type');
@@ -14,8 +22,13 @@ describe('HandlerFactory', () => {
   const jobTypesToProcess = { ingestionNew, ingestionUpdate, ingestionSwapUpdate, exportJob };
 
   beforeEach(() => {
+    (fs.accessSync as jest.Mock).mockImplementation(() => undefined); // simulate directories exist
+
     registerExternalValues({
-      override: [{ token: HANDLERS.NEW, provider: { useValue: ingestionJobJobHandlerInstance() } }],
+      override: [
+        { token: SERVICES.LOGGER, provider: { useValue: loggerMock } },
+        { token: HANDLERS.NEW, provider: { useValue: ingestionJobHandlerInstance() } },
+      ],
     });
   });
 
