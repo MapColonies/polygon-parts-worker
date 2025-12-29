@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-magic-numbers */
 import { faker } from '@faker-js/faker';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { CallbackResponse, RasterProductTypes } from '@map-colonies/raster-shared';
