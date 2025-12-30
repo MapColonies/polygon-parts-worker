@@ -29,6 +29,13 @@ export class HttpMockHelper {
     return nock(mockUrls.jobManagerUrl).put(`/jobs/${jobId}/tasks/${taskId}`).reply(StatusCodes.OK).persist();
   }
 
+  public static mockJobManagerUpdateJob(
+    jobId: string,
+    body: Omit<Partial<IJobResponse<unknown, unknown>>, 'parameters' | 'tasks' | 'expirationDate'>
+  ): nock.Scope {
+    return nock(mockUrls.jobManagerUrl).put(`/jobs/${jobId}`, body).reply(StatusCodes.OK).persist();
+  }
+
   public static mockJobManagerGetJob(jobId: string, job: IJobResponse<unknown, unknown>, shouldReturnTasks: boolean = false): nock.Scope {
     return nock(mockUrls.jobManagerUrl).get(`/jobs/${jobId}?shouldReturnTasks=${shouldReturnTasks}`).reply(StatusCodes.OK, job);
   }

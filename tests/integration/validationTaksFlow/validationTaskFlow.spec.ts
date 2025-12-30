@@ -70,6 +70,7 @@ describe('Validation Task Flow', () => {
 
       const task = createTask({ jobId: job.id });
 
+      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
       HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
       HttpMockHelper.mockJobManagerGetJob(job.id, job);
       HttpMockHelper.mockPolygonPartsValidate(validationResult);
@@ -105,6 +106,7 @@ describe('Validation Task Flow', () => {
 
       const task = createTask({ jobId: job.id });
 
+      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
       HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
       HttpMockHelper.mockJobManagerGetJob(job.id, job);
       HttpMockHelper.mockPolygonPartsValidate(validationResult);
@@ -136,6 +138,7 @@ describe('Validation Task Flow', () => {
       });
       const task = createTask({ jobId: job.id });
 
+      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
       HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
       HttpMockHelper.mockJobManagerGetJob(job.id, job);
       HttpMockHelper.mockPolygonPartsValidate(testCase.ppManagerValidationResult);
@@ -177,6 +180,7 @@ describe('Validation Task Flow', () => {
       const task = createTask({ jobId: job.id });
       const isTaskRecoverable = false; // ShapefileNotFoundError is not recoverable
 
+      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
       HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
       HttpMockHelper.mockJobManagerGetJob(job.id, job);
       HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task); // Mock for queueClient.reject() internal call
@@ -203,6 +207,7 @@ describe('Validation Task Flow', () => {
       const task = createTask({ jobId: job.id });
       const isTaskRecoverable = false; // ShapefileNotFoundError is not recoverable
 
+      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
       HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
       HttpMockHelper.mockJobManagerGetJob(job.id, job);
       HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task); // Mock for queueClient.reject() internal call
@@ -229,6 +234,7 @@ describe('Validation Task Flow', () => {
       const task = createTask({ jobId: job.id, attempts: 5 });
       const isTaskRecoverable = false; // ReachedMaxTaskAttemptsError is not recoverable
 
+      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
       HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
       HttpMockHelper.mockJobManagerGetJob(job.id, job);
       HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task); // Mock for queueClient.reject() internal call
@@ -255,6 +261,7 @@ describe('Validation Task Flow', () => {
       const task = createTask({ jobId: job.id });
       const isTaskRecoverable = true; // TODO: Empty shapefile is not recoverable(later we need to set task to unrecoverable when this error is thrown)
 
+      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
       HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
       HttpMockHelper.mockJobManagerGetJob(job.id, job);
       HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
@@ -281,6 +288,7 @@ describe('Validation Task Flow', () => {
       });
       const task = createTask({ jobId: job.id, attempts: 2 });
 
+      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
       HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
       HttpMockHelper.mockJobManagerGetJob(job.id, job);
       HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task); // Mock for queueClient.reject() internal call
@@ -319,6 +327,7 @@ describe('Validation Task Flow', () => {
         smallHolesCount: 0,
       };
 
+      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
       HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
       HttpMockHelper.mockJobManagerGetJob(job.id, job);
       HttpMockHelper.mockPolygonPartsValidate(validationResult);
