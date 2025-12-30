@@ -65,6 +65,9 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     const logger = this.logger.child({ jobId: job.id, taskId: task.id });
 
     try {
+      await this.queueClient.jobManagerClient.updateJob(job.id, { status: OperationStatus.IN_PROGRESS });
+      logger.info({ msg: 'starting ingestion validation job processing' });
+
       const shapefileFullPath = this.validateShapefilesExists(job.parameters.inputFiles.metadataShapefilePath);
       const shpReader = this.setupShapefileChunkReader(job, task);
 

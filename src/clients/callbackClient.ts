@@ -22,6 +22,7 @@ export class CallbackClient extends HttpClient {
   }
 
   public async send(callbackUrls: string[], data: CallbackResponse<unknown>): Promise<void> {
+    const logger = this.logger.child({ jobId: data.jobId, taskId: data.taskId });
     return context.with(trace.setSpan(context.active(), this.tracer.startSpan(`${CallbackClient.name}.send`)), async () => {
       const activeSpan = trace.getActiveSpan();
       const monitorAttributes = {
@@ -30,13 +31,13 @@ export class CallbackClient extends HttpClient {
       };
       activeSpan?.setAttributes({ metadata: JSON.stringify(monitorAttributes) });
 
-      this.logger.info({ msg: 'Sending callbacks', ...monitorAttributes });
+      logger.info({ msg: 'Sending callbacks', ...monitorAttributes });
       activeSpan?.addEvent('callback.sending');
 
       await Promise.all(
         callbackUrls.map(async (callbackUrl) =>
           this.post(callbackUrl, data).catch((err: Error) => {
-            this.logger.error({
+            logger.error({
               msg: 'Failed to send callback',
               url: callbackUrl,
               error: err.message,
@@ -49,7 +50,7 @@ export class CallbackClient extends HttpClient {
       );
 
       activeSpan?.addEvent('callback.sent.success');
-      this.logger.info({ msg: 'Callbacks sent successfully', callbackUrls });
+      logger.info({ msg: 'Callbacks sent successfully', callbackUrls });
       activeSpan?.end();
     });
   }

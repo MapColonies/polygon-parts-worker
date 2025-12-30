@@ -33,6 +33,7 @@ describe('IngestionJobHandler', () => {
   const mockGetShapefileStats = jest.fn();
   const ingestionSourcePath = configMock.get<string>('ingestionSourcesDirPath');
   const absoluteShapefilePath = path.join(ingestionSourcePath, newJobResponseMock.parameters.inputFiles.metadataShapefilePath);
+  const jobManagerClientUpdateJobSpy = jest.spyOn(mockQueueClient.jobManagerClient, 'updateJob').mockResolvedValue(undefined);
 
   beforeEach(() => {
     mockFSWithShapefiles(absoluteShapefilePath);
@@ -66,12 +67,10 @@ describe('IngestionJobHandler', () => {
     describe('successful processing', () => {
       it('should successfully process a job and validation task with valid shapefile containing single chunk', async () => {
         mockReadAndProcess.mockResolvedValue(undefined);
-        // const polygonPartsManagerValidateSpy = jest.spyOn(mockPolygonPartsClient, 'validate').mockResolvedValue({ parts: [], smallHolesCount: 0 });
 
         await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
-
+        expect(jobManagerClientUpdateJobSpy).toHaveBeenCalledWith(newJobResponseMock.id, { status: OperationStatus.IN_PROGRESS });
         expect(mockReadAndProcess).toHaveBeenCalledTimes(1);
-        // expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1);
         expect(mockReadAndProcess).toHaveBeenCalledWith(
           absoluteShapefilePath,
           expect.objectContaining({
