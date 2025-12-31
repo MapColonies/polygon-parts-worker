@@ -98,21 +98,71 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
 
       logger.info({ msg: 'report finalized', report });
 
-      const callBackTask = await this.updateTaskValidationResult(job.id, task.id, errorsSummary, hasCriticalErrors, report);
+      await this.updateTaskValidationResult(job.id, task.id, errorsSummary, hasCriticalErrors, report);
 
       if (this.shouldUploadToS3 && report) {
         await this.uploadReportToS3(job.id, report);
       }
-
-      await this.sendCallBacks(job, callBackTask, OperationStatus.COMPLETED);
     } catch (error) {
       logger.error({ msg: 'error while processing job', error });
-      const reachedMaxAttempts = task.attempts + 1 >= this.validationTaskMaxAttempts;
-      if (reachedMaxAttempts) {
-        await this.sendCallBacks(job, task, OperationStatus.FAILED);
-      }
       throw error;
     }
+  }
+
+  public async sendCallBacks(jobId: string, taskId: string, status: OperationStatus): Promise<void> {
+    const job = await this.queueClient.jobManagerClient.getJob<IngestionJobParams, ValidationTaskParameters>(jobId, true);
+    const task = job.tasks?.find((t) => t.id === taskId);
+    const callbackUrls = job.parameters.callbackUrls;
+    const logger = this.logger.child({ jobId, taskId, jobType: job.type, taskType: task?.type });
+
+    if (!task) {
+      logger.warn({ msg: 'task not found in job tasks' });
+      return;
+    }
+
+    if (!callbackUrls || callbackUrls.length === 0) {
+      logger.info({ msg: 'no callback urls provided, skipping callbacks' });
+      return;
+    }
+
+    const validProductType = rasterProductTypeSchema.parse(job.productType);
+    const report = task.parameters.report;
+    const links: ValidationCallbackData['links'] = report
+      ? [
+          {
+            fileName: report.fileName,
+            url: report.url,
+            fileSize: report.fileSize,
+          },
+        ]
+      : [];
+
+    const callbackInfo =
+      status === OperationStatus.FAILED
+        ? { error: 'Validation task failed' }
+        : {
+            message: 'Validation task completed successfully',
+            data: {
+              isValid: task.parameters.isValid ?? false,
+              links,
+              sourceName: getEntityName(job.resourceId, validProductType),
+            },
+          };
+
+    const callbackResponse: CallbackResponse<ValidationCallbackData> = {
+      jobId: job.id,
+      taskId: task.id,
+      jobType: job.type,
+      productId: job.resourceId,
+      productType: validProductType,
+      version: job.version,
+      taskType: task.type,
+      status,
+      ...callbackInfo,
+    };
+
+    logger.info({ msg: 'sending callbacks', callbackResponse });
+    await this.callbackClient.send(callbackUrls, callbackResponse);
   }
 
   private async validateChunk(
@@ -317,7 +367,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     errorsSummary: ValidationAggregatedErrors,
     hasCriticalErrors: boolean,
     report: Report | null
-  ): Promise<ITaskResponse<ValidationTaskParameters>> {
+  ): Promise<void> {
     const latestTask = await this.queueClient.jobManagerClient.getTask<ValidationTaskParameters>(jobId, taskId);
     const taskParameters: ValidationTaskParameters = {
       ...latestTask.parameters,
@@ -334,49 +384,5 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     };
     this.logger.info({ msg: 'updating task parameters', jobId, taskId: latestTask.id, newTaskParameters: taskParameters });
     await this.updateTaskParams(jobId, latestTask.id, taskParameters);
-    latestTask.parameters = taskParameters;
-    return latestTask;
-  }
-
-  private async sendCallBacks(
-    job: IJobResponse<IngestionJobParams, ValidationTaskParameters>,
-    task: ITaskResponse<ValidationTaskParameters>,
-    status: OperationStatus
-  ): Promise<void> {
-    const callbackUrls = job.parameters.callbackUrls;
-
-    if (!callbackUrls || callbackUrls.length === 0) {
-      this.logger.info({ msg: 'no callback urls provided, skipping callbacks', jobId: job.id });
-      return;
-    }
-
-    const validProductType = rasterProductTypeSchema.parse(job.productType);
-    const report = task.parameters.report;
-    const links = report ? [report] : [];
-    const callbackInfo =
-      status === OperationStatus.FAILED
-        ? { error: 'Validation task failed' }
-        : {
-            message: 'Validation task completed successfully',
-            data: {
-              isValid: task.parameters.isValid ?? false,
-              links,
-              sourceName: getEntityName(job.resourceId, validProductType),
-            },
-          };
-
-    const callbackResponse: CallbackResponse<ValidationCallbackData> = {
-      jobId: job.id,
-      taskId: task.id,
-      jobType: job.type,
-      productId: job.resourceId,
-      productType: validProductType,
-      version: job.version,
-      taskType: task.type,
-      status,
-      ...callbackInfo,
-    };
-
-    await this.callbackClient.send(callbackUrls, callbackResponse);
   }
 }

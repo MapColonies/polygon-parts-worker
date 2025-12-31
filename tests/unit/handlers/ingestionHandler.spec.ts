@@ -809,13 +809,15 @@ describe('IngestionJobHandler', () => {
           ...newJobResponseMock.parameters,
           callbackUrls: ['http://callback.url/notify'],
         },
+        tasks: [validationTask],
       };
 
+      jest.spyOn(mockQueueClient.jobManagerClient, 'getJob').mockResolvedValue(jobWithCallbacks);
       const sendSuccessCallbackSpy = jest.spyOn(CallbackClient.prototype, 'send');
 
       mockReadAndProcess.mockResolvedValue(undefined);
 
-      await ingestionJobHandler.processJob(jobWithCallbacks, validationTask);
+      await ingestionJobHandler.sendCallBacks(jobWithCallbacks.id, validationTask.id, OperationStatus.COMPLETED);
 
       expect(sendSuccessCallbackSpy).toHaveBeenCalledWith(
         jobWithCallbacks.parameters.callbackUrls,
@@ -840,15 +842,15 @@ describe('IngestionJobHandler', () => {
           ...newJobResponseMock.parameters,
           callbackUrls: ['http://callback.url/notify'],
         },
+        tasks: [maxAttemptsTask],
       };
 
       const sendErrorCallbackSpy = jest.spyOn(CallbackClient.prototype, 'send');
 
       mockReadAndProcess.mockRejectedValue(mockError);
 
-      const action = ingestionJobHandler.processJob(jobWithCallbacks, maxAttemptsTask);
+      await ingestionJobHandler.sendCallBacks(jobWithCallbacks.id, maxAttemptsTask.id, OperationStatus.FAILED);
 
-      await expect(action).rejects.toThrow();
       expect(sendErrorCallbackSpy).toHaveBeenCalledWith(
         jobWithCallbacks.parameters.callbackUrls,
         expect.objectContaining({

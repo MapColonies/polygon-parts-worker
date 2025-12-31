@@ -1,6 +1,6 @@
 import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import { Logger } from '@map-colonies/js-logger';
-import { ITaskResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import { ITaskResponse, OperationStatus, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { withSpanAsyncV4, withSpanV4 } from '@map-colonies/telemetry';
 import { Tracer } from '@opentelemetry/api';
 import { inject, injectable } from 'tsyringe';
@@ -8,7 +8,7 @@ import { JobTrackerClient } from '../clients/jobTrackerClient';
 import { SERVICES } from '../common/constants';
 import { TaskMetricLabels, TaskMetrics } from '../common/otel/metrics/taskMetrics';
 import { ReachedMaxTaskAttemptsError, UnrecoverableTaskError } from '../common/errors';
-import { IConfig, IJobAndTaskResponse, IPermittedJobTypes, ITasksConfig } from '../common/interfaces';
+import { IConfig, IJobAndTaskResponse, IJobHandler, IPermittedJobTypes, ITasksConfig } from '../common/interfaces';
 import { initJobHandler } from './handlerFactory';
 
 @injectable()
@@ -42,6 +42,7 @@ export class JobProcessor {
     this.logger.info({ msg: 'starting polling' });
     while (this.isRunning) {
       let jobAndTask: IJobAndTaskResponse | undefined;
+      let jobHandler: IJobHandler | undefined;
       try {
         this.logger.debug({ msg: 'fetching next job' });
         jobAndTask = await this.getJobAndTask();
@@ -55,21 +56,29 @@ export class JobProcessor {
 
           await this.taskMetrics.withTaskMetrics(labels, async () => {
             this.logger.info({ msg: 'processing job', jobId: job.id });
-            await this.checkTaskAttempts(task);
-            const jobHandler = initJobHandler(job.type, this.jobTypesToProcess);
+            this.checkTaskAttempts(task);
+            jobHandler = initJobHandler(job.type, this.jobTypesToProcess);
             await jobHandler.processJob(job, task);
 
             this.logger.info({ msg: 'notifying job tracker and job manager on task finished', taskId: task.id });
             await this.notifyOnSuccess(job.id, task.id);
+            await jobHandler.sendCallBacks?.(job.id, task.id, OperationStatus.COMPLETED);
           });
         }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'something went wrong';
         this.logger.error({ msg: 'error while handling job', error: errorMsg });
-        if (jobAndTask && !(error instanceof ReachedMaxTaskAttemptsError)) {
-          const { job, task } = jobAndTask;
-          const isRecoverable = !(error instanceof UnrecoverableTaskError);
-          await this.queueClient.reject(job.id, task.id, isRecoverable, errorMsg);
+        if (!jobAndTask) {
+          continue;
+        }
+
+        const { job, task } = jobAndTask;
+        const isTaskRecoverable = !(error instanceof UnrecoverableTaskError);
+        await this.queueClient.reject(job.id, task.id, isTaskRecoverable, errorMsg);
+
+        if (!isTaskRecoverable) {
+          await this.jobTrackerClient.notifyOnFinishedTask(task.id);
+          await jobHandler?.sendCallBacks?.(job.id, task.id, OperationStatus.FAILED);
         }
       }
       if (options.runOnce === true) {
@@ -125,12 +134,10 @@ export class JobProcessor {
     throw new UnrecoverableTaskError(`task type ${taskType} is not configured`);
   }
 
-  private async checkTaskAttempts(task: ITaskResponse<unknown>): Promise<void> {
+  private checkTaskAttempts(task: ITaskResponse<unknown>): void {
     if (task.attempts >= this.getMaxTaskAttempts(task.type)) {
       const message = `task ${task.id} reached max attempts, rejects as unrecoverable`;
       this.logger.warn({ msg: message, taskId: task.id, attempts: task.attempts });
-      await this.queueClient.reject(task.jobId, task.id, false);
-      await this.jobTrackerClient.notifyOnFinishedTask(task.id);
       throw new ReachedMaxTaskAttemptsError(message);
     }
   }

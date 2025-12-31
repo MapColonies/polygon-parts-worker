@@ -15,6 +15,7 @@ export interface CreateJobOptions {
   shapefilePath?: string;
   ingestionResolution?: number;
   callbackUrls?: string[];
+  tasks?: ITaskResponse<unknown>[];
 }
 
 export interface CreateTaskOptions {
@@ -36,6 +37,7 @@ export function createIngestionJob(options: CreateJobOptions = {}): IJobResponse
   const shapefilePath = options.shapefilePath ?? '/tmp/ShapeMetadata.shp';
   const ingestionResolution = options.ingestionResolution ?? 0.0006866455078125;
   const callbackUrls = options.callbackUrls ?? [];
+  const tasks = options.tasks ?? [];
 
   return {
     id: jobId,
@@ -76,6 +78,7 @@ export function createIngestionJob(options: CreateJobOptions = {}): IJobResponse
     abortedTasks: 0,
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
+    tasks,
   };
 }
 

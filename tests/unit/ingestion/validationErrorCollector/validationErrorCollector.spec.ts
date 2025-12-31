@@ -379,6 +379,41 @@ describe('ValidationErrorCollector', () => {
       expect(feature2WithErrors?.properties.e_sm_geom).toBeDefined();
     });
 
+    it('should  skip feature when feature is not found in chunk features', () => {
+      // Arrange
+      const chunkId = 1;
+      const missingFeatureId = faker.string.uuid();
+      const existingFeature: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: [
+          {
+            id: missingFeatureId, // This ID does not match any feature in the chunk
+            errors: [ValidationErrorType.GEOMETRY_VALIDITY, ValidationErrorType.RESOLUTION],
+          },
+        ],
+        smallHolesCount: 0,
+      };
+
+      // Act
+      collector.addValidationErrors(validationResult, [existingFeature], chunkId);
+
+      // Assert
+      // No errors should be added since the feature wasn't found
+      expect(collector.hasErrors()).toBe(false);
+      const errorCounts = collector.getErrorCounts();
+      expect(errorCounts.geometryValidity).toBe(0);
+      expect(errorCounts.resolution).toBe(0);
+
+      // No features should have errors
+      const featuresWithErrors = collector.getFeaturesWithErrorProperties();
+      expect(featuresWithErrors).toHaveLength(0);
+    });
+
     it('should update small holes and check threshold when small holes are present and exceeded', () => {
       // Arrange
       const chunkId = 1;

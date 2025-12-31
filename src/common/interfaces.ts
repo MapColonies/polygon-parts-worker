@@ -1,5 +1,5 @@
 import z from 'zod';
-import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
+import { IJobResponse, ITaskResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
 import type { FeatureCollection, Polygon } from 'geojson';
 import { ProcessingState } from '@map-colonies/mc-utils';
 import {
@@ -40,6 +40,7 @@ export interface IJobAndTaskResponse {
 
 export interface IJobHandler<TJobParams = unknown, TTaskParams = unknown> {
   processJob: (job: IJobResponse<TJobParams, TTaskParams>, task: ITaskResponse<TTaskParams>) => Promise<void>;
+  sendCallBacks?: (jobId: string, taskId: string, status: OperationStatus) => Promise<void>;
 }
 
 export interface IPermittedJobTypes {

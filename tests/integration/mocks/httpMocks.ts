@@ -63,12 +63,12 @@ export class HttpMockHelper {
     return nock(mockUrls.jobTrackerUrl).post(`/tasks/${taskId}/notify`).reply(StatusCodes.OK);
   }
 
-  public static mockCallbackClientSend(callbackUrls?: string[]): void {
+  public static mockCallbackClientSend(status: StatusCodes, callbackUrls?: string[]): void {
     if (!callbackUrls) {
       return;
     }
     for (const callbackUrl of callbackUrls) {
-      nock(callbackUrl).post('').reply(StatusCodes.OK);
+      nock(callbackUrl).post('').reply(status);
     }
   }
 
