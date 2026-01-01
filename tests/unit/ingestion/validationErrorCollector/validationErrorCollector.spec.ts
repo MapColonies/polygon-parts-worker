@@ -379,7 +379,7 @@ describe('ValidationErrorCollector', () => {
       expect(feature2WithErrors?.properties.e_sm_geom).toBeDefined();
     });
 
-    it('should  skip feature when feature is not found in chunk features', () => {
+    it('should skip feature when feature is not found in chunk features', () => {
       // Arrange
       const chunkId = 1;
       const missingFeatureId = faker.string.uuid();

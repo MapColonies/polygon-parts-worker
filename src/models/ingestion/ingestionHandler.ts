@@ -127,6 +127,8 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
 
     const validProductType = rasterProductTypeSchema.parse(job.productType);
     const report = task.parameters.report;
+    const isValid = task.parameters.isValid ?? false;
+
     const links: ValidationCallbackData['links'] = report
       ? [
           {
@@ -139,17 +141,16 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
 
     const callbackInfo =
       status === OperationStatus.FAILED
-        ? { error: 'Validation task failed' }
+        ? { error: `${task.type} task failed` }
         : {
-            message: 'Validation task completed successfully',
+            message: isValid ? `${task.type} task completed successfully` : `${task.type} task completed with errors`,
             data: {
-              isValid: task.parameters.isValid ?? false,
+              isValid: isValid,
               links,
-              sourceName: getEntityName(job.resourceId, validProductType),
             },
           };
 
-    const callbackResponse: CallbackResponse<ValidationCallbackData> = {
+    const callbackResponse: CallbackResponse<Omit<ValidationCallbackData, 'sourceName'>> = {
       jobId: job.id,
       taskId: task.id,
       jobType: job.type,

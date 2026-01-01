@@ -274,7 +274,7 @@ describe('Validation Task Flow', () => {
       expect(polygonPartsManagerValidateSpy).not.toHaveBeenCalled();
       expect(queueClientRejectSpy).toHaveBeenCalledWith(job.id, task.id, isTaskRecoverable, expect.any(String));
       expect(jobTrackerNotifySpy).toHaveBeenCalledWith(task.id);
-    }, 1000000);
+    });
 
     it('should reject task when shapefile has no features or vertices', async () => {
       const jobId = faker.string.uuid();

@@ -83,7 +83,7 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
     expectedErrorsCount: { ...defaultExpectedErrorsCount, unknown: 1 },
   },
   {
-    description: ' Not listed error type',
+    description: 'Not listed error type',
     shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
     ppManagerValidationResult: {
       parts: [{ id: '1', errors: ['NotListedErrorType'] as unknown as PolygonPartValidationErrorsType[] }],
