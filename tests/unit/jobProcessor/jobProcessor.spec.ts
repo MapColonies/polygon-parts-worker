@@ -63,7 +63,7 @@ describe('JobProcessor', () => {
       const ackSpy = jest.spyOn(mockQueueClient, 'ack');
       const notifyOnFinishedTaskSpy = jest.spyOn(mockJobTrackerClient, 'notifyOnFinishedTask');
 
-      const resultPromise = jobProcessor.start();
+      const resultPromise = jobProcessor.start({ runOnce: true });
       jobProcessor.stop();
 
       await expect(resultPromise).resolves.not.toThrow();
@@ -89,26 +89,48 @@ describe('JobProcessor', () => {
       nock(jobTrackerBaseUrl).post(jobTrackerNotifyPath).reply(200, 'ok').persist();
 
       const ackSpy = jest.spyOn(mockQueueClient, 'ack');
-      const rejectSpy = jest.spyOn(mockQueueClient, 'reject');
+      const rejectSpy = jest.spyOn(mockQueueClient, 'reject').mockResolvedValue(undefined);
       const notifyOnFinishedTaskSpy = jest.spyOn(mockJobTrackerClient, 'notifyOnFinishedTask');
 
-      const resultPromise = jobProcessor.start();
+      const resultPromise = jobProcessor.start({ runOnce: true });
       jobProcessor.stop();
 
       await expect(resultPromise).resolves.not.toThrow();
       expect(mockProcessJob).toHaveBeenCalledTimes(0);
       expect(ackSpy).toHaveBeenCalledTimes(0);
-      expect(rejectSpy).toHaveBeenCalledWith(reachedMaxAttemptsTask.jobId, reachedMaxAttemptsTask.id, false);
+      expect(rejectSpy).toHaveBeenCalledWith(reachedMaxAttemptsTask.jobId, reachedMaxAttemptsTask.id, false, expect.any(String));
       expect(rejectSpy).toHaveBeenCalledTimes(1);
       expect(notifyOnFinishedTaskSpy).toHaveBeenCalledTimes(1);
       expect.assertions(6);
     });
+
     it('should fail to fetch task', async () => {
       const jobManagerUrlDequeuePath = `/tasks/${jobType}/${validationTaskType}/startPending`;
 
       nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(502).persist();
 
-      const resultPromise = jobProcessor.start();
+      const resultPromise = jobProcessor.start({ runOnce: true });
+      jobProcessor.stop();
+      await resultPromise;
+
+      expect(mockProcessJob).not.toHaveBeenCalled();
+    });
+
+    it('should fail due to unsupported task type', async () => {
+      const jobManagerUrlDequeuePath = `/tasks/${jobType}/${validationTaskType}/startPending`;
+      const jobManagerUrlPolygonPartsDequeuePath = `/tasks/${jobType}/${polygonPartsTaskType}/startPending`;
+      const jobManagerGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`;
+      const unsupportedTaskType = 'unsupportedTaskType';
+      const unsupportedTask = { ...initTaskForIngestionNew, type: unsupportedTaskType };
+      const jobTrackerNotifyPath = `/tasks/${initTaskForIngestionNew.id}/notify`;
+
+      nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(200, unsupportedTask);
+      nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(200, undefined).persist();
+      nock(jobManagerBaseUrl).post(jobManagerUrlPolygonPartsDequeuePath).reply(200, undefined).persist();
+      nock(jobManagerBaseUrl).get(jobManagerGetJobPath).query({ shouldReturnTasks: false }).reply(200, newJobResponseMock).persist();
+      nock(jobTrackerBaseUrl).post(jobTrackerNotifyPath).reply(200, 'ok').persist();
+
+      const resultPromise = jobProcessor.start({ runOnce: true });
       jobProcessor.stop();
       await resultPromise;
 
@@ -120,7 +142,7 @@ describe('JobProcessor', () => {
 
       nock(jobManagerBaseUrl).post(jobManagerUrlPath).reply(404).persist();
 
-      const resultPromise = jobProcessor.start();
+      const resultPromise = jobProcessor.start({ runOnce: true });
       jobProcessor.stop();
       const result = await resultPromise;
 
@@ -146,13 +168,40 @@ describe('JobProcessor', () => {
       nock(jobManagerBaseUrl).post(jobManagerUrlPolygonPartsDequeuePath).reply(200, undefined).persist();
       nock(jobManagerBaseUrl).get(jobManagerUrlGetJobPath).query({ shouldReturnTasks: false }).reply(200, invalidJobResponseMock).persist();
       nock(heartbeatBaseUrl).post(heartbeatPath).reply(200, 'ok').persist();
-      const rejectSpy = jest.spyOn(mockQueueClient, 'reject');
+      const rejectSpy = jest.spyOn(mockQueueClient, 'reject').mockResolvedValue(undefined);
 
-      const resultPromise = jobProcessor.start();
+      await jobProcessor.start({ runOnce: true });
       jobProcessor.stop();
 
-      await expect(resultPromise).rejects.toThrow();
       expect(rejectSpy).toHaveBeenCalledWith(invalidJobResponseMock.id, initTaskForIngestionNew.id, true, errorMsg);
+    });
+
+    it('should handle ReachedMaxTaskAttemptsError and reject task as non-recoverable(keep last task reason)', async () => {
+      const jobManagerUrlDequeuePath = `/tasks/${jobType}/${validationTaskType}/startPending`;
+      const jobManagerUrlPolygonPartsDequeuePath = `/tasks/${jobType}/${polygonPartsTaskType}/startPending`;
+      const reachedMaxAttemptsTask = { ...initTaskForIngestionNew, attempts: 5, reason: 'Task failed' };
+      const jobManagerUrlGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`;
+      const isTaskRecoverable = false;
+
+      nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(200, reachedMaxAttemptsTask).persist();
+      nock(jobManagerBaseUrl).post(jobManagerUrlPolygonPartsDequeuePath).reply(200, undefined).persist();
+      nock(jobManagerBaseUrl).get(jobManagerUrlGetJobPath).query({ shouldReturnTasks: false }).reply(200, newJobResponseMock).persist();
+      nock(jobTrackerBaseUrl).post(`/tasks/${initTaskForIngestionNew.id}/notify`).reply(200, 'ok').persist();
+
+      const rejectSpy = jest.spyOn(mockQueueClient, 'reject').mockResolvedValue(undefined);
+      const notifyOnFinishedTaskSpy = jest.spyOn(mockJobTrackerClient, 'notifyOnFinishedTask');
+
+      const resultPromise = jobProcessor.start({ runOnce: true });
+      jobProcessor.stop();
+      await expect(resultPromise).resolves.not.toThrow();
+
+      expect(rejectSpy).toHaveBeenCalledWith(
+        initTaskForIngestionNew.jobId,
+        initTaskForIngestionNew.id,
+        isTaskRecoverable,
+        reachedMaxAttemptsTask.reason
+      );
+      expect(notifyOnFinishedTaskSpy).toHaveBeenCalledTimes(1);
     });
   });
 });

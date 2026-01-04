@@ -8,6 +8,8 @@ import { RoiFeatureCollection, PolygonPartsPayload, PolygonPartsEntityName } fro
 import { SERVICES } from '../common/constants';
 import { FindPolygonPartsResponse, IConfig } from '../common/interfaces';
 
+const POLYGON_PARTS_MANAGER_SERVICE_NAME = 'PolygonPartsManager';
+
 @injectable()
 export class PolygonPartsManagerClient extends HttpClient {
   public constructor(
@@ -18,7 +20,7 @@ export class PolygonPartsManagerClient extends HttpClient {
     super(
       logger,
       config.get<string>('polygonPartsManager.baseUrl'),
-      'PolygonPartsManager',
+      POLYGON_PARTS_MANAGER_SERVICE_NAME,
       config.get<IHttpRetryConfig>('httpRetry'),
       config.get<boolean>('disableHttpClientLogs')
     );
@@ -26,9 +28,15 @@ export class PolygonPartsManagerClient extends HttpClient {
 
   @withSpanAsyncV4
   public async validate(requestBody: PolygonPartsPayload): Promise<PolygonPartsChunkValidationResult> {
-    const validatePolygonPartsUrl = `/polygonParts/validate`;
-    const response = await this.post<PolygonPartsChunkValidationResult>(validatePolygonPartsUrl, requestBody);
-    return response;
+    try {
+      const validatePolygonPartsUrl = `/polygonParts/validate`;
+      const response = await this.post<PolygonPartsChunkValidationResult>(validatePolygonPartsUrl, requestBody);
+      return response;
+    } catch (error) {
+      const errorMsg = `${POLYGON_PARTS_MANAGER_SERVICE_NAME} Failed to validate polygon parts chunk: ${(error as Error).message}`;
+      this.logger.error(errorMsg);
+      throw new Error(errorMsg);
+    }
   }
 
   // TODO: remove ignore when adding integration tests for export job handler
