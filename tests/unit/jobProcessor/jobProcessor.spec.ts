@@ -1,5 +1,4 @@
 import nock from 'nock';
-import { ReachedMaxTaskAttemptsError } from '../../../src/common/errors';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { failTaskRequest, newJobResponseMock, updatedJobRequest } from '../mocks/jobsMocks';
