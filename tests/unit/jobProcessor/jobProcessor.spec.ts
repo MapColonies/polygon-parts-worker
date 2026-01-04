@@ -1,4 +1,5 @@
 import nock from 'nock';
+import { ReachedMaxTaskAttemptsError } from '../../../src/common/errors';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { failTaskRequest, newJobResponseMock, updatedJobRequest } from '../mocks/jobsMocks';
@@ -174,6 +175,34 @@ describe('JobProcessor', () => {
       jobProcessor.stop();
 
       expect(rejectSpy).toHaveBeenCalledWith(invalidJobResponseMock.id, initTaskForIngestionNew.id, true, errorMsg);
+    });
+
+    it('should handle ReachedMaxTaskAttemptsError and reject task as non-recoverable(keep last task reason)', async () => {
+      const jobManagerUrlDequeuePath = `/tasks/${jobType}/${validationTaskType}/startPending`;
+      const jobManagerUrlPolygonPartsDequeuePath = `/tasks/${jobType}/${polygonPartsTaskType}/startPending`;
+      const reachedMaxAttemptsTask = { ...initTaskForIngestionNew, attempts: 5, reason: 'Task failed' };
+      const jobManagerUrlGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`;
+      const isTaskRecoverable = false;
+
+      nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(200, reachedMaxAttemptsTask).persist();
+      nock(jobManagerBaseUrl).post(jobManagerUrlPolygonPartsDequeuePath).reply(200, undefined).persist();
+      nock(jobManagerBaseUrl).get(jobManagerUrlGetJobPath).query({ shouldReturnTasks: false }).reply(200, newJobResponseMock).persist();
+      nock(jobTrackerBaseUrl).post(`/tasks/${initTaskForIngestionNew.id}/notify`).reply(200, 'ok').persist();
+
+      const rejectSpy = jest.spyOn(mockQueueClient, 'reject').mockResolvedValue(undefined);
+      const notifyOnFinishedTaskSpy = jest.spyOn(mockJobTrackerClient, 'notifyOnFinishedTask');
+
+      const resultPromise = jobProcessor.start({ runOnce: true });
+      jobProcessor.stop();
+      await expect(resultPromise).resolves.not.toThrow();
+
+      expect(rejectSpy).toHaveBeenCalledWith(
+        initTaskForIngestionNew.jobId,
+        initTaskForIngestionNew.id,
+        isTaskRecoverable,
+        reachedMaxAttemptsTask.reason
+      );
+      expect(notifyOnFinishedTaskSpy).toHaveBeenCalledTimes(1);
     });
   });
 });

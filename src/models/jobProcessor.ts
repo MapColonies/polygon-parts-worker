@@ -66,15 +66,15 @@ export class JobProcessor {
           });
         }
       } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : 'something went wrong';
-        this.logger.error({ msg: 'error while handling job', error: errorMsg });
+        const errMessage = this.getErrorMessages(error, jobAndTask);
+        this.logger.error({ msg: 'error during job processing', error: errMessage });
+
         if (!jobAndTask) {
           continue;
         }
 
         const { job, task } = jobAndTask;
         const isTaskRecoverable = !(error instanceof UnrecoverableTaskError);
-        const errMessage = error instanceof ReachedMaxTaskAttemptsError ? task.reason : errorMsg;
         await this.queueClient.reject(job.id, task.id, isTaskRecoverable, errMessage);
 
         if (!isTaskRecoverable) {
@@ -141,5 +141,19 @@ export class JobProcessor {
       this.logger.warn({ msg: message, taskId: task.id, attempts: task.attempts });
       throw new ReachedMaxTaskAttemptsError(message);
     }
+  }
+
+  private getErrorMessages(error: unknown, jobAndTask: IJobAndTaskResponse | undefined): string {
+    const isReasonExistInTask = jobAndTask != undefined && jobAndTask.task.reason.length > 0;
+
+    if (error instanceof ReachedMaxTaskAttemptsError && isReasonExistInTask) {
+      return jobAndTask.task.reason;
+    }
+
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    return 'unknown error occurred';
   }
 }
