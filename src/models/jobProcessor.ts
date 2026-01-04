@@ -74,7 +74,8 @@ export class JobProcessor {
 
         const { job, task } = jobAndTask;
         const isTaskRecoverable = !(error instanceof UnrecoverableTaskError);
-        await this.queueClient.reject(job.id, task.id, isTaskRecoverable, errorMsg);
+        const errMessage = error instanceof ReachedMaxTaskAttemptsError ? task.reason : errorMsg;
+        await this.queueClient.reject(job.id, task.id, isTaskRecoverable, errMessage);
 
         if (!isTaskRecoverable) {
           await this.jobTrackerClient.notifyOnFinishedTask(task.id);

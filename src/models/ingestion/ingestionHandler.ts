@@ -6,7 +6,6 @@ import { Logger } from '@map-colonies/js-logger';
 import { MetricsCollector, ShapefileChunkReader, ChunkProcessor, ShapefileChunk, StateManager } from '@map-colonies/mc-utils';
 import {
   CallbackResponse,
-  getEntityName,
   PolygonPartsChunkValidationResult,
   PolygonPartsFeatureCollection,
   PolygonPartsPayload,
@@ -150,7 +149,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
             },
           };
 
-    const callbackResponse: CallbackResponse<Omit<ValidationCallbackData, 'sourceName'>> = {
+    const callbackResponse: CallbackResponse<ValidationCallbackData> = {
       jobId: job.id,
       taskId: task.id,
       jobType: job.type,
