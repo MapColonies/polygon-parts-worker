@@ -35,7 +35,7 @@ This project includes the following configurations and tools for efficient devel
     - LGTM checks
     - Testing
     - Linting
-    - Vulnerability scanning with Snyk
+    - Vulnerability scanning with dependabot
 
 ## Architecture Overview
 
