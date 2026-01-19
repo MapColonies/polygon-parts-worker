@@ -20,7 +20,6 @@ const newJobResponseMock: IJobResponse<IngestionJobParams, ValidationTaskParamet
     },
     additionalParams: {
       jobTrackerServiceURL: 'http://raster-core-dev-job-tracker-service',
-      polygonPartsEntityName: undefined,
     },
   },
   tasks: [validationTask],
