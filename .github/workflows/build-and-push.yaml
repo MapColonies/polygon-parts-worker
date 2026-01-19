@@ -56,4 +56,3 @@ jobs:
           type: helm
           registry: ${{ secrets.ACR_URL }}
           github_token: ${{ secrets.GH_PAT }}
-              
