@@ -10,7 +10,7 @@ jobs:
       - name: Run TS Project linters
         uses: MapColonies/shared-workflows/actions/eslint@eslint-v1.0.1
         with: 
-          node-version: 24
+          node-version: '24'
 
   helm-lint:
     name: Run Helm lint Check
