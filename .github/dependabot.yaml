@@ -51,3 +51,4 @@ updates:
     commit-message:
       prefix: 'ci'
     directory: '/'
+    
