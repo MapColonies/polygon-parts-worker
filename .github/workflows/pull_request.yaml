@@ -11,14 +11,6 @@ jobs:
         node: [24.x]
 
     steps:
-      - name: Check out TS Project Git repository
-        uses: actions/checkout@v6
-
-      - name: Init Nodejs
-        uses: MapColonies/shared-workflows/actions/init-npm@init-npm-v1
-        with:
-          node-version: ${{ matrix.node }}
-
       - name: Run TS Project linters
         uses: MapColonies/shared-workflows/actions/eslint@eslint-v1.0.1
         with: 
