@@ -7,8 +7,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out TS Project Git repository
-        uses: actions/checkout@v6
 
       - name: Run TS Project linters
         uses: MapColonies/shared-workflows/actions/eslint@eslint-v1.0.1
