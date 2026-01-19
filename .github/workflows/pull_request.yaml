@@ -6,15 +6,11 @@ jobs:
     name: Run TS Project eslint
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node: ['24']
-
     steps:
       - name: Run TS Project linters
         uses: MapColonies/shared-workflows/actions/eslint@eslint-v1.0.1
         with: 
-          node-version: ${{ matrix.node }}
+          node-version: '24.x'
 
   helm-lint:
     name: Run Helm lint Check
