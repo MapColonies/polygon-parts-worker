@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.0](https://github.com/MapColonies/polygon-parts-worker/compare/v2.0.0...v2.1.0) (2026-01-20)
+
+
+### Features
+
+* update infrastructure with new workflows, dependency management and Node.js version ([#47](https://github.com/MapColonies/polygon-parts-worker/issues/47)) ([8e75fcc](https://github.com/MapColonies/polygon-parts-worker/commit/8e75fcc46bc68820a9261676f9631f1bc6e18c24))
+
+
+### Bug Fixes
+
+* set release-please manifest to version 2.0.0 ([#61](https://github.com/MapColonies/polygon-parts-worker/issues/61)) ([ecc518c](https://github.com/MapColonies/polygon-parts-worker/commit/ecc518c7f8731441ab25352aaebf6d8c7c6af9c3))
+
 ## [2.0.0](https://github.com/MapColonies/polygon-parts-worker/compare/v2.0.0-alpha.3...v2.0.0) (2026-01-19)
 
 ## [2.0.0-alpha.3](https://github.com/MapColonies/polygon-parts-worker/compare/v2.0.0-alpha.1...v2.0.0-alpha.3) (2026-01-04)
