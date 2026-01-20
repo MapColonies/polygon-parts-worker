@@ -1,4 +1,4 @@
-FROM node:20.15.1-slim as build
+FROM node:24-slim AS build
 WORKDIR /tmp/buildApp
 
 COPY ./package*.json ./
@@ -8,7 +8,7 @@ COPY . .
 RUN npm run build
 
 # Production stage with GDAL setup
-FROM node:20.15.1-slim as production
+FROM node:24-slim AS production
 RUN apt-get update && apt-get install -y --no-install-recommends \
     dumb-init \
     gdal-bin \
