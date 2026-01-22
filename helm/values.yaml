@@ -52,7 +52,6 @@ storage:
     internalPvc:
       name: ""
       gpkgSubPath: ""
-      outputPath: ""
       reportsPath: ""
     ingestionSourcePvc:
       enabled: true

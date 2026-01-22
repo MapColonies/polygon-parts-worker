@@ -3,8 +3,8 @@
 {{- $serviceUrls := (include "common.serviceUrls.merged" .) | fromYaml }}
 {{- $jobDefinitions := (include "common.jobDefinitions.merged" .) | fromYaml }}
 {{- $fs := (include "common.fs.merged" .) | fromYaml }}
-{{ $gpkgLocation := (printf "%s/%s" $fs.internalPvc.outputPath $fs.internalPvc.gpkgSubPath) }}
-{{ $validationReportsLocation := (printf "%s/%s" $fs.internalPvc.outputPath $fs.internalPvc.reportsPath) }}
+{{ $gpkgLocation := (printf "%s/%s" $fs.internalPvc.mountPath $fs.internalPvc.gpkgSubPath) }}
+{{ $validationReportsLocation := (printf "%s/%s" $fs.internalPvc.mountPath $fs.internalPvc.reportsPath) }}
 {{- $storage := (include "common.storage.merged" .) | fromYaml }}
 
 

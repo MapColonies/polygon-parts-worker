@@ -70,7 +70,7 @@ spec:
             {{- end }}
             {{- if $fs.internalPvc.enabled }}
             - name: internal-storage
-              mountPath: {{ $fs.internalPvc.outputPath }}
+              mountPath: {{ $fs.internalPvc.mountPath }}
             {{- end }}  
             {{- if $fs.ingestionSourcePvc.enabled }}
             - name: ingestion-storage
