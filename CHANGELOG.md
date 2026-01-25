@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.2](https://github.com/MapColonies/polygon-parts-worker/compare/v2.1.1...v2.1.2) (2026-01-25)
+
+
+### Bug Fixes
+
+* resolve quote  issue in configmap.yaml ([#63](https://github.com/MapColonies/polygon-parts-worker/issues/63)) ([de8c02c](https://github.com/MapColonies/polygon-parts-worker/commit/de8c02c5f506d1a4b4075cd6583bee86f600b9ae))
+
 ### [2.1.1](https://github.com/MapColonies/polygon-parts-worker/compare/v2.1.0...v2.1.1) (2026-01-25)
 
 ## [2.1.0](https://github.com/MapColonies/polygon-parts-worker/compare/v2.0.0...v2.1.0) (2026-01-20)
