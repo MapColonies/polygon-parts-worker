@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.3](https://github.com/MapColonies/polygon-parts-worker/compare/v2.1.2...v2.1.3) (2026-01-25)
+
+
+### Bug Fixes
+
+* update heartbeat and dequeue interval configurations to include format specifications ([#65](https://github.com/MapColonies/polygon-parts-worker/issues/65)) ([bd6fc17](https://github.com/MapColonies/polygon-parts-worker/commit/bd6fc175c8e81af939f0b5b7b2d46a5cae121bef))
+
 ## [2.1.2](https://github.com/MapColonies/polygon-parts-worker/compare/v2.1.1...v2.1.2) (2026-01-25)
 
 
