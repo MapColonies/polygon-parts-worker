@@ -1,6 +1,6 @@
 {
   "name": "polygon-parts-worker",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "description": "worker service that handle the polygon parts different tasks",
   "main": "./src/index.ts",
   "scripts": {
