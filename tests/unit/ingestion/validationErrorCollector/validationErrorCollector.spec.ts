@@ -4,8 +4,8 @@ import { ValidationErrorType, PolygonPartsChunkValidationResult, PolygonPartVali
 import { faker } from '@faker-js/faker';
 import { ValidationErrorCollector } from '../../../../src/models/ingestion/validationErrorCollector';
 import { configMock, registerDefaultConfig } from '../../mocks/configMock';
+import { formatZodIssues } from '../../../../src/schemas/common.schema';
 import { loggerMock } from '../../mocks/telemetryMock';
-import { METADATA_ERROR_SEPARATOR } from '../../../../src/models/ingestion/constants';
 import { createFakeShpFeatureProperties } from '../../mocks/fakeFeatures';
 import { hasCriticalErrorsTestCases, getFeaturesWithErrorPropertiesTestCases } from './validationErrorCollector.cases';
 
@@ -150,7 +150,7 @@ describe('ValidationErrorCollector', () => {
       const featuresWithErrors = collector.getFeaturesWithErrorProperties();
       expect(featuresWithErrors).toHaveLength(1);
       expect(featuresWithErrors[0].properties.e_metadata).toBeDefined();
-      expect(featuresWithErrors[0].properties.e_metadata).toContain(`${zodIssues[0].message}${METADATA_ERROR_SEPARATOR}${zodIssues[1].message}`);
+      expect(featuresWithErrors[0].properties.e_metadata).toBe(formatZodIssues(zodIssues));
     });
 
     it('should be reflected in error counts and hasCriticalErrors', () => {
