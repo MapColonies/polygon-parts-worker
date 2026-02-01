@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { METADATA_ERROR_SEPARATOR } from '../models/ingestion/constants';
 
 export const commaSeparatedStringSchema = z
   .string()
@@ -22,3 +23,7 @@ export const flexibleDateCoerce = z.preprocess((val) => {
   }
   return val;
 }, z.coerce.date({ errorMap: () => ({ message: 'Expected a valid date format (ISO 8601 or DD/MM/YYYY)' }) }));
+
+export const formatZodIssues = (issues: z.ZodIssue[]): string => {
+  return issues.map((issue) => `${issue.path.join('.')}: ${issue.message} (code: ${issue.code})`).join(METADATA_ERROR_SEPARATOR);
+};

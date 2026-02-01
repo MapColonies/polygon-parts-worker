@@ -12,6 +12,7 @@ import {
 } from '@map-colonies/raster-shared';
 import { SERVICES } from '../../common/constants';
 import { exceededVerticesShpFeatureSchema, ExceededVerticesShpProperties, featureIdSchema, verticesSchema } from '../../schemas/shpFile.schema';
+import { formatZodIssues } from '../../schemas/common.schema';
 import { IConfig } from '../../common/interfaces';
 import { ErrorsCount, InvalidFeature, ThresholdsResult, ValidationError } from './types';
 import { VALIDATION_ERROR_TYPE_FORMATS, METADATA_ERROR_SEPARATOR, UNKNOWN_ID } from './constants';
@@ -80,7 +81,7 @@ export class ValidationErrorCollector {
     const error: ValidationError = {
       type: ValidationErrorType.METADATA,
       columnName: VALIDATION_ERROR_TYPE_FORMATS[ValidationErrorType.METADATA].columnName,
-      message: zodIssues.map((issue) => issue.message).join(METADATA_ERROR_SEPARATOR),
+      message: formatZodIssues(zodIssues),
     };
 
     this.addOrUpdateInvalidFeature(id, chunkId, feature, error);
