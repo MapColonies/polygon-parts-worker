@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.6](https://github.com/MapColonies/polygon-parts-worker/compare/v2.1.5...v2.1.6) (2026-02-01)
+
+
+### Bug Fixes
+
+* update metadata error formatting  in validationErrorCollector ([#71](https://github.com/MapColonies/polygon-parts-worker/issues/71)) ([5e65fb1](https://github.com/MapColonies/polygon-parts-worker/commit/5e65fb164f4da943085039434f3217092087d0ec))
+
 ## [2.1.5](https://github.com/MapColonies/polygon-parts-worker/compare/v2.1.4...v2.1.5) (2026-01-28)
 
 
