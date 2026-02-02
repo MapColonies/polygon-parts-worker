@@ -66,10 +66,15 @@ const countErrorsInReport = (features: Feature[]): ErrorsCount => {
     const properties = feature.properties as Record<string, unknown>;
     for (const key of validationErrorColumns) {
       const columnExist = key in properties;
-      if (columnExist) {
-        const countKey = COLUMN_NAME_TO_COUNT_KEY[key];
-        errorsCount[countKey] += 1;
+      if (!columnExist) {
+        continue;
       }
+      const value = properties[key];
+      if (value === null || value === undefined) {
+        continue;
+      }
+      const countKey = COLUMN_NAME_TO_COUNT_KEY[key];
+      errorsCount[countKey] += 1;
     }
   }
 
