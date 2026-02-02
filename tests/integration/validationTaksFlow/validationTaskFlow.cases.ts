@@ -15,7 +15,8 @@ export interface FailedValidationTestCase {
   description: string;
   shapefilePath: string;
   expectedErrorsCount: ErrorsCount;
-  ppManagerValidationResult: PolygonPartsChunkValidationResult;
+  ppManagerValidationResult: PolygonPartsChunkValidationResult | PolygonPartsChunkValidationResult[];
+  chunkMaxVertices?: number;
 }
 
 export const failedValidationTestCases: FailedValidationTestCase[] = [
@@ -105,7 +106,7 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
     },
   },
   {
-    description: 'Multiple errors(PolygonPartsManager errors)',
+    description: 'Multiple errors(PolygonPartsManager errors) in the same chunk',
     shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
     ppManagerValidationResult: {
       parts: [{ id: '1', errors: ['Resolution', 'Small_Geometry', 'Small_Holes', 'Geometry_Validity', 'Unknown'] }],
@@ -118,6 +119,23 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
       geometryValidity: 1,
       smallHoles: 1,
       unknown: 1,
+    },
+  },
+  {
+    description: 'Different error types in different chunks',
+    shapefilePath: '/invalid/different_errors_different_chunks/ShapeMetadata.shp',
+    chunkMaxVertices: 100,
+    ppManagerValidationResult: [
+      { parts: [{ id: '1', errors: ['Small_Holes'] }], smallHolesCount: 100 },
+      { parts: [{ id: '2', errors: ['Geometry_Validity'] }], smallHolesCount: 0 },
+      { parts: [{ id: '3', errors: ['Small_Holes'] }], smallHolesCount: 100 },
+      { parts: [{ id: '4', errors: ['Geometry_Validity'] }], smallHolesCount: 0 },
+      { parts: [{ id: '5', errors: ['Small_Holes'] }], smallHolesCount: 100 },
+    ],
+    expectedErrorsCount: {
+      ...defaultExpectedErrorsCount,
+      geometryValidity: 2,
+      smallHoles: 3,
     },
   },
 ];

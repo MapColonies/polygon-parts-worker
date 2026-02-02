@@ -136,6 +136,10 @@ describe('Validation Task Flow', () => {
 
   describe('Sad Path - Validation Failures', () => {
     test.each(failedValidationTestCases)('should create report with $description', async (testCase) => {
+      if (testCase.chunkMaxVertices !== undefined) {
+        config.util.setPath(config, ['jobDefinitions', 'tasks', 'validation', 'chunkMaxVertices'], testCase.chunkMaxVertices);
+      }
+
       const jobId = faker.string.uuid();
       const task = createTask({ jobId });
       const job = createIngestionJob({
@@ -148,7 +152,14 @@ describe('Validation Task Flow', () => {
       HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
       HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
       HttpMockHelper.mockJobManagerGetJob(job.id, job);
-      HttpMockHelper.mockPolygonPartsValidate(testCase.ppManagerValidationResult);
+
+      // Handle both single result and array of results for sequential mocking
+      if (Array.isArray(testCase.ppManagerValidationResult)) {
+        HttpMockHelper.mockPolygonPartsValidateSequence(testCase.ppManagerValidationResult);
+      } else {
+        HttpMockHelper.mockPolygonPartsValidate(testCase.ppManagerValidationResult);
+      }
+
       HttpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
       HttpMockHelper.mockJobManagerRejectTask(job.id, task);
       HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);

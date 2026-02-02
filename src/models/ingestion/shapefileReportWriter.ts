@@ -350,7 +350,7 @@ export class ShapefileReportWriter {
       features,
     };
 
-    const options = [...OGR2OGR_SHP_REPORT_OPTIONS, ...(mode === ShpWritingMode.Append ? ['-append'] : [])];
+    const options = [...OGR2OGR_SHP_REPORT_OPTIONS, ...(mode === ShpWritingMode.Append ? ['-append', '-addfields'] : [])];
 
     const opts: Ogr2OgrOptions = {
       format: OgrFormat.ESRI_SHAPEFILE,

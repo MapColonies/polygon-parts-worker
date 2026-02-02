@@ -13,7 +13,7 @@ export const writeChunkTestCases = [
     chunkId: 2,
     featureCount: 5,
     reportShapefileExists: true,
-    expectedOptions: [...OGR2OGR_SHP_REPORT_OPTIONS, '-append'],
+    expectedOptions: [...OGR2OGR_SHP_REPORT_OPTIONS, '-append', '-addfields'],
   },
   {
     description: 'handle empty features array',

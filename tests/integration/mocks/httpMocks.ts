@@ -25,6 +25,14 @@ export class HttpMockHelper {
     return nock(mockUrls.polygonPartsManagerUrl).post('/polygonParts/validate').reply(StatusCodes.OK, validationResult).persist();
   }
 
+  public static mockPolygonPartsValidateSequence(validationResults: PolygonPartsChunkValidationResult[]): nock.Scope {
+    let scope = nock(mockUrls.polygonPartsManagerUrl);
+    for (const result of validationResults) {
+      scope = scope.post('/polygonParts/validate').reply(StatusCodes.OK, result);
+    }
+    return scope;
+  }
+
   public static mockJobManagerUpdateTask(jobId: string, taskId: string): nock.Scope {
     return nock(mockUrls.jobManagerUrl).put(`/jobs/${jobId}/tasks/${taskId}`).reply(StatusCodes.OK).persist();
   }
