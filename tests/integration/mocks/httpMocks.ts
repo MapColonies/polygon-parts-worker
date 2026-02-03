@@ -21,7 +21,15 @@ export const mockUrls: MockHttpUrls = {
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class HttpMockHelper {
-  public static mockPolygonPartsValidate(validationResult: PolygonPartsChunkValidationResult): nock.Scope {
+  public static mockPolygonPartsValidate(validationResult: PolygonPartsChunkValidationResult | PolygonPartsChunkValidationResult[]): nock.Scope {
+    if (Array.isArray(validationResult)) {
+      let scope = nock(mockUrls.polygonPartsManagerUrl);
+
+      for (const result of validationResult) {
+        scope = scope.post('/polygonParts/validate').reply(StatusCodes.OK, result);
+      }
+      return scope;
+    }
     return nock(mockUrls.polygonPartsManagerUrl).post('/polygonParts/validate').reply(StatusCodes.OK, validationResult).persist();
   }
 

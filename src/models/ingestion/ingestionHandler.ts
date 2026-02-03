@@ -35,7 +35,6 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
   private readonly ingestionSourcesDirPath: string;
   private readonly shouldUploadToS3: boolean;
   private readonly downloadServerUrl: string;
-  private readonly validationTaskMaxAttempts: number;
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
@@ -54,7 +53,6 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     const downloadServerPublicDns = this.config.get<string>('downloadServer.publicDns');
     const reportsDownloadPath = this.config.get<string>('downloadServer.reportsDownloadPath');
     this.downloadServerUrl = buildUrl(downloadServerPublicDns, reportsDownloadPath);
-    this.validationTaskMaxAttempts = this.config.get<number>('jobDefinitions.tasks.validation.maxAttempts');
   }
 
   public async processJob(
@@ -233,12 +231,16 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
         }
 
         const validFeatureCollection = this.parseChunk(chunk, job);
-        this.logger.info({ msg: 'chunk parsed', validFeaturesCount: validFeatureCollection.features.length });
+        const shouldValidate = validFeatureCollection.features.length > 0;
+        this.logger.info({ msg: 'chunk parsed', validFeaturesCount: validFeatureCollection.features.length, shouldValidate });
 
-        if (validFeatureCollection.features.length > 0) {
+        if (shouldValidate) {
           const validationResult = await this.validateChunk(job, validFeatureCollection);
-          this.logger.info({ msg: 'chunk validated', validationResult });
-          this.validationErrorCollector.addValidationErrors(validationResult, chunk.features, chunk.id);
+          const hasValidationErrors = validationResult.parts.length > 0;
+          this.logger.info({ msg: 'chunk validated', validationResult, hasValidationErrors });
+          if (hasValidationErrors) {
+            this.validationErrorCollector.addValidationErrors(validationResult, chunk.features, chunk.id);
+          }
         }
 
         if (this.validationErrorCollector.hasErrors()) {
