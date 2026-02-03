@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.7](https://github.com/MapColonies/polygon-parts-worker/compare/v2.1.6...v2.1.7) (2026-02-03)
+
+
+### Bug Fixes
+
+* missing report column ([#73](https://github.com/MapColonies/polygon-parts-worker/issues/73)) ([e53f455](https://github.com/MapColonies/polygon-parts-worker/commit/e53f4559226ae9ad2aba11c2e28052d757263573))
+
 ## [2.1.6](https://github.com/MapColonies/polygon-parts-worker/compare/v2.1.5...v2.1.6) (2026-02-01)
 
 
