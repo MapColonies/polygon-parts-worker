@@ -21,16 +21,16 @@ export const mockUrls: MockHttpUrls = {
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class HttpMockHelper {
-  public static mockPolygonPartsValidate(validationResult: PolygonPartsChunkValidationResult): nock.Scope {
-    return nock(mockUrls.polygonPartsManagerUrl).post('/polygonParts/validate').reply(StatusCodes.OK, validationResult).persist();
-  }
+  public static mockPolygonPartsValidate(validationResult: PolygonPartsChunkValidationResult | PolygonPartsChunkValidationResult[]): nock.Scope {
+    if (Array.isArray(validationResult)) {
+      let scope = nock(mockUrls.polygonPartsManagerUrl);
 
-  public static mockPolygonPartsValidateSequence(validationResults: PolygonPartsChunkValidationResult[]): nock.Scope {
-    let scope = nock(mockUrls.polygonPartsManagerUrl);
-    for (const result of validationResults) {
-      scope = scope.post('/polygonParts/validate').reply(StatusCodes.OK, result);
+      for (const result of validationResult) {
+        scope = scope.post('/polygonParts/validate').reply(StatusCodes.OK, result);
+      }
+      return scope;
     }
-    return scope;
+    return nock(mockUrls.polygonPartsManagerUrl).post('/polygonParts/validate').reply(StatusCodes.OK, validationResult).persist();
   }
 
   public static mockJobManagerUpdateTask(jobId: string, taskId: string): nock.Scope {
