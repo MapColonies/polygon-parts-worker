@@ -2,7 +2,7 @@ import { existsSync } from 'fs';
 import nock from 'nock';
 import { DependencyContainer } from 'tsyringe';
 import { StatusCodes } from 'http-status-codes';
-import config from 'config';
+import config, { IConfig } from 'config';
 import { PolygonPartsChunkValidationResult } from '@map-colonies/raster-shared';
 import { OperationStatus, TaskHandler } from '@map-colonies/mc-priority-queue';
 import { ShapefileChunkReader } from '@map-colonies/mc-utils';
@@ -28,6 +28,7 @@ describe('Validation Task Flow', () => {
   let shpReader: ShapefileChunkReader;
   let testContainer: DependencyContainer;
   let taskTypesToProcess: string[];
+  let testConfig: IConfig;
 
   beforeAll(async () => {
     await setUpValidationReportsDir(reportsDirPath);
@@ -35,16 +36,17 @@ describe('Validation Task Flow', () => {
   });
 
   beforeEach(() => {
+    testConfig = config.util.cloneDeep(config) as IConfig;
     const { container } = getApp({
       override: [
         { token: SERVICES.LOGGER, provider: { useValue: loggerMock } },
         { token: SERVICES.TRACER, provider: { useValue: tracerMock } },
-        { token: SERVICES.CONFIG, provider: { useValue: config } },
+        { token: SERVICES.CONFIG, provider: { useValue: testConfig } },
       ],
     });
     testContainer = container;
-    const validationTaskType = config.get<string>('jobDefinitions.tasks.validation.type');
-    const polygonPartsTaskType = config.get<string>('jobDefinitions.tasks.polygonParts.type');
+    const validationTaskType = testConfig.get<string>('jobDefinitions.tasks.validation.type');
+    const polygonPartsTaskType = testConfig.get<string>('jobDefinitions.tasks.polygonParts.type');
     taskTypesToProcess = [validationTaskType, polygonPartsTaskType];
   });
 
@@ -137,7 +139,7 @@ describe('Validation Task Flow', () => {
   describe('Sad Path - Validation Failures', () => {
     test.each(failedValidationTestCases)('should create report with $description', async (testCase) => {
       if (testCase.chunkMaxVertices !== undefined) {
-        config.util.setPath(config, ['jobDefinitions', 'tasks', 'validation', 'chunkMaxVertices'], testCase.chunkMaxVertices);
+        testConfig.util.setPath(testConfig, ['jobDefinitions', 'tasks', 'validation', 'chunkMaxVertices'], testCase.chunkMaxVertices);
       }
 
       const jobId = faker.string.uuid();
@@ -152,13 +154,7 @@ describe('Validation Task Flow', () => {
       HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
       HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
       HttpMockHelper.mockJobManagerGetJob(job.id, job);
-
-      // Handle both single result and array of results for sequential mocking
-      if (Array.isArray(testCase.ppManagerValidationResult)) {
-        HttpMockHelper.mockPolygonPartsValidateSequence(testCase.ppManagerValidationResult);
-      } else {
-        HttpMockHelper.mockPolygonPartsValidate(testCase.ppManagerValidationResult);
-      }
+      HttpMockHelper.mockPolygonPartsValidate(testCase.ppManagerValidationResult);
 
       HttpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
       HttpMockHelper.mockJobManagerRejectTask(job.id, task);

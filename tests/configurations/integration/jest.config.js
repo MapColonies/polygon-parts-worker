@@ -1,4 +1,3 @@
-process.env.ALLOW_CONFIG_MUTATIONS = true; // Allow config mutations for testing purposes
 module.exports = {
   transform: {
     '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.test.json' }],
