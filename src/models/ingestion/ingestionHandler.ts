@@ -35,7 +35,6 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
   private readonly ingestionSourcesDirPath: string;
   private readonly shouldUploadToS3: boolean;
   private readonly downloadServerUrl: string;
-  private readonly validationTaskMaxAttempts: number;
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
@@ -54,7 +53,6 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     const downloadServerPublicDns = this.config.get<string>('downloadServer.publicDns');
     const reportsDownloadPath = this.config.get<string>('downloadServer.reportsDownloadPath');
     this.downloadServerUrl = buildUrl(downloadServerPublicDns, reportsDownloadPath);
-    this.validationTaskMaxAttempts = this.config.get<number>('jobDefinitions.tasks.validation.maxAttempts');
   }
 
   public async processJob(
