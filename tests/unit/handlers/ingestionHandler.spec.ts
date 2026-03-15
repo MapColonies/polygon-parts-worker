@@ -1,6 +1,6 @@
 import path from 'path';
 import fsMock from 'mock-fs';
-import { ShapefileChunk, ShapefileChunkReader } from '@map-colonies/mc-utils';
+import { ShapefileChunk, ShapefileChunkReader } from '@map-colonies/shapefile-reader';
 import { IJobResponse, ITaskResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { Feature, Polygon } from 'geojson';
 import { PolygonPartsChunkValidationResult, ValidationErrorType } from '@map-colonies/raster-shared';
@@ -20,9 +20,9 @@ import { IngestionJobParams, ValidationTaskParameters } from '../../../src/commo
 import { CallbackClient } from '../../../src/clients/callbackClient';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-jest.mock('@map-colonies/mc-utils', () => ({
+jest.mock('@map-colonies/shapefile-reader', () => ({
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  ...jest.requireActual('@map-colonies/mc-utils'),
+  ...jest.requireActual('@map-colonies/shapefile-reader'),
   // eslint-disable-next-line @typescript-eslint/naming-convention
   ShapefileChunkReader: jest.fn(),
 }));

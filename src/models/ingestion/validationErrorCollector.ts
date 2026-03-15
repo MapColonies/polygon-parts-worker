@@ -1,6 +1,6 @@
 import { inject, injectable } from 'tsyringe';
 import type { Feature, Geometry } from 'geojson';
-import { ProgressInfo } from '@map-colonies/mc-utils';
+import { ProgressInfo } from '@map-colonies/shapefile-reader';
 import { ZodError, ZodIssue } from 'zod';
 import { Logger } from '@map-colonies/js-logger';
 import {

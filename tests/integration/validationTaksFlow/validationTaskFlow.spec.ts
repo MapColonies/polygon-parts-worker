@@ -5,7 +5,7 @@ import { StatusCodes } from 'http-status-codes';
 import config, { IConfig } from 'config';
 import { PolygonPartsChunkValidationResult } from '@map-colonies/raster-shared';
 import { OperationStatus, TaskHandler } from '@map-colonies/mc-priority-queue';
-import { ShapefileChunkReader } from '@map-colonies/mc-utils';
+import { ShapefileChunkReader } from '@map-colonies/shapefile-reader';
 import { faker } from '@faker-js/faker';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { getApp } from '../../../src/app';

@@ -1,7 +1,7 @@
 import z from 'zod';
 import { IJobResponse, ITaskResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
 import type { FeatureCollection, Polygon } from 'geojson';
-import { ProcessingState } from '@map-colonies/mc-utils';
+import { ProcessingState } from '@map-colonies/shapefile-reader';
 import {
   IngestionValidationTaskParams,
   PartFeatureProperties,

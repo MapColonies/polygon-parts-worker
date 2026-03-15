@@ -3,7 +3,7 @@ import fs from 'fs';
 import { inject, injectable } from 'tsyringe';
 import { IJobResponse, ITaskResponse, IUpdateTaskBody, OperationStatus, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { Logger } from '@map-colonies/js-logger';
-import { MetricsCollector, ShapefileChunkReader, ChunkProcessor, ShapefileChunk, StateManager } from '@map-colonies/mc-utils';
+import { MetricsCollector, ShapefileChunkReader, ChunkProcessor, ShapefileChunk, StateManager } from '@map-colonies/shapefile-reader';
 import {
   CallbackResponse,
   PolygonPartsChunkValidationResult,
@@ -203,6 +203,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     };
 
     const reader = new ShapefileChunkReader({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
       logger: this.logger,
       maxVerticesPerChunk: this.chunkMaxVertices,
       metricsCollector,
