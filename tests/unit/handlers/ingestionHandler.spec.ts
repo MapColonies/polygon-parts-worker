@@ -450,8 +450,9 @@ describe('IngestionJobHandler', () => {
           });
         });
 
-        await expect(ingestionJobHandler.processJob(newJobResponseMock, validationTask)).resolves.not.toThrow();
         const polygonPartsManagerValidateSpy = jest.spyOn(mockPolygonPartsClient, 'validate');
+
+        await expect(ingestionJobHandler.processJob(newJobResponseMock, validationTask)).resolves.not.toThrow();
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1);
