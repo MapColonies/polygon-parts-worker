@@ -203,7 +203,6 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     };
 
     const reader = new ShapefileChunkReader({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
       logger: this.logger,
       maxVerticesPerChunk: this.chunkMaxVertices,
       metricsCollector,
