@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.8](https://github.com/MapColonies/polygon-parts-worker/compare/v2.1.7...v2.1.8) (2026-03-17)
+
+
+### Bug Fixes
+
+* extract shapefile-reader from mc-utils into standalone package(MAPCO-10003) ([#80](https://github.com/MapColonies/polygon-parts-worker/issues/80)) ([fccc787](https://github.com/MapColonies/polygon-parts-worker/commit/fccc787ced3d9b80fd6e6945b68c99af34d22f5b))
+
 ## [2.1.7](https://github.com/MapColonies/polygon-parts-worker/compare/v2.1.6...v2.1.7) (2026-02-03)
 
 
