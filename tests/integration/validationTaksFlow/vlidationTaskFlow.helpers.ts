@@ -3,7 +3,7 @@ import { mkdir, readdir, rm } from 'fs/promises';
 import admZip from 'adm-zip';
 import { Feature } from 'geojson';
 import {} from '../../../src/common/constants';
-import { ChunkProcessor, ShapefileChunk, ShapefileChunkReader } from '@map-colonies/mc-utils';
+import { ChunkProcessor, ShapefileChunk, ShapefileChunkReader } from '@map-colonies/shapefile-reader';
 import { SHAPEFILE_REPORT_FILE_NAME, VALIDATION_ERROR_TYPE_FORMATS } from '../../../src/models/ingestion/constants';
 import { ErrorsCount } from '../../../src/models/ingestion/types';
 

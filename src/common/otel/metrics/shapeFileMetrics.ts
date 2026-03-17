@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // src/common/telemetry/metrics/shapefileMetrics.ts
 import { singleton, inject } from 'tsyringe';
-import { ChunkMetrics, FileMetrics } from '@map-colonies/mc-utils';
+import { ChunkMetrics, FileMetrics } from '@map-colonies/shapefile-reader';
 import { Registry, Histogram } from 'prom-client';
 import { Logger } from '@map-colonies/js-logger';
 import { SERVICES } from '../../constants';

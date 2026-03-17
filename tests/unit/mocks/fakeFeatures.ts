@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { CORE_VALIDATIONS, INGESTION_VALIDATIONS } from '@map-colonies/raster-shared';
+import { INGESTION_VALIDATIONS } from '@map-colonies/raster-shared';
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const createFakeShpFeatureProperties = () => {
@@ -16,7 +16,7 @@ export const createFakeShpFeatureProperties = () => {
     }),
     updateDate: faker.date.past(),
     sourceRes: faker.number.int({ min: INGESTION_VALIDATIONS.resolutionMeter.min, max: INGESTION_VALIDATIONS.resolutionMeter.max }),
-    publishRes: faker.number.float({ min: CORE_VALIDATIONS.resolutionDeg.min, max: CORE_VALIDATIONS.resolutionDeg.max }),
+    publishRes: faker.number.float({ min: INGESTION_VALIDATIONS.resolutionMeter.min, max: INGESTION_VALIDATIONS.resolutionMeter.max }),
     sourceName: faker.string.alpha({ length: { min: 3, max: 8 } }),
     classify: faker.string.alpha({ length: { min: 3, max: 8 } }),
   };

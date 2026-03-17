@@ -45,12 +45,13 @@
     "@godaddy/terminus": "^4.12.1",
     "@map-colonies/error-express-handler": "^2.1.0",
     "@map-colonies/error-types": "^1.2.0",
-    "@map-colonies/js-logger": "^1.0.1",
+    "@map-colonies/js-logger": "^3.0.2",
     "@map-colonies/mc-model-types": "^17.13.0",
-    "@map-colonies/mc-priority-queue": "^8.1.0",
-    "@map-colonies/mc-utils": "^3.5.6",
+    "@map-colonies/mc-priority-queue": "^9.1.0",
+    "@map-colonies/mc-utils": "^5.1.0",
     "@map-colonies/raster-shared": "^7.10.1",
     "@map-colonies/read-pkg": "0.0.1",
+    "@map-colonies/shapefile-reader": "^1.0.1",
     "@map-colonies/telemetry": "^6.0.0",
     "@opentelemetry/api": "^1.7.0",
     "@opentelemetry/api-metrics": "0.23.0",
@@ -111,8 +112,5 @@
   },
   "engines": {
     "node": ">=24.0.0"
-  },
-  "peerDependencies": {
-    "@map-colonies/js-logger": "^1.0.1"
   }
 }
