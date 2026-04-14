@@ -34,10 +34,6 @@ describe('IngestionJobHandler', () => {
   const absoluteShapefilePath = path.join(ingestionSourcePath, newJobResponseMock.parameters.inputFiles.metadataShapefilePath);
   const jobManagerClientUpdateJobSpy = jest.spyOn(mockQueueClient.jobManagerClient, 'updateJob').mockResolvedValue(undefined);
 
-  beforeAll(async () => {
-    // await initConfig(true);
-  });
-
   beforeEach(() => {
     mockFSWithShapefiles(absoluteShapefilePath);
     ingestionJobHandler = ingestionJobHandlerInstance();
