@@ -4,8 +4,9 @@ import * as path from 'path';
 import { inject, injectable } from 'tsyringe';
 import { Upload } from '@aws-sdk/lib-storage';
 import { S3Client } from '@aws-sdk/client-s3';
-import { Logger } from '@map-colonies/js-logger';
-import { context, trace, Tracer, SpanStatusCode } from '@opentelemetry/api';
+import type { Logger } from '@map-colonies/js-logger';
+import { context, trace, SpanStatusCode } from '@opentelemetry/api';
+import type { Tracer } from '@opentelemetry/api';
 import { SERVICES } from '../../common/constants';
 import { S3Error } from '../../common/errors';
 
@@ -103,7 +104,7 @@ export class S3Service {
       } catch (err) {
         const error = new S3Error(err, 'Failed to upload files to S3');
 
-        logger.error({ msg: error.message, error });
+        logger.error({ msg: error.message, err: error });
         activeSpan?.recordException(error);
         activeSpan?.setStatus({
           code: SpanStatusCode.ERROR,
@@ -132,7 +133,7 @@ export class S3Service {
           this.logger.debug({ msg: 'Deleted file from filesystem', filePath });
           parentDirs.add(path.dirname(filePath));
         } catch (unlinkError) {
-          this.logger.warn({ msg: 'Failed to delete file from filesystem', filePath, error: unlinkError });
+          this.logger.warn({ msg: 'Failed to delete file from filesystem', filePath, err: unlinkError });
         }
       })
     );
@@ -146,7 +147,7 @@ export class S3Service {
           await fs.promises.rmdir(dir);
           this.logger.debug({ msg: 'Deleted parent directory from filesystem', dir });
         } catch (rmdirError) {
-          this.logger.warn({ msg: 'Failed to delete parent directory from filesystem', dir, error: rmdirError });
+          this.logger.warn({ msg: 'Failed to delete parent directory from filesystem', dir, err: rmdirError });
         }
       })
     );

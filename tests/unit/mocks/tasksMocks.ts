@@ -39,7 +39,7 @@ export const initTaskForIngestionNew: ITaskResponse<IPollingTaskParameters> = {
   attempts: 0,
   jobId: '321d495f-e6e4-45cc-b301-4ebc4e894f03',
   resettable: true,
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+
   created: '2024-07-21T10:59:23.510Z',
   updated: '2024-07-24T07:43:10.528Z',
 };

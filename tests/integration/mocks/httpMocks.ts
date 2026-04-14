@@ -1,9 +1,10 @@
+/* eslint-disable import-x/exports-last */
 import nock from 'nock';
-import config from 'config';
 import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { PolygonPartsChunkValidationResult } from '@map-colonies/raster-shared';
 import { StatusCodes } from 'http-status-codes';
-import { HANDLERS } from '../../../src/common/constants';
+import { getHandlers } from '../../../src/common/constants';
+import { getConfig } from '../../../src/common/config';
 
 export interface MockHttpUrls {
   polygonPartsManagerUrl: string;
@@ -12,66 +13,77 @@ export interface MockHttpUrls {
   heartbeatUrl: string;
 }
 
-export const mockUrls: MockHttpUrls = {
-  polygonPartsManagerUrl: config.get<string>('polygonPartsManager.baseUrl'),
-  jobManagerUrl: config.get<string>('jobManagement.config.jobManagerBaseUrl'),
-  jobTrackerUrl: config.get<string>('jobManagement.config.jobTracker.baseUrl'),
-  heartbeatUrl: config.get<string>('jobManagement.config.heartbeat.baseUrl'),
+const getMockUrls = (): MockHttpUrls => {
+  const config = getConfig();
+  return {
+    polygonPartsManagerUrl: config.get('polygonPartsManager.baseUrl') as unknown as string,
+    jobManagerUrl: config.get('jobManagement.config.jobManagerBaseUrl') as unknown as string,
+    jobTrackerUrl: config.get('jobManagement.config.jobTracker.baseUrl') as unknown as string,
+    heartbeatUrl: config.get('jobManagement.config.heartbeat.baseUrl') as unknown as string,
+  };
 };
 
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class HttpMockHelper {
-  public static mockPolygonPartsValidate(validationResult: PolygonPartsChunkValidationResult | PolygonPartsChunkValidationResult[]): nock.Scope {
+  private readonly mockUrls: MockHttpUrls;
+
+  public constructor() {
+    this.mockUrls = getMockUrls();
+  }
+
+  public mockPolygonPartsValidate(validationResult: PolygonPartsChunkValidationResult | PolygonPartsChunkValidationResult[]): nock.Scope {
+    const { polygonPartsManagerUrl } = this.mockUrls;
     if (Array.isArray(validationResult)) {
-      let scope = nock(mockUrls.polygonPartsManagerUrl);
+      let scope = nock(polygonPartsManagerUrl);
 
       for (const result of validationResult) {
         scope = scope.post('/polygonParts/validate').reply(StatusCodes.OK, result);
       }
       return scope;
     }
-    return nock(mockUrls.polygonPartsManagerUrl).post('/polygonParts/validate').reply(StatusCodes.OK, validationResult).persist();
+    return nock(polygonPartsManagerUrl).post('/polygonParts/validate').reply(StatusCodes.OK, validationResult).persist();
   }
 
-  public static mockJobManagerUpdateTask(jobId: string, taskId: string): nock.Scope {
-    return nock(mockUrls.jobManagerUrl).put(`/jobs/${jobId}/tasks/${taskId}`).reply(StatusCodes.OK).persist();
+  public mockJobManagerUpdateTask(jobId: string, taskId: string): nock.Scope {
+    return nock(this.mockUrls.jobManagerUrl).put(`/jobs/${jobId}/tasks/${taskId}`).reply(StatusCodes.OK).persist();
   }
 
-  public static mockJobManagerUpdateJob(
+  public mockJobManagerUpdateJob(
     jobId: string,
     body: Omit<Partial<IJobResponse<unknown, unknown>>, 'parameters' | 'tasks' | 'expirationDate'>
   ): nock.Scope {
-    return nock(mockUrls.jobManagerUrl).put(`/jobs/${jobId}`, body).reply(StatusCodes.OK).persist();
+    return nock(this.mockUrls.jobManagerUrl).put(`/jobs/${jobId}`, body).reply(StatusCodes.OK).persist();
   }
 
-  public static mockJobManagerGetJob(jobId: string, job: IJobResponse<unknown, unknown>, shouldReturnTasks: boolean = false): nock.Scope {
-    return nock(mockUrls.jobManagerUrl).get(`/jobs/${jobId}?shouldReturnTasks=${shouldReturnTasks}`).reply(StatusCodes.OK, job);
+  public mockJobManagerGetJob(jobId: string, job: IJobResponse<unknown, unknown>, shouldReturnTasks: boolean = false): nock.Scope {
+    return nock(this.mockUrls.jobManagerUrl).get(`/jobs/${jobId}?shouldReturnTasks=${shouldReturnTasks}`).reply(StatusCodes.OK, job);
   }
 
-  public static mockJobManagerSearchTasks(jobType: string, taskTypes: string[], task: ITaskResponse<unknown>): void {
-    for (const handler of [HANDLERS.NEW, HANDLERS.UPDATE, HANDLERS.SWAP, HANDLERS.EXPORT]) {
+  public mockJobManagerSearchTasks(jobType: string, taskTypes: string[], task: ITaskResponse<unknown>): void {
+    const { jobManagerUrl } = this.mockUrls;
+    for (const handler of Object.values(getHandlers())) {
       for (const taskType of taskTypes) {
-        nock(mockUrls.jobManagerUrl)
+        nock(jobManagerUrl)
           .post(`/tasks/${handler}/${taskType}/startPending`)
           .reply(StatusCodes.OK, jobType === handler ? task : undefined);
       }
     }
   }
 
-  public static mockJobManagerGetTaskById(jobId: string, taskId: string, task: ITaskResponse<unknown>): nock.Scope {
-    return nock(mockUrls.jobManagerUrl).get(`/jobs/${jobId}/tasks/${taskId}`).reply(StatusCodes.OK, task);
+  public mockJobManagerGetTaskById(jobId: string, taskId: string, task: ITaskResponse<unknown>): nock.Scope {
+    return nock(this.mockUrls.jobManagerUrl).get(`/jobs/${jobId}/tasks/${taskId}`).reply(StatusCodes.OK, task);
   }
 
-  public static mockJobManagerRejectTask(jobId: string, task: ITaskResponse<unknown>): nock.Scope {
-    nock(mockUrls.jobManagerUrl).get(`/jobs/${jobId}/tasks/${task.id}`).reply(StatusCodes.OK, task);
-    return nock(mockUrls.jobManagerUrl).put(`/jobs/${jobId}/tasks/${task.id}`).reply(StatusCodes.OK);
+  public mockJobManagerRejectTask(jobId: string, task: ITaskResponse<unknown>): nock.Scope {
+    const { jobManagerUrl } = this.mockUrls;
+    nock(jobManagerUrl).get(`/jobs/${jobId}/tasks/${task.id}`).reply(StatusCodes.OK, task);
+    return nock(jobManagerUrl).put(`/jobs/${jobId}/tasks/${task.id}`).reply(StatusCodes.OK);
   }
 
-  public static mockJobTrackerFinishTask(taskId: string): nock.Scope {
-    return nock(mockUrls.jobTrackerUrl).post(`/tasks/${taskId}/notify`).reply(StatusCodes.OK);
+  public mockJobTrackerFinishTask(taskId: string): nock.Scope {
+    return nock(this.mockUrls.jobTrackerUrl).post(`/tasks/${taskId}/notify`).reply(StatusCodes.OK);
   }
 
-  public static mockCallbackClientSend(status: StatusCodes, callbackUrls?: string[]): void {
+  public mockCallbackClientSend(status: StatusCodes, callbackUrls?: string[]): void {
     if (!callbackUrls) {
       return;
     }
@@ -80,8 +92,13 @@ export class HttpMockHelper {
     }
   }
 
-  public static mockHeartbeat(taskId: string): nock.Scope {
+  public mockHeartbeat(taskId: string): nock.Scope {
     // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-    return nock(mockUrls.heartbeatUrl).post(`/heartbeat/${taskId}`).reply(200, 'ok').persist();
+    return nock(this.mockUrls.heartbeatUrl).post(`/heartbeat/${taskId}`).reply(200, 'ok').persist();
+  }
+
+  public mockStopHeartbeat(taskId: string): nock.Scope {
+    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+    return nock(this.mockUrls.heartbeatUrl).post(`/heartbeat/remove/${taskId}`, [taskId]).reply(200, 'ok').persist();
   }
 }

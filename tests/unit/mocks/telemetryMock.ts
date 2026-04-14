@@ -1,10 +1,24 @@
-import jsLogger from '@map-colonies/js-logger';
+/* eslint-disable import-x/exports-last */
+import type { Logger } from '@map-colonies/js-logger';
 import { trace } from '@opentelemetry/api';
 import { ShapefileMetrics } from '../../../src/common/otel/metrics/shapeFileMetrics';
 import { TaskMetrics } from '../../../src/common/otel/metrics/taskMetrics';
 
+const childFn = jest.fn();
+
 export const tracerMock = trace.getTracer('test');
-export const loggerMock = jsLogger({ enabled: false });
+
+export const loggerMock = {
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+  debug: jest.fn(),
+  fatal: jest.fn(),
+  trace: jest.fn(),
+  child: childFn,
+} as unknown as jest.Mocked<Logger>;
+
+childFn.mockReturnValue(loggerMock);
 
 export const shapeFileMetricsMock = {
   recordChunk: jest.fn(),

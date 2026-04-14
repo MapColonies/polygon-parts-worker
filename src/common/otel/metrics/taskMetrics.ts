@@ -1,8 +1,8 @@
 import { singleton, inject } from 'tsyringe';
 import { Registry, Counter, Histogram, Gauge } from 'prom-client';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
-import { Logger } from '@map-colonies/js-logger';
-import { IConfig } from 'config';
+import type { Logger } from '@map-colonies/js-logger';
+import type { ConfigType } from '../../config';
 import { SERVICES } from '../../constants';
 
 export interface TaskMetricLabels {
@@ -28,12 +28,12 @@ export class TaskMetrics {
   private readonly metricsEnabled: boolean;
 
   public constructor(
-    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType,
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.METRICS_REGISTRY) private readonly registry?: Registry
   ) {
-    this.metricsEnabled = this.config.get<boolean>('telemetry.metrics.enabled');
-    this.taskBuckets = this.config.get<number[]>('telemetry.metrics.buckets');
+    this.metricsEnabled = this.config.get('telemetry.metrics.enabled') as unknown as boolean;
+    this.taskBuckets = this.config.get('telemetry.metrics.buckets') as unknown as number[];
 
     if (this.registry && this.metricsEnabled) {
       this.initializeMetrics();
@@ -97,7 +97,7 @@ export class TaskMetrics {
         this.tasksFailureCounter?.inc({ jobType, taskType, errorType: labels.errorType ?? 'UnknownError' });
       }
     } catch (error) {
-      this.logger.error({ msg: 'Failed to record task processing metrics', error, labels });
+      this.logger.error({ msg: 'Failed to record task processing metrics', err: error, labels });
     }
   }
   //#endregion
@@ -111,7 +111,7 @@ export class TaskMetrics {
     try {
       this.activeTasksGauge?.inc(labels);
     } catch (error) {
-      this.logger.error({ msg: 'Failed to increment active tasks gauge', error, labels });
+      this.logger.error({ msg: 'Failed to increment active tasks gauge', err: error, labels });
     }
   }
 
@@ -123,7 +123,7 @@ export class TaskMetrics {
     try {
       this.activeTasksGauge?.dec(labels);
     } catch (error) {
-      this.logger.error({ msg: 'Failed to decrement active tasks gauge', error, labels });
+      this.logger.error({ msg: 'Failed to decrement active tasks gauge', err: error, labels });
     }
   }
   //#endregion

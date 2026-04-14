@@ -14,17 +14,21 @@ import { CallbackClient } from '../../../src/clients/callbackClient';
 import { validationTask } from '../mocks/tasksMocks';
 
 const mockProcessJob = jest.fn() as MockProcessJob;
+const mockInitHandlers = jest.fn();
 
 registerDefaultConfig();
 const mockQueueClient = new QueueClient(
   loggerMock,
-  configMock.get<string>('jobManagement.config.jobManagerBaseUrl'),
-  configMock.get<string>('jobManagement.config.heartbeat.baseUrl'),
-  configMock.get<number>('jobManagement.config.dequeueIntervalMs'),
-  configMock.get<number>('jobManagement.config.heartbeat.intervalMs')
+  configMock.get('jobManagement.config.jobManagerBaseUrl') as unknown as string,
+  configMock.get('jobManagement.config.heartbeat.baseUrl') as unknown as string,
+  configMock.get('jobManagement.config..dequeueIntervalMs') as unknown as number,
+  configMock.get('jobManagement.config.heartbeat.intervalMs') as unknown as number
 );
 
-const mockS3Config = configMock.get<IS3Config>('s3');
+mockQueueClient.heartbeatClient.start = jest.fn();
+mockQueueClient.heartbeatClient.stop = jest.fn();
+
+const mockS3Config = configMock.get('s3') as IS3Config;
 
 const mockTracer = trace.getTracer('testingTracer');
 const mockPolygonPartsClient = new PolygonPartsManagerClient(loggerMock, configMock, mockTracer);
@@ -36,7 +40,7 @@ const s3Service = new S3Service(loggerMock, mockS3Config, mockTracer);
 const callbackClient = new CallbackClient(configMock, loggerMock, mockTracer);
 
 function jobProcessorInstance(): JobProcessor {
-  return new JobProcessor(loggerMock, mockTracer, mockQueueClient, configMock, mockJobTrackerClient, taskMetricsMock);
+  return new JobProcessor(loggerMock, mockTracer, mockQueueClient, configMock, mockJobTrackerClient, taskMetricsMock, mockInitHandlers);
 }
 
 function ingestionJobHandlerInstance(): IngestionJobHandler {
@@ -67,6 +71,7 @@ export {
   jobProcessorInstance,
   mockJobTrackerClient,
   mockProcessJob,
+  mockInitHandlers,
   mockQueueClient,
   ingestionJobHandlerInstance,
   exportJobHandlerInstance,

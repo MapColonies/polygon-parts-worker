@@ -1,7 +1,7 @@
-import jsLogger from '@map-colonies/js-logger';
 import nock from 'nock';
-import { tracerMock } from '../../mocks/telemetryMock';
-import { configMock, registerDefaultConfig } from '../../mocks/configMock';
+import { jsLogger, type Logger } from '@map-colonies/js-logger';
+import { tracerMock } from '@tests/unit/mocks/telemetryMock';
+import { configMock } from '../../mocks/configMock';
 import { CallbackClient } from '../../../../src/clients/callbackClient';
 import { callbackResponse } from './callbackClient.data';
 
@@ -10,9 +10,13 @@ describe('callbackClient', () => {
   const basePath = 'https://callback.example.com';
   const uri = '/api/callback';
 
+  let mockLogger: Logger;
+  beforeAll(async () => {
+    mockLogger = await jsLogger({ enabled: false });
+  });
+
   beforeEach(() => {
-    registerDefaultConfig();
-    callbackClient = new CallbackClient(configMock, jsLogger({ enabled: false }), tracerMock);
+    callbackClient = new CallbackClient(configMock, mockLogger, tracerMock);
   });
 
   afterEach(() => {

@@ -1,29 +1,25 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 
-import config, { IConfig, IUtil } from 'config';
-import get from 'lodash.get';
-import has from 'lodash.has';
+import { get, set } from 'lodash';
+import type { ConfigType } from '../../../src/common/config';
 
 let mockConfig: Record<string, unknown> = {};
 const getMock = jest.fn();
 const hasMock = jest.fn();
-const utiMock = jest.fn() as unknown as IUtil;
 
-const configMock: IConfig = {
+const configMock = {
   get: getMock,
-  has: hasMock,
-  util: utiMock,
-};
+} as unknown as ConfigType;
 
 const init = (): void => {
   getMock.mockImplementation((key: string): unknown => {
-    return mockConfig[key] ?? config.get(key);
+    return (get as (object: Record<string, unknown>, path: string) => unknown)(mockConfig, key);
   });
 };
 
 const setValue = (key: string | Record<string, unknown>, value?: unknown): void => {
   if (typeof key === 'string') {
-    mockConfig[key] = value;
+    set(mockConfig, key, value);
   } else {
     mockConfig = { ...mockConfig, ...key };
   }
@@ -35,10 +31,9 @@ const clear = (): void => {
 
 const setConfigValues = (values: Record<string, unknown>): void => {
   getMock.mockImplementation((key: string) => {
-    const value: unknown = (get as (object: Record<string, unknown>, path: string) => unknown)(values, key) ?? config.get(key);
+    const value: unknown = (get as (object: Record<string, unknown>, path: string) => unknown)(values, key);
     return value;
   });
-  hasMock.mockImplementation((key: string) => (has as (object: Record<string, unknown>, path: string) => boolean)(values, key) || config.has(key));
 };
 
 const registerDefaultConfig = (): void => {
@@ -102,6 +97,11 @@ const registerDefaultConfig = (): void => {
     polygonPartsManager: {
       baseUrl: 'http://polygon-parts-manager-test',
     },
+    downloadServer: {
+      publicDns: 'http://localhost:8085',
+      reportsDownloadPath: 'downloads/validation-reports',
+    },
+    reportStorageProvider: 'FS',
     gpkgsLocation: '/app/tiles_outputs/gpkgs',
     ingestionSourcesDirPath: 'tests/integration/shapeFiles',
     reportsPath: 'tests/integration/validation-reports',
@@ -136,6 +136,7 @@ const registerDefaultConfig = (): void => {
     },
   };
 
+  mockConfig = config as unknown as Record<string, unknown>;
   setConfigValues(config);
 };
 

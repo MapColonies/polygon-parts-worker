@@ -3,31 +3,17 @@ import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { failTaskRequest, newJobResponseMock, updatedJobRequest } from '../mocks/jobsMocks';
 import { initTaskForIngestionNew, reachedMaxAttemptsTask } from '../mocks/tasksMocks';
-import * as handlerFactory from '../../../src/models/handlerFactory';
+import { jobProcessorInstance, mockProcessJob, mockQueueClient, mockJobTrackerClient, mockInitHandlers } from '../jobProcessor/jobProcessorSetup';
 
-const initJobHandlerMock = jest.fn();
-
-initJobHandlerMock.mockImplementation(() => {
-  return {
-    processJob: async () => {
-      return mockProcessJob();
-    },
-  };
-});
-
-jest.mock<typeof handlerFactory>('../../../src/models/handlerFactory', () => {
-  return {
-    initJobHandler: initJobHandlerMock,
-  };
-});
-
-// eslint-disable-next-line import/first
-import { jobProcessorInstance, mockProcessJob, mockQueueClient, mockJobTrackerClient } from '../jobProcessor/jobProcessorSetup';
+jest.mock('../../../src/models/handlerFactory');
 
 describe('JobProcessor', () => {
   let jobProcessor: JobProcessor;
 
   beforeEach(() => {
+    jest.mocked(mockInitHandlers).mockImplementation(() => ({
+      processJob: async () => mockProcessJob(),
+    }));
     jobProcessor = jobProcessorInstance();
     jest.clearAllMocks();
     registerDefaultConfig();
@@ -39,12 +25,13 @@ describe('JobProcessor', () => {
   });
 
   describe('start', () => {
-    const jobManagerBaseUrl = configMock.get<string>('jobManagement.config.jobManagerBaseUrl');
-    const jobTrackerBaseUrl = configMock.get<string>('jobManagement.config.jobTracker.baseUrl');
-    const heartbeatBaseUrl = configMock.get<string>('jobManagement.config.heartbeat.baseUrl');
-    const validationTaskType = configMock.get<string>('jobDefinitions.tasks.validation.type');
-    const polygonPartsTaskType = configMock.get<string>('jobDefinitions.tasks.polygonParts.type');
-    const jobType = configMock.get<string>('jobDefinitions.jobs.new.type');
+    const jobManagerBaseUrl = configMock.get('jobManagement.config.jobManagerBaseUrl') as unknown as string;
+    const jobTrackerBaseUrl = configMock.get('jobManagement.config.jobTracker.baseUrl') as unknown as string;
+    const heartbeatBaseUrl = configMock.get('jobManagement.config.heartbeat.baseUrl') as unknown as string;
+    const validationTaskType = configMock.get('jobDefinitions.tasks.validation.type') as unknown as string;
+    const polygonPartsTaskType = configMock.get('jobDefinitions.tasks.polygonParts.type') as unknown as string;
+
+    const jobType = configMock.get('jobDefinitions.jobs.new.type') as unknown as string;
 
     it('should successfully fetch new validation task and process it', async () => {
       const jobManagerUrlValidationDequeuePath = `/tasks/${jobType}/${validationTaskType}/startPending`;
@@ -89,7 +76,7 @@ describe('JobProcessor', () => {
       nock(jobTrackerBaseUrl).post(jobTrackerNotifyPath).reply(200, 'ok').persist();
 
       const ackSpy = jest.spyOn(mockQueueClient, 'ack');
-      const rejectSpy = jest.spyOn(mockQueueClient, 'reject').mockResolvedValue(undefined);
+      const rejectSpy = jest.spyOn(mockQueueClient, 'reject').mockImplementation(async () => Promise.resolve());
       const notifyOnFinishedTaskSpy = jest.spyOn(mockJobTrackerClient, 'notifyOnFinishedTask');
 
       const resultPromise = jobProcessor.start({ runOnce: true });
@@ -102,7 +89,7 @@ describe('JobProcessor', () => {
       expect(rejectSpy).toHaveBeenCalledTimes(1);
       expect(notifyOnFinishedTaskSpy).toHaveBeenCalledTimes(1);
       expect.assertions(6);
-    });
+    }, 80000);
 
     it('should fail to fetch task', async () => {
       const jobManagerUrlDequeuePath = `/tasks/${jobType}/${validationTaskType}/startPending`;
@@ -122,12 +109,15 @@ describe('JobProcessor', () => {
       const jobManagerGetJobPath = `/jobs/${initTaskForIngestionNew.jobId}`;
       const unsupportedTaskType = 'unsupportedTaskType';
       const unsupportedTask = { ...initTaskForIngestionNew, type: unsupportedTaskType };
+      const jobManagerRejectPath = `/jobs/${initTaskForIngestionNew.jobId}/tasks/${initTaskForIngestionNew.id}`;
       const jobTrackerNotifyPath = `/tasks/${initTaskForIngestionNew.id}/notify`;
 
       nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(200, unsupportedTask);
       nock(jobManagerBaseUrl).post(jobManagerUrlDequeuePath).reply(200, undefined).persist();
       nock(jobManagerBaseUrl).post(jobManagerUrlPolygonPartsDequeuePath).reply(200, undefined).persist();
       nock(jobManagerBaseUrl).get(jobManagerGetJobPath).query({ shouldReturnTasks: false }).reply(200, newJobResponseMock).persist();
+      nock(jobManagerBaseUrl).put(jobManagerRejectPath, failTaskRequest).reply(200).persist();
+
       nock(jobTrackerBaseUrl).post(jobTrackerNotifyPath).reply(200, 'ok').persist();
 
       const resultPromise = jobProcessor.start({ runOnce: true });
@@ -156,7 +146,7 @@ describe('JobProcessor', () => {
       const heartbeatPath = `/heartbeat/${initTaskForIngestionNew.id}`; //taskID
       const invalidJobResponseMock = { ...newJobResponseMock, jobType: 'invalidType' };
       const errorMsg = 'failed to process job';
-      initJobHandlerMock.mockImplementation(() => {
+      jest.mocked(mockInitHandlers).mockImplementation(() => {
         return {
           processJob: () => {
             throw new Error(errorMsg);

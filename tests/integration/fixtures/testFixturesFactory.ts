@@ -4,7 +4,7 @@ import { faker } from '@faker-js/faker';
 import { IJobResponse, ITaskResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { ProductType } from '@map-colonies/mc-model-types';
 import { IngestionJobParams, ValidationTaskParameters } from '../../../src/common/interfaces';
-import { HANDLERS } from '../../../src/common/constants';
+import { getHandlers } from '../../../src/common/constants';
 
 export interface CreateJobOptions {
   jobId?: string;
@@ -30,7 +30,7 @@ export interface CreateTaskOptions {
 
 export function createIngestionJob(options: CreateJobOptions = {}): IJobResponse<IngestionJobParams, unknown> {
   const jobId = options.jobId ?? randomUUID();
-  const type = options.type ?? HANDLERS.NEW;
+  const type = options.type ?? getHandlers().NEW;
   const resourceId = options.resourceId ?? 'test_product_id';
   const version = options.version ?? '1.0';
   const productType = options.productType ?? ProductType.ORTHOPHOTO;

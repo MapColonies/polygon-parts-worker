@@ -1,7 +1,8 @@
-import { AxiosResponse } from 'axios';
-import { HttpClientV2 } from '../../../src/common/http/httpClientV2';
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-export const createHttpClientV2Mock = (): Partial<HttpClientV2> => {
+import { AxiosResponse } from 'axios';
+
+export const createHttpClientV2Mock = () => {
   return {
     get: jest.fn().mockResolvedValue({ data: {}, status: 200 } as AxiosResponse),
     post: jest.fn().mockResolvedValue({ data: {}, status: 200 } as AxiosResponse),

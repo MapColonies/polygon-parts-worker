@@ -1,11 +1,12 @@
 import fs from 'fs';
-import { Logger } from '@map-colonies/js-logger';
+import { type Logger } from '@map-colonies/js-logger';
 import { IJobResponse } from '@map-colonies/mc-priority-queue';
 import ogr2ogr from 'ogr2ogr';
 import { inject, injectable } from 'tsyringe';
 import { ExportJobParameters } from '@map-colonies/raster-shared';
 import { OgrFormat, SERVICES } from '../../common/constants';
-import { IConfig, IJobHandler } from '../../common/interfaces';
+import { IJobHandler } from '../../common/interfaces';
+import type { ConfigType } from '../../common/config';
 import { PolygonPartsManagerClient } from '../../clients/polygonPartsManagerClient';
 import { addFeatureIds, manipulateFeatures } from '../../utils/utils';
 
@@ -15,10 +16,10 @@ export class ExportJobHandler implements IJobHandler<ExportJobParameters> {
 
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType,
     @inject(PolygonPartsManagerClient) private readonly polygonPartsManagerClient: PolygonPartsManagerClient
   ) {
-    this.gpkgsLocation = config.get<string>('gpkgsLocation');
+    this.gpkgsLocation = config.get('gpkgsLocation') as string;
   }
 
   public async processJob(job: IJobResponse<ExportJobParameters, unknown>): Promise<void> {
@@ -45,9 +46,9 @@ export class ExportJobHandler implements IJobHandler<ExportJobParameters> {
 
       this.logger.info(`finished merging ${layer} features into gpkg`);
       return;
-    } catch (error) {
-      this.logger.error({ msg: 'error while processing job', error });
-      throw error;
+    } catch (err) {
+      this.logger.error({ msg: 'error while processing job', err });
+      throw err;
     }
   }
 

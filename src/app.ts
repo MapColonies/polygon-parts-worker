@@ -3,10 +3,10 @@ import { DependencyContainer } from 'tsyringe';
 import { registerExternalValues, RegisterOptions } from './containerConfig';
 import { ServerBuilder } from './serverBuilder';
 
-function getApp(registerOptions?: RegisterOptions): { app: Application; container: DependencyContainer } {
-  const container = registerExternalValues(registerOptions);
+async function getApp(registerOptions?: RegisterOptions): Promise<[Application, DependencyContainer]> {
+  const container = await registerExternalValues(registerOptions);
   const app = container.resolve(ServerBuilder).build();
-  return { app, container };
+  return [app, container];
 }
 
 export { getApp };

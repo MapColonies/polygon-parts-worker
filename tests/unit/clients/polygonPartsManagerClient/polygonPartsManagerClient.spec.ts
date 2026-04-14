@@ -1,5 +1,5 @@
-import jsLogger from '@map-colonies/js-logger';
 import nock from 'nock';
+import { jsLogger, type Logger } from '@map-colonies/js-logger';
 import { PolygonPartsPayload, PolygonPartsChunkValidationResult, ValidationErrorType } from '@map-colonies/raster-shared';
 import { tracerMock } from '../../mocks/telemetryMock';
 import { configMock, registerDefaultConfig } from '../../mocks/configMock';
@@ -10,12 +10,17 @@ describe('PolygonPartsManagerClient', () => {
   let polygonPartsManagerClient: PolygonPartsManagerClient;
   let baseUrl: string;
   let validateEndpoint: string;
+  let mockLogger: Logger;
+
+  beforeAll(async () => {
+    mockLogger = await jsLogger({ enabled: false });
+  });
 
   beforeEach(() => {
     registerDefaultConfig();
-    baseUrl = configMock.get<string>('polygonPartsManager.baseUrl');
+    baseUrl = configMock.get('polygonPartsManager.baseUrl') as unknown as string;
     validateEndpoint = '/polygonParts/validate';
-    polygonPartsManagerClient = new PolygonPartsManagerClient(jsLogger({ enabled: false }), configMock, tracerMock);
+    polygonPartsManagerClient = new PolygonPartsManagerClient(mockLogger, configMock, tracerMock);
   });
 
   afterEach(() => {
@@ -48,7 +53,7 @@ describe('PolygonPartsManagerClient', () => {
       const requestBody: PolygonPartsPayload = createFakePolygonPartsPayload(1);
 
       const expectedResponse: PolygonPartsChunkValidationResult = {
-        parts: [{ id: requestBody.partsData.features[0].properties.id, errors: [ValidationErrorType.GEOMETRY_VALIDITY] }],
+        parts: [{ id: requestBody.partsData.features[0]!.properties.id, errors: [ValidationErrorType.GEOMETRY_VALIDITY] }],
         smallHolesCount: 0,
       };
 

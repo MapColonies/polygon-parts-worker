@@ -1,19 +1,19 @@
 import { HttpClient } from '@map-colonies/mc-utils';
 import { inject, injectable } from 'tsyringe';
-import { Logger } from '@map-colonies/js-logger';
-import { Tracer } from '@opentelemetry/api';
-import { withSpanAsyncV4 } from '@map-colonies/telemetry';
+import type { Logger } from '@map-colonies/js-logger';
+import type { Tracer } from '@opentelemetry/api';
+import { withSpanAsyncV4 } from '@map-colonies/tracing-utils';
+import type { ConfigType } from '@src/common/config';
 import { SERVICES } from '../common/constants';
-import { IConfig } from '../common/interfaces';
 
 @injectable()
 export class JobTrackerClient extends HttpClient {
   public constructor(
-    @inject(SERVICES.LOGGER) protected readonly logger: Logger,
-    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    @inject(SERVICES.LOGGER) protected override readonly logger: Logger,
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType,
     @inject(SERVICES.TRACER) public readonly tracer: Tracer
   ) {
-    super(logger, config.get<string>('jobManagement.config.jobTracker.baseUrl'), 'JobTracker');
+    super(logger, config.get('jobManagement.config.jobTracker.baseUrl') as unknown as string, 'JobTracker');
   }
 
   @withSpanAsyncV4
