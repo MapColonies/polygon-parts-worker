@@ -17,10 +17,6 @@ type PolygonPartExtended = PartFeatureProperties &
     ingestionDateUTC: Date;
     id: string;
   };
-export interface IConfig {
-  get: <T>(setting: string) => T;
-  has: (setting: string) => boolean;
-}
 
 export interface IJobManagerConfig {
   jobManagerBaseUrl: string;

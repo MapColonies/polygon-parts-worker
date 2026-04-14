@@ -1,16 +1,16 @@
 import { existsSync } from 'fs';
-import nock from 'nock';
+import { cleanAll } from 'nock';
 import { DependencyContainer } from 'tsyringe';
 import { StatusCodes } from 'http-status-codes';
-import config, { IConfig } from 'config';
 import { PolygonPartsChunkValidationResult } from '@map-colonies/raster-shared';
 import { OperationStatus, TaskHandler } from '@map-colonies/mc-priority-queue';
 import { ShapefileChunkReader } from '@map-colonies/shapefile-reader';
 import { faker } from '@faker-js/faker';
+import { ConfigType, getConfig, initConfig } from '@src/common/config';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { getApp } from '../../../src/app';
 import { IngestionJobHandler } from '../../../src/models/ingestion/ingestionHandler';
-import { HANDLERS, SERVICES } from '../../../src/common/constants';
+import { getHandlers, SERVICES } from '../../../src/common/constants';
 import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsManagerClient';
 import { ShapefileNotFoundError } from '../../../src/common/errors';
 import { JobTrackerClient } from '../../../src/clients/jobTrackerClient';
@@ -22,36 +22,45 @@ import { getActualReportErrorsCount, reportPathBuilder, setUpValidationReportsDi
 import { failedValidationTestCases } from './validationTaskFlow.cases';
 
 describe('Validation Task Flow', () => {
-  const reportsDirPath = config.get<string>('reportsPath');
-  const maxVertices = config.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
-
+  let reportsDirPath: string;
+  let maxVertices: number;
   let shpReader: ShapefileChunkReader;
   let testContainer: DependencyContainer;
   let taskTypesToProcess: string[];
-  let testConfig: IConfig;
+  let httpMockHelper: HttpMockHelper;
+  let testConfig: ConfigType;
 
   beforeAll(async () => {
+    await initConfig(true);
+
+    testConfig = getConfig();
+    reportsDirPath = testConfig.get('reportsPath') as string;
+    maxVertices = testConfig.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
+
     await setUpValidationReportsDir(reportsDirPath);
     shpReader = new ShapefileChunkReader({ maxVerticesPerChunk: maxVertices });
+    httpMockHelper = new HttpMockHelper();
   });
 
-  beforeEach(() => {
-    testConfig = config.util.cloneDeep(config) as IConfig;
-    const { container } = getApp({
+  beforeEach(async () => {
+    const [, container] = await getApp({
       override: [
         { token: SERVICES.LOGGER, provider: { useValue: loggerMock } },
         { token: SERVICES.TRACER, provider: { useValue: tracerMock } },
         { token: SERVICES.CONFIG, provider: { useValue: testConfig } },
       ],
+      useChild: true,
     });
+
     testContainer = container;
-    const validationTaskType = testConfig.get<string>('jobDefinitions.tasks.validation.type');
-    const polygonPartsTaskType = testConfig.get<string>('jobDefinitions.tasks.polygonParts.type');
+
+    const validationTaskType = testConfig.get('jobDefinitions.tasks.validation.type') as unknown as string;
+    const polygonPartsTaskType = testConfig.get('jobDefinitions.tasks.polygonParts.type') as unknown as string;
     taskTypesToProcess = [validationTaskType, polygonPartsTaskType];
   });
 
   afterEach(() => {
-    nock.cleanAll();
+    cleanAll();
     jest.clearAllMocks();
   });
 
@@ -60,7 +69,9 @@ describe('Validation Task Flow', () => {
   });
 
   describe('Happy Path - Successful Validation', () => {
-    test.each([HANDLERS.NEW, HANDLERS.UPDATE, HANDLERS.SWAP])('should complete validation task successfully for %s handler', async (type) => {
+    const handlerTestCases = ['NEW', 'UPDATE', 'SWAP'] as const;
+    test.each(handlerTestCases)('should complete validation task successfully for %s handler', async (key) => {
+      const type = getHandlers()[key];
       const job = createIngestionJob({
         shapefilePath: '/valid/137_parts_valid/ShapeMetadata.shp',
         type,
@@ -74,14 +85,14 @@ describe('Validation Task Flow', () => {
 
       const task = createTask({ jobId: job.id });
 
-      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
-      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job);
-      HttpMockHelper.mockPolygonPartsValidate(validationResult);
-      HttpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
-      HttpMockHelper.mockJobTrackerFinishTask(task.id);
-      HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job, true);
+      httpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
+      httpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
+      httpMockHelper.mockJobManagerGetJob(job.id, job);
+      httpMockHelper.mockPolygonPartsValidate(validationResult);
+      httpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
+      httpMockHelper.mockJobTrackerFinishTask(task.id);
+      httpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
+      httpMockHelper.mockJobManagerGetJob(job.id, job, true);
 
       const ingestionHandlerProcessJobSpy = jest.spyOn(IngestionJobHandler.prototype, 'processJob');
       const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validate');
@@ -111,14 +122,14 @@ describe('Validation Task Flow', () => {
 
       const task = createTask({ jobId: job.id });
 
-      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
-      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job);
-      HttpMockHelper.mockPolygonPartsValidate(validationResult);
-      HttpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
-      HttpMockHelper.mockJobTrackerFinishTask(task.id);
-      HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job, true);
+      httpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
+      httpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
+      httpMockHelper.mockJobManagerGetJob(job.id, job);
+      httpMockHelper.mockPolygonPartsValidate(validationResult);
+      httpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
+      httpMockHelper.mockJobTrackerFinishTask(task.id);
+      httpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
+      httpMockHelper.mockJobManagerGetJob(job.id, job, true);
 
       const ingestionHandlerProcessJobSpy = jest.spyOn(IngestionJobHandler.prototype, 'processJob');
       const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validate');
@@ -139,7 +150,13 @@ describe('Validation Task Flow', () => {
   describe('Sad Path - Validation Failures', () => {
     test.each(failedValidationTestCases)('should create report with $description', async (testCase) => {
       if (testCase.chunkMaxVertices !== undefined) {
-        testConfig.util.setPath(testConfig, ['jobDefinitions', 'tasks', 'validation', 'chunkMaxVertices'], testCase.chunkMaxVertices);
+        const originalGet = testConfig.get.bind(testConfig);
+        jest.spyOn(testConfig, 'get').mockImplementation((key: string) => {
+          if (key === 'jobDefinitions.tasks.validation.chunkMaxVertices') {
+            return testCase.chunkMaxVertices as unknown as number;
+          }
+          return originalGet(key); // For other keys, return the original config values
+        });
       }
 
       const jobId = faker.string.uuid();
@@ -151,17 +168,17 @@ describe('Validation Task Flow', () => {
         tasks: [task],
       });
 
-      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
-      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job);
-      HttpMockHelper.mockPolygonPartsValidate(testCase.ppManagerValidationResult);
+      httpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
+      httpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
+      httpMockHelper.mockJobManagerGetJob(job.id, job);
+      httpMockHelper.mockPolygonPartsValidate(testCase.ppManagerValidationResult);
 
-      HttpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
-      HttpMockHelper.mockJobManagerRejectTask(job.id, task);
-      HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
-      HttpMockHelper.mockCallbackClientSend(StatusCodes.OK, job.parameters.callbackUrls);
-      HttpMockHelper.mockJobTrackerFinishTask(task.id);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job, true);
+      httpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
+      httpMockHelper.mockJobManagerRejectTask(job.id, task);
+      httpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
+      httpMockHelper.mockCallbackClientSend(StatusCodes.OK, job.parameters.callbackUrls);
+      httpMockHelper.mockJobTrackerFinishTask(task.id);
+      httpMockHelper.mockJobManagerGetJob(job.id, job, true);
 
       const ingestionHandlerProcessJobSpy = jest.spyOn(IngestionJobHandler.prototype, 'processJob');
       const jobTrackerNotifySpy = jest.spyOn(JobTrackerClient.prototype, 'notifyOnFinishedTask');
@@ -198,13 +215,13 @@ describe('Validation Task Flow', () => {
       });
       const isTaskRecoverable = false; // ShapefileNotFoundError is not recoverable
 
-      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
-      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job);
-      HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task); // Mock for queueClient.reject() internal call
-      HttpMockHelper.mockJobManagerRejectTask(job.id, task);
-      HttpMockHelper.mockJobTrackerFinishTask(task.id);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job, true);
+      httpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
+      httpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
+      httpMockHelper.mockJobManagerGetJob(job.id, job);
+      httpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task); // Mock for queueClient.reject() internal call
+      httpMockHelper.mockJobManagerRejectTask(job.id, task);
+      httpMockHelper.mockJobTrackerFinishTask(task.id);
+      httpMockHelper.mockJobManagerGetJob(job.id, job, true);
 
       const ingestionHandlerProcessJobSpy = jest.spyOn(IngestionJobHandler.prototype, 'processJob');
       const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validate');
@@ -216,7 +233,7 @@ describe('Validation Task Flow', () => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect(ingestionHandlerProcessJobSpy).toHaveBeenCalledWith(expect.objectContaining({ ...job, expirationDate: expect.any(String) }), task);
       expect(polygonPartsManagerValidateSpy).not.toHaveBeenCalled();
-      await expect(ingestionHandlerProcessJobSpy.mock.results[0].value).rejects.toThrow(ShapefileNotFoundError);
+      await expect(ingestionHandlerProcessJobSpy.mock.results[0]!.value).rejects.toThrow(ShapefileNotFoundError);
       expect(queueClientRejectSpy).toHaveBeenCalledWith(job.id, task.id, isTaskRecoverable, expect.any(String));
     });
 
@@ -230,13 +247,13 @@ describe('Validation Task Flow', () => {
       });
       const isTaskRecoverable = false; // ShapefileNotFoundError is not recoverable
 
-      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
-      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job);
-      HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task); // Mock for queueClient.reject() internal call
-      HttpMockHelper.mockJobManagerRejectTask(job.id, task);
-      HttpMockHelper.mockJobTrackerFinishTask(task.id);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job, true);
+      httpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
+      httpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
+      httpMockHelper.mockJobManagerGetJob(job.id, job);
+      httpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task); // Mock for queueClient.reject() internal call
+      httpMockHelper.mockJobManagerRejectTask(job.id, task);
+      httpMockHelper.mockJobTrackerFinishTask(task.id);
+      httpMockHelper.mockJobManagerGetJob(job.id, job, true);
 
       const ingestionHandlerProcessJobSpy = jest.spyOn(IngestionJobHandler.prototype, 'processJob');
       const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validate');
@@ -248,7 +265,7 @@ describe('Validation Task Flow', () => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect(ingestionHandlerProcessJobSpy).toHaveBeenCalledWith(expect.objectContaining({ ...job, expirationDate: expect.any(String) }), task);
       expect(polygonPartsManagerValidateSpy).not.toHaveBeenCalled();
-      await expect(ingestionHandlerProcessJobSpy.mock.results[0].value).rejects.toThrow(ShapefileNotFoundError);
+      await expect(ingestionHandlerProcessJobSpy.mock.results[0]!.value).rejects.toThrow(ShapefileNotFoundError);
       expect(queueClientRejectSpy).toHaveBeenCalledWith(job.id, task.id, isTaskRecoverable, expect.any(String));
     });
 
@@ -262,13 +279,13 @@ describe('Validation Task Flow', () => {
       });
       const isTaskRecoverable = false; // ReachedMaxTaskAttemptsError is not recoverable
 
-      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
-      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job);
-      HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task); // Mock for queueClient.reject() internal call
-      HttpMockHelper.mockJobManagerRejectTask(job.id, task);
-      HttpMockHelper.mockJobTrackerFinishTask(task.id);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job, true);
+      httpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
+      httpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
+      httpMockHelper.mockJobManagerGetJob(job.id, job);
+      httpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task); // Mock for queueClient.reject() internal call
+      httpMockHelper.mockJobManagerRejectTask(job.id, task);
+      httpMockHelper.mockJobTrackerFinishTask(task.id);
+      httpMockHelper.mockJobManagerGetJob(job.id, job, true);
 
       const jobTrackerNotifySpy = jest.spyOn(JobTrackerClient.prototype, 'notifyOnFinishedTask');
       const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validate');
@@ -277,7 +294,6 @@ describe('Validation Task Flow', () => {
 
       await processor.start({ runOnce: true });
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect(polygonPartsManagerValidateSpy).not.toHaveBeenCalled();
       expect(queueClientRejectSpy).toHaveBeenCalledWith(job.id, task.id, isTaskRecoverable, expect.any(String));
       expect(jobTrackerNotifySpy).toHaveBeenCalledWith(task.id);
@@ -293,11 +309,11 @@ describe('Validation Task Flow', () => {
       });
       const isTaskRecoverable = true; // TODO: Empty shapefile is not recoverable(later we need to set task to unrecoverable when this error is thrown)
 
-      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
-      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job);
-      HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
-      HttpMockHelper.mockJobManagerRejectTask(job.id, task);
+      httpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
+      httpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
+      httpMockHelper.mockJobManagerGetJob(job.id, job);
+      httpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
+      httpMockHelper.mockJobManagerRejectTask(job.id, task);
 
       const ingestionHandlerProcessJobSpy = jest.spyOn(IngestionJobHandler.prototype, 'processJob');
       const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validate');
@@ -309,7 +325,7 @@ describe('Validation Task Flow', () => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect(ingestionHandlerProcessJobSpy).toHaveBeenCalledWith(expect.objectContaining({ ...job, expirationDate: expect.any(String) }), task);
       expect(polygonPartsManagerValidateSpy).not.toHaveBeenCalled(); // No chunks to process = no validation calls
-      await expect(ingestionHandlerProcessJobSpy.mock.results[0].value).rejects.toThrow(/no valid features or vertices/);
+      await expect(ingestionHandlerProcessJobSpy.mock.results[0]!.value).rejects.toThrow(/no valid features or vertices/);
       expect(queueClientRejectSpy).toHaveBeenCalledWith(job.id, task.id, isTaskRecoverable, expect.any(String));
     });
 
@@ -323,14 +339,14 @@ describe('Validation Task Flow', () => {
         tasks: [task],
       });
 
-      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
-      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job);
-      HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task); // Mock for queueClient.reject() internal call
-      HttpMockHelper.mockJobManagerRejectTask(job.id, task);
-      HttpMockHelper.mockCallbackClientSend(StatusCodes.OK, job.parameters.callbackUrls);
-      HttpMockHelper.mockJobTrackerFinishTask(task.id);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job, true);
+      httpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
+      httpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
+      httpMockHelper.mockJobManagerGetJob(job.id, job);
+      httpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task); // Mock for queueClient.reject() internal call
+      httpMockHelper.mockJobManagerRejectTask(job.id, task);
+      httpMockHelper.mockCallbackClientSend(StatusCodes.OK, job.parameters.callbackUrls);
+      httpMockHelper.mockJobTrackerFinishTask(task.id);
+      httpMockHelper.mockJobManagerGetJob(job.id, job, true);
 
       const ingestionHandlerProcessJobSpy = jest.spyOn(IngestionJobHandler.prototype, 'processJob');
       const callbackClientSendSpy = jest.spyOn(CallbackClient.prototype, 'send');
@@ -340,7 +356,7 @@ describe('Validation Task Flow', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect(ingestionHandlerProcessJobSpy).toHaveBeenCalledWith(expect.objectContaining({ ...job, expirationDate: expect.any(String) }), task);
-      await expect(ingestionHandlerProcessJobSpy.mock.results[0].value).rejects.toThrow(ShapefileNotFoundError);
+      await expect(ingestionHandlerProcessJobSpy.mock.results[0]!.value).rejects.toThrow(ShapefileNotFoundError);
       expect(callbackClientSendSpy).toHaveBeenCalledWith(
         job.parameters.callbackUrls,
         expect.objectContaining({ jobId: job.id, taskId: task.id, status: OperationStatus.FAILED })
@@ -362,15 +378,15 @@ describe('Validation Task Flow', () => {
         smallHolesCount: 0,
       };
 
-      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
-      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job);
-      HttpMockHelper.mockPolygonPartsValidate(validationResult);
-      HttpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
-      HttpMockHelper.mockJobTrackerFinishTask(task.id);
-      HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job, true);
-      HttpMockHelper.mockCallbackClientSend(StatusCodes.INTERNAL_SERVER_ERROR, job.parameters.callbackUrls);
+      httpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
+      httpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
+      httpMockHelper.mockJobManagerGetJob(job.id, job);
+      httpMockHelper.mockPolygonPartsValidate(validationResult);
+      httpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
+      httpMockHelper.mockJobTrackerFinishTask(task.id);
+      httpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
+      httpMockHelper.mockJobManagerGetJob(job.id, job, true);
+      httpMockHelper.mockCallbackClientSend(StatusCodes.INTERNAL_SERVER_ERROR, job.parameters.callbackUrls);
 
       // Mock callback to fail with network error
 
@@ -413,14 +429,14 @@ describe('Validation Task Flow', () => {
         smallHolesCount: 0,
       };
 
-      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
-      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job);
-      HttpMockHelper.mockPolygonPartsValidate(validationResult);
-      HttpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
-      HttpMockHelper.mockJobTrackerFinishTask(task.id);
-      HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
-      HttpMockHelper.mockJobManagerGetJob(job.id, job, true);
+      httpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
+      httpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
+      httpMockHelper.mockJobManagerGetJob(job.id, job);
+      httpMockHelper.mockPolygonPartsValidate(validationResult);
+      httpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
+      httpMockHelper.mockJobTrackerFinishTask(task.id);
+      httpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
+      httpMockHelper.mockJobManagerGetJob(job.id, job, true);
 
       const ingestionHandlerProcessJobSpy = jest.spyOn(IngestionJobHandler.prototype, 'processJob');
       const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validate');
@@ -458,7 +474,6 @@ describe('Validation Task Flow', () => {
           }),
         })
       );
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 
       expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1); // Should process only the the last feature remaining (final chunk)
       expect(jobTrackerNotifySpy).toHaveBeenCalledWith(task.id);

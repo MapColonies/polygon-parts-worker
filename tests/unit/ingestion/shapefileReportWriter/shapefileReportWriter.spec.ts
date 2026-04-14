@@ -38,7 +38,7 @@ describe('ShapefileReportWriter', () => {
       // Arrange
       const features = createFakeFeaturesWithErrors(featureCount);
       const jobId = faker.string.uuid();
-      const reportsPath = configMock.get<string>('reportsPath');
+      const reportsPath = configMock.get('reportsPath') as string;
       const expectedOutputPath = path.join(reportsPath, jobId);
       const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
 
@@ -167,7 +167,7 @@ describe('ShapefileReportWriter', () => {
         hasCriticalErrors: true,
       };
 
-      const reportsPath = configMock.get<string>('reportsPath');
+      const reportsPath = configMock.get('reportsPath') as string;
       const expectedOutputPath = path.join(reportsPath, jobId);
       const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
 
@@ -196,7 +196,7 @@ describe('ShapefileReportWriter', () => {
         hasCriticalErrors: false,
       };
 
-      const reportsPath = configMock.get<string>('reportsPath');
+      const reportsPath = configMock.get('reportsPath') as string;
       const expectedOutputPath = path.join(reportsPath, jobId);
       const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
 
@@ -220,7 +220,7 @@ describe('ShapefileReportWriter', () => {
         hasCriticalErrors: false,
       };
 
-      const reportsPath = configMock.get<string>('reportsPath');
+      const reportsPath = configMock.get('reportsPath') as string;
       const expectedOutputPath = path.join(reportsPath, jobId);
       const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
 
@@ -251,7 +251,7 @@ describe('ShapefileReportWriter', () => {
         hasCriticalErrors: false,
       };
 
-      const reportsPath = configMock.get<string>('reportsPath');
+      const reportsPath = configMock.get('reportsPath') as string;
       const expectedOutputPath = path.join(reportsPath, jobId);
       const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
 
@@ -286,7 +286,7 @@ describe('ShapefileReportWriter', () => {
         hasCriticalErrors: true,
       };
 
-      const reportsPath = configMock.get<string>('reportsPath');
+      const reportsPath = configMock.get('reportsPath') as string;
       const expectedOutputPath = path.join(reportsPath, jobId);
       const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
       const expectedQmdPath = path.join(expectedOutputPath, 'report.qmd');
@@ -345,7 +345,7 @@ describe('ShapefileReportWriter', () => {
         hasCriticalErrors: true,
       };
 
-      const reportsPath = configMock.get<string>('reportsPath');
+      const reportsPath = configMock.get('reportsPath') as string;
       const expectedOutputPath = path.join(reportsPath, jobId);
       const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
 

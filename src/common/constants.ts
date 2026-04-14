@@ -1,5 +1,5 @@
 import { readPackageJsonSync } from '@map-colonies/read-pkg';
-import config from 'config';
+import { getConfig } from './config';
 
 export const SERVICE_NAME = readPackageJsonSync().name ?? 'unknown_service';
 export const DEFAULT_SERVER_PORT = 80;
@@ -12,6 +12,7 @@ export const SERVICES = {
   LOGGER: Symbol('Logger'),
   CONFIG: Symbol('Config'),
   TRACER: Symbol('Tracer'),
+  METRICS: Symbol('Metrics'),
   METRICS_REGISTRY: Symbol('MetricsRegistry'),
   S3CONFIG: Symbol('S3Config'),
   QUEUE_CLIENT: Symbol('QueueClient'),
@@ -19,15 +20,19 @@ export const SERVICES = {
   TASK_METRICS: Symbol('TaskMetrics'),
   SHAPE_FILE_METRICS: Symbol('ShapeFileMetrics'),
   TRACING: Symbol('TracingManager'),
+  INIT_HANDLERS: Symbol('InitHandlers'),
 } satisfies Record<string, symbol>;
 
 /* eslint-disable @typescript-eslint/naming-convention */
-export const HANDLERS = {
-  NEW: config.get<string>('jobDefinitions.jobs.new.type'),
-  UPDATE: config.get<string>('jobDefinitions.jobs.update.type'),
-  SWAP: config.get<string>('jobDefinitions.jobs.swapUpdate.type'),
-  EXPORT: config.get<string>('jobDefinitions.jobs.export.type'),
-} satisfies Record<string, string>;
+export const getHandlers = (): Record<'NEW' | 'UPDATE' | 'SWAP' | 'EXPORT', string> => {
+  const config = getConfig();
+  return {
+    NEW: config.get('jobDefinitions.jobs.new.type') as unknown as string,
+    UPDATE: config.get('jobDefinitions.jobs.update.type') as unknown as string,
+    SWAP: config.get('jobDefinitions.jobs.swapUpdate.type') as unknown as string,
+    EXPORT: config.get('jobDefinitions.jobs.export.type') as unknown as string,
+  };
+};
 
 export const StorageProvider = {
   FS: 'FS',

@@ -7,7 +7,7 @@ describe('utils', () => {
     it('should add unique IDs to all features', () => {
       const roi: RoiFeatureCollection = exportJobResponseMock.parameters.exportInputParams.roi;
       const result = addFeatureIds(roi);
-      expect(result.features[0].id).toBeDefined();
+      expect(result.features[0]!.id).toBeDefined();
     });
   });
 });

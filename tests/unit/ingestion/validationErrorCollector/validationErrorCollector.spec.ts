@@ -25,7 +25,7 @@ describe('ValidationErrorCollector', () => {
   describe('addVerticesErrors', () => {
     it('should add vertices errors for multiple features', () => {
       // Arrange
-      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+      const maxVerticesAllowed = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
       const chunkId = 1;
       const features: Feature<Geometry, unknown>[] = [
         {
@@ -50,13 +50,13 @@ describe('ValidationErrorCollector', () => {
 
       const featuresWithErrors = collector.getFeaturesWithErrorProperties();
       expect(featuresWithErrors).toHaveLength(2);
-      expect(featuresWithErrors[0].properties.e_vertices).toBeDefined();
-      expect(featuresWithErrors[1].properties.e_vertices).toBeDefined();
+      expect(featuresWithErrors[0]!.properties.e_vertices).toBeDefined();
+      expect(featuresWithErrors[1]!.properties.e_vertices).toBeDefined();
     });
 
     it('should handle features with missing metadata gracefully', () => {
       // Arrange
-      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+      const maxVerticesAllowed = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
       const chunkId = 1;
       const { ep90, ...rest } = { ...createFakeShpFeatureProperties() };
       const featureProperties = { ...rest, vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) };
@@ -77,13 +77,13 @@ describe('ValidationErrorCollector', () => {
 
       const featuresWithErrors = collector.getFeaturesWithErrorProperties();
       expect(featuresWithErrors).toHaveLength(1);
-      expect(featuresWithErrors[0].properties.e_vertices).toBeDefined();
-      expect(featuresWithErrors[0].properties.e_metadata).toBeDefined();
+      expect(featuresWithErrors[0]!.properties.e_vertices).toBeDefined();
+      expect(featuresWithErrors[0]!.properties.e_metadata).toBeDefined();
     });
 
     it('should increment error counter and be reflected in getErrorCounts', () => {
       // Arrange
-      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+      const maxVerticesAllowed = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
       const chunkId = 1;
       const features: Feature<Geometry, unknown>[] = [
         {
@@ -149,8 +149,8 @@ describe('ValidationErrorCollector', () => {
 
       const featuresWithErrors = collector.getFeaturesWithErrorProperties();
       expect(featuresWithErrors).toHaveLength(1);
-      expect(featuresWithErrors[0].properties.e_metadata).toBeDefined();
-      expect(featuresWithErrors[0].properties.e_metadata).toBe(formatZodIssues(zodIssues));
+      expect(featuresWithErrors[0]!.properties.e_metadata).toBeDefined();
+      expect(featuresWithErrors[0]!.properties.e_metadata).toBe(formatZodIssues(zodIssues));
     });
 
     it('should be reflected in error counts and hasCriticalErrors', () => {
@@ -216,8 +216,8 @@ describe('ValidationErrorCollector', () => {
 
       const featuresWithErrors = collector.getFeaturesWithErrorProperties();
       expect(featuresWithErrors).toHaveLength(1);
-      expect(featuresWithErrors[0].properties.e_unknown).toBeDefined();
-      expect(featuresWithErrors[0].properties.e_unknown).toBe('UNKNOWN_ERROR_TYPE');
+      expect(featuresWithErrors[0]!.properties.e_unknown).toBeDefined();
+      expect(featuresWithErrors[0]!.properties.e_unknown).toBe('UNKNOWN_ERROR_TYPE');
     });
 
     it('should handle mix of known and unknown error types', () => {
@@ -249,9 +249,9 @@ describe('ValidationErrorCollector', () => {
       expect(errorCounts.unknown).toBe(1);
 
       const featuresWithErrors = collector.getFeaturesWithErrorProperties();
-      expect(featuresWithErrors[0].properties.e_validity).toBeDefined();
-      expect(featuresWithErrors[0].properties.e_res).toBeDefined();
-      expect(featuresWithErrors[0].properties.e_unknown).toBeDefined();
+      expect(featuresWithErrors[0]!.properties.e_validity).toBeDefined();
+      expect(featuresWithErrors[0]!.properties.e_res).toBeDefined();
+      expect(featuresWithErrors[0]!.properties.e_unknown).toBeDefined();
     });
 
     it('should add validation errors from validation result', () => {
@@ -283,7 +283,7 @@ describe('ValidationErrorCollector', () => {
 
       const featuresWithErrors = collector.getFeaturesWithErrorProperties();
       expect(featuresWithErrors).toHaveLength(1);
-      expect(featuresWithErrors[0].properties.e_validity).toBeDefined();
+      expect(featuresWithErrors[0]!.properties.e_validity).toBeDefined();
     });
 
     it('should handle multiple error types for single feature', () => {
@@ -323,11 +323,11 @@ describe('ValidationErrorCollector', () => {
 
       const featuresWithErrors = collector.getFeaturesWithErrorProperties();
       expect(featuresWithErrors).toHaveLength(1);
-      expect(featuresWithErrors[0].properties.e_validity).toBeDefined();
-      expect(featuresWithErrors[0].properties.e_res).toBeDefined();
-      expect(featuresWithErrors[0].properties.e_sm_geom).toBeDefined();
-      expect(featuresWithErrors[0].properties.e_sm_holes).toBeDefined();
-      expect(featuresWithErrors[0].properties.id).toBe(feature.properties.id);
+      expect(featuresWithErrors[0]!.properties.e_validity).toBeDefined();
+      expect(featuresWithErrors[0]!.properties.e_res).toBeDefined();
+      expect(featuresWithErrors[0]!.properties.e_sm_geom).toBeDefined();
+      expect(featuresWithErrors[0]!.properties.e_sm_holes).toBeDefined();
+      expect(featuresWithErrors[0]!.properties.id).toBe(feature.properties.id);
     });
 
     it('should handle multiple features with errors', () => {
@@ -689,7 +689,7 @@ describe('ValidationErrorCollector', () => {
 
       collector.setShapefileStats({ totalFeatures, totalVertices: 5000 });
 
-      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+      const maxVerticesAllowed = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
       const criticalFeature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
@@ -768,12 +768,12 @@ describe('ValidationErrorCollector', () => {
 
       // Assert
       expect(features).toHaveLength(1);
-      expect(features[0].properties[expectedProperty]).toBeDefined();
+      expect(features[0]!.properties[expectedProperty]).toBeDefined();
     });
 
     it('should preserve original feature properties', () => {
       // Arrange
-      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+      const maxVerticesAllowed = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
       const originalProperties = { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) };
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
@@ -789,14 +789,14 @@ describe('ValidationErrorCollector', () => {
       expect(featuresWithErrors).toHaveLength(1);
 
       // Verify error property was added
-      expect(featuresWithErrors[0].properties.e_vertices).toBeDefined();
+      expect(featuresWithErrors[0]!.properties.e_vertices).toBeDefined();
 
       // Verify all original properties are preserved
       Object.keys(originalProperties).forEach((key) => {
         if (key === 'vertices') {
           return; // We are removing this property in the error feature
         }
-        expect(featuresWithErrors[0].properties[key]).toEqual(originalProperties[key as keyof typeof originalProperties]);
+        expect(featuresWithErrors[0]!.properties[key]).toEqual(originalProperties[key as keyof typeof originalProperties]);
       });
     });
   });
@@ -822,7 +822,7 @@ describe('ValidationErrorCollector', () => {
 
     it('should return correct counts after adding various error types', () => {
       // Arrange
-      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+      const maxVerticesAllowed = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
       const chunkId = 1;
 
       // Add vertices error
@@ -1044,7 +1044,7 @@ describe('ValidationErrorCollector', () => {
   describe('clear', () => {
     it('should reset all errors, counts, thresholds, and shapefile stats', () => {
       // Arrange
-      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+      const maxVerticesAllowed = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
       const chunkId = 1;
       const totalFeatures = 100;
       const smallGeometriesCount = 10;
@@ -1167,7 +1167,7 @@ describe('ValidationErrorCollector', () => {
 
     it('should return true when vertices errors are added', () => {
       // Arrange
-      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+      const maxVerticesAllowed = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
@@ -1260,7 +1260,7 @@ describe('ValidationErrorCollector', () => {
 
     it('should return false after clear', () => {
       // Arrange
-      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+      const maxVerticesAllowed = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
@@ -1280,7 +1280,7 @@ describe('ValidationErrorCollector', () => {
 
     it('should return false after clearInvalidFeatures', () => {
       // Arrange
-      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+      const maxVerticesAllowed = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
@@ -1302,7 +1302,7 @@ describe('ValidationErrorCollector', () => {
   describe('clearInvalidFeatures', () => {
     it('should clear the invalid features map', () => {
       // Arrange
-      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+      const maxVerticesAllowed = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
@@ -1323,7 +1323,7 @@ describe('ValidationErrorCollector', () => {
 
     it('should not reset error counts', () => {
       // Arrange
-      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+      const maxVerticesAllowed = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
@@ -1386,7 +1386,7 @@ describe('ValidationErrorCollector', () => {
 
       collector.setShapefileStats({ totalFeatures, totalVertices });
 
-      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+      const maxVerticesAllowed = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
@@ -1422,7 +1422,7 @@ describe('ValidationErrorCollector', () => {
 
     it('should only clear features, allowing new features to be added', () => {
       // Arrange
-      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+      const maxVerticesAllowed = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
       const props1 = { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) };
       const feature1: Feature<Geometry, unknown> = {
         type: 'Feature',
@@ -1452,7 +1452,7 @@ describe('ValidationErrorCollector', () => {
 
       const features = collector.getFeaturesWithErrorProperties();
       expect(features).toHaveLength(1);
-      expect(features[0].properties.id).toBe(props2.id);
+      expect(features[0]!.properties.id).toBe(props2.id);
     });
   });
 });

@@ -2,7 +2,7 @@ import { inject, injectable } from 'tsyringe';
 import type { Feature, Geometry } from 'geojson';
 import { ProgressInfo } from '@map-colonies/shapefile-reader';
 import { ZodError, ZodIssue } from 'zod';
-import { Logger } from '@map-colonies/js-logger';
+import type { Logger } from '@map-colonies/js-logger';
 import {
   PolygonPartsChunkValidationResult,
   PolygonPartValidationErrorsType,
@@ -13,7 +13,7 @@ import {
 import { SERVICES } from '../../common/constants';
 import { exceededVerticesShpFeatureSchema, ExceededVerticesShpProperties, featureIdSchema, verticesSchema } from '../../schemas/shpFile.schema';
 import { formatZodIssues } from '../../schemas/common.schema';
-import { IConfig } from '../../common/interfaces';
+import type { ConfigType } from '../../common/config';
 import { ErrorsCount, InvalidFeature, ThresholdsResult, ValidationError } from './types';
 import { VALIDATION_ERROR_TYPE_FORMATS, METADATA_ERROR_SEPARATOR, UNKNOWN_ID } from './constants';
 
@@ -56,9 +56,14 @@ export class ValidationErrorCollector {
   private readonly smallGeometriesPercentageThreshold: number;
   private readonly smallHolesPercentageThreshold: number;
 
-  public constructor(@inject(SERVICES.LOGGER) private readonly logger: Logger, @inject(SERVICES.CONFIG) private readonly config: IConfig) {
-    this.smallGeometriesPercentageThreshold = this.config.get('jobDefinitions.tasks.validation.smallGeometriesPercentageThreshold');
-    this.smallHolesPercentageThreshold = this.config.get('jobDefinitions.tasks.validation.smallHolesPercentageThreshold');
+  public constructor(
+    @inject(SERVICES.LOGGER) private readonly logger: Logger,
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType
+  ) {
+    this.smallGeometriesPercentageThreshold = this.config.get(
+      'jobDefinitions.tasks.validation.smallGeometriesPercentageThreshold'
+    ) as unknown as number;
+    this.smallHolesPercentageThreshold = this.config.get('jobDefinitions.tasks.validation.smallHolesPercentageThreshold') as unknown as number;
   }
   // Map of feature ID to invalid feature with all its errors
 
@@ -373,6 +378,7 @@ export class ValidationErrorCollector {
   }
 
   private mapErrorTypeToMessage(errorType: PolygonPartValidationErrorsType): string {
+    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
     switch (errorType) {
       case ValidationErrorType.GEOMETRY_VALIDITY:
         return 'Invalid Geometry';

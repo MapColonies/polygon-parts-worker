@@ -2,6 +2,7 @@ global:
   cloudProvider: {}
   tracing: {}
   metrics: {}
+  openTelemetryOptions: {}
   environment: ''
   jobDefinitions: {}
   serviceUrls: {}
@@ -72,11 +73,15 @@ cloudProvider:
 tracing:
   enabled: false
   url: ""
+
 metrics:
   enabled: false
-  url: ""
-  prometheus:
-    scrape: false
+
+configManagement:
+  offlineMode: false
+  name: 'polygon-parts-worker'
+  version: 'latest'
+  serverUrl: 'http://localhost:8080/api'
 
 enabled: true
 environment: development
@@ -132,6 +137,10 @@ env:
   protocol: TCP
   logLevel: info
   logPrettyPrintEnabled: false
+  openTelemetryOptions:
+    enabled: false
+    url: ''
+    resourceAttributes: {}
   responseCompressionEnabled: true
   requestPayloadLimit: 1mb
   disableHttpClientLogs: false

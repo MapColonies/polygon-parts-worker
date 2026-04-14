@@ -17,8 +17,8 @@ jest.mock('uuid', () => ({
 }));
 
 describe('ExportJobHandler', () => {
-  const gpkgLocation = configMock.get<string>('gpkgsLocation');
-  const polygonPartsUrl = configMock.get<string>('polygonPartsManager.baseUrl');
+  const gpkgLocation = configMock.get('gpkgsLocation') as string;
+  const polygonPartsUrl = configMock.get('polygonPartsManager.baseUrl') as unknown as string;
 
   let exportJobHandler: ExportJobHandler;
 
@@ -47,7 +47,7 @@ describe('ExportJobHandler', () => {
     it('should successfully process job and merge features into gpkg', async () => {
       const productType = exportJobResponseMock.productType as ProductType;
       const resourceId = exportJobResponseMock.resourceId;
-      (uuidv4 as jest.Mock).mockReturnValue(mockGeoJsonFeature.features[0].properties.requestFeatureId);
+      (uuidv4 as jest.Mock).mockReturnValue(mockGeoJsonFeature.features[0]!.properties.requestFeatureId);
       const roi = addFeatureIds(exportJobResponseMock.parameters.exportInputParams.roi);
       const findPartsUrl = `/polygonParts/${resourceId.toLowerCase()}_${productType.toLowerCase()}/find?shouldClip=true`;
       const geoserverGetFeaturesNock = nock(polygonPartsUrl)

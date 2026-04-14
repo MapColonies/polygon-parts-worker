@@ -4,13 +4,14 @@ import { createWriteStream } from 'fs';
 import { inject, injectable } from 'tsyringe';
 import { create } from 'xmlbuilder2';
 import { getEntityName, rasterProductTypeSchema, resourceIdSchema } from '@map-colonies/raster-shared';
-import { Logger } from '@map-colonies/js-logger';
+import type { Logger } from '@map-colonies/js-logger';
 import ogr2ogr from 'ogr2ogr';
 import archiver from 'archiver';
 import { IJobResponse } from '@map-colonies/mc-priority-queue';
 import type { Feature, Geometry } from 'geojson';
 import { OgrFormat, SERVICES, UTF8_ENCODING } from '../../common/constants';
-import { IConfig, IngestionJobParams, ValidationTaskParameters } from '../../common/interfaces';
+import { IngestionJobParams, ValidationTaskParameters } from '../../common/interfaces';
+import type { ConfigType } from '../../common/config';
 import {
   OGR2OGR_SHP_REPORT_OPTIONS,
   QMD_ERROR_LABELS,
@@ -41,8 +42,11 @@ interface Ogr2OgrOptions {
 export class ShapefileReportWriter {
   private readonly shapefileReportBasePath: string;
 
-  public constructor(@inject(SERVICES.LOGGER) private readonly logger: Logger, @inject(SERVICES.CONFIG) private readonly config: IConfig) {
-    this.shapefileReportBasePath = this.config.get<string>('reportsPath');
+  public constructor(
+    @inject(SERVICES.LOGGER) private readonly logger: Logger,
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType
+  ) {
+    this.shapefileReportBasePath = this.config.get('reportsPath') as string;
   }
 
   /**
@@ -74,13 +78,13 @@ export class ShapefileReportWriter {
         featuresCount: features.length,
         mode,
       });
-    } catch (error) {
+    } catch (err) {
       logger.error({
         msg: 'Failed to write features to shapefile',
         chunkId,
-        error,
+        err,
       });
-      throw error;
+      throw err;
     }
   }
 
@@ -132,12 +136,12 @@ export class ShapefileReportWriter {
         reportPath: report.path,
       });
       return report;
-    } catch (error) {
+    } catch (err) {
       logger.error({
         msg: 'Failed to finalize shapefile',
-        error,
+        err,
       });
-      throw error;
+      throw err;
     }
   }
 
@@ -153,11 +157,11 @@ export class ShapefileReportWriter {
         fileName: fileName,
         fileSize: zipStats.size,
       };
-    } catch (error) {
+    } catch (err) {
       this.logger.warn({
         msg: 'Existing zip report path is invalid or inaccessible',
         zipPath,
-        error,
+        err,
       });
       return null;
     }
@@ -292,13 +296,13 @@ export class ShapefileReportWriter {
         fileName: reportFileName,
         fileSize: fileSize,
       };
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: 'Failed to create zip archive',
         jobId,
-        error,
+        err,
       });
-      throw error;
+      throw err;
     }
   }
 
@@ -330,11 +334,11 @@ export class ShapefileReportWriter {
           msg: 'Deleted shapefile component',
           filePath,
         });
-      } catch (error) {
+      } catch (err) {
         this.logger.debug({
           msg: 'Could not delete file (may not exist)',
           filePath,
-          error,
+          err,
         });
       }
     }
@@ -366,14 +370,14 @@ export class ShapefileReportWriter {
         outputPath,
         mode,
       });
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: 'ogr2ogr conversion failed',
-        error,
+        err,
         outputPath,
         mode,
       });
-      throw error;
+      throw err;
     }
   }
 

@@ -73,7 +73,7 @@ const countErrorsInReport = (features: Feature[]): ErrorsCount => {
       if (value === null || value === undefined) {
         continue;
       }
-      const countKey = COLUMN_NAME_TO_COUNT_KEY[key];
+      const countKey = COLUMN_NAME_TO_COUNT_KEY[key]!;
       errorsCount[countKey] += 1;
     }
   }

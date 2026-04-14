@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { inject, injectable } from 'tsyringe';
 import { IJobResponse, ITaskResponse, IUpdateTaskBody, OperationStatus, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
-import { Logger } from '@map-colonies/js-logger';
+import type { Logger } from '@map-colonies/js-logger';
 import { MetricsCollector, ShapefileChunkReader, ChunkProcessor, ShapefileChunk, StateManager } from '@map-colonies/shapefile-reader';
 import {
   CallbackResponse,
@@ -16,7 +16,8 @@ import {
   ValidationCallbackData,
 } from '@map-colonies/raster-shared';
 import { ZodError } from 'zod';
-import { FeatureResolutions, IConfig, IJobHandler, IngestionJobParams, ValidationTaskParameters } from '../../common/interfaces';
+import { FeatureResolutions, IJobHandler, IngestionJobParams, ValidationTaskParameters } from '../../common/interfaces';
+import type { ConfigType } from '../../common/config';
 import { PolygonPartsManagerClient } from '../../clients/polygonPartsManagerClient';
 import { S3_VALIDATION_REPORTS_FOLDER, SERVICES, StorageProvider, ZIP_CONTENT_TYPE } from '../../common/constants';
 import { PolygonPartFeature, ShpFeature, shpFeatureSchema } from '../../schemas/shpFile.schema';
@@ -41,17 +42,17 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     @inject(PolygonPartsManagerClient) private readonly polygonPartsManager: PolygonPartsManagerClient,
     @inject(ValidationErrorCollector) private readonly validationErrorCollector: ValidationErrorCollector,
     @inject(ShapefileMetrics) private readonly shapeFileMetrics: ShapefileMetrics,
-    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType,
     @inject(ShapefileReportWriter) private readonly shapefileReportWriter: ShapefileReportWriter,
     @inject(S3Service) private readonly s3Service: S3Service,
     @inject(CallbackClient) private readonly callbackClient: CallbackClient
   ) {
-    this.chunkMaxVertices = this.config.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
-    this.ingestionSourcesDirPath = this.config.get<string>('ingestionSourcesDirPath');
-    const provider = this.config.get<StorageProvider>('reportStorageProvider');
+    this.chunkMaxVertices = this.config.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
+    this.ingestionSourcesDirPath = this.config.get('ingestionSourcesDirPath') as string;
+    const provider = this.config.get('reportStorageProvider') as StorageProvider;
     this.shouldUploadToS3 = provider === StorageProvider.S3;
-    const downloadServerPublicDns = this.config.get<string>('downloadServer.publicDns');
-    const reportsDownloadPath = this.config.get<string>('downloadServer.reportsDownloadPath');
+    const downloadServerPublicDns = this.config.get('downloadServer.publicDns') as unknown as string;
+    const reportsDownloadPath = this.config.get('downloadServer.reportsDownloadPath') as unknown as string;
     this.downloadServerUrl = buildUrl(downloadServerPublicDns, reportsDownloadPath);
   }
 
@@ -100,9 +101,9 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
       if (this.shouldUploadToS3 && report) {
         await this.uploadReportToS3(job.id, report);
       }
-    } catch (error) {
-      logger.error({ msg: 'error while processing job', error });
-      throw error;
+    } catch (err) {
+      logger.error({ msg: 'error while processing job', err });
+      throw err;
     }
   }
 
@@ -343,7 +344,6 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
   private async updateTaskParams(jobId: string, taskId: string, newTaskParameters: ValidationTaskParameters): Promise<void> {
     this.logger.info({ msg: 'updating task parameters', jobId, taskId, newTaskParameters });
     const taskUpdateBody: IUpdateTaskBody<Partial<ValidationTaskParameters>> = {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       percentage: Number(newTaskParameters.processingState?.progress?.percentage.toFixed()),
       parameters: newTaskParameters,
     };

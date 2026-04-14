@@ -10,7 +10,7 @@ export const hasCriticalErrorsTestCases = [
   {
     description: 'vertices errors',
     setup: (collector: ValidationErrorCollector): void => {
-      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+      const maxVerticesAllowed = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
@@ -79,7 +79,7 @@ export const getFeaturesWithErrorPropertiesTestCases = [
   {
     description: 'vertices error properties',
     setup: (collector: ValidationErrorCollector): void => {
-      const maxVerticesAllowed = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+      const maxVerticesAllowed = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },

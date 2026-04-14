@@ -1,23 +1,24 @@
-import type { IConfig } from 'config';
 import type { Logger } from '@map-colonies/js-logger';
 import type { CallbackResponse } from '@map-colonies/raster-shared';
 import type { IHttpRetryConfig } from '@map-colonies/mc-utils';
 import { HttpClient } from '@map-colonies/mc-utils';
 import { inject, injectable } from 'tsyringe';
-import { context, trace, Tracer } from '@opentelemetry/api';
+import { context, trace } from '@opentelemetry/api';
+import type { Tracer } from '@opentelemetry/api';
 import { SERVICES } from '../common/constants';
+import type { ConfigType } from '../common/config';
 
 @injectable()
 export class CallbackClient extends HttpClient {
   public constructor(
-    @inject(SERVICES.CONFIG) private readonly config: IConfig,
-    @inject(SERVICES.LOGGER) protected readonly logger: Logger,
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType,
+    @inject(SERVICES.LOGGER) protected override readonly logger: Logger,
     @inject(SERVICES.TRACER) private readonly tracer: Tracer
   ) {
     const serviceName = 'CallbackClient';
     const baseUrl = ''; // base url is empty because the callback client is used to call the callback url
-    const httpRetryConfig = config.get<IHttpRetryConfig>('httpRetry');
-    const disableHttpClientLogs = config.get<boolean>('disableHttpClientLogs');
+    const httpRetryConfig = config.get('httpRetry') as IHttpRetryConfig;
+    const disableHttpClientLogs = config.get('disableHttpClientLogs') as boolean;
     super(logger, baseUrl, serviceName, httpRetryConfig, disableHttpClientLogs);
   }
 
@@ -40,7 +41,7 @@ export class CallbackClient extends HttpClient {
             logger.error({
               msg: 'Failed to send callback',
               url: callbackUrl,
-              error: err.message,
+              err: err.message,
             });
             if (err instanceof Error) {
               activeSpan?.recordException(err);
