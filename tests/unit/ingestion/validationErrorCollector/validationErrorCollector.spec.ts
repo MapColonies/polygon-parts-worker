@@ -1,6 +1,6 @@
 import { Feature, Geometry, Polygon } from 'geojson';
 import { ZodIssue } from 'zod';
-import { ValidationErrorType, PolygonPartsChunkValidationResult, PolygonPartValidationErrorsType } from '@map-colonies/raster-shared';
+import { ValidationErrorType, PolygonPartsChunkValidationResult, PolygonPartValidationErrorItem } from '@map-colonies/raster-shared';
 import { faker } from '@faker-js/faker';
 import { ValidationErrorCollector } from '../../../../src/models/ingestion/validationErrorCollector';
 import { configMock, registerDefaultConfig } from '../../mocks/configMock';
@@ -200,7 +200,7 @@ describe('ValidationErrorCollector', () => {
         parts: [
           {
             id: feature.properties.id,
-            errors: [{ code: 'UNKNOWN_ERROR_TYPE' as any }],
+            errors: [{ code: 'UNKNOWN_ERROR_TYPE' } as unknown as PolygonPartValidationErrorItem],
           },
         ],
         smallHolesCount: 0,
@@ -235,7 +235,7 @@ describe('ValidationErrorCollector', () => {
             id: feature.properties.id,
             errors: [
               { code: ValidationErrorType.GEOMETRY_VALIDITY },
-              { code: 'INVALID_TYPE' as any },
+              { code: 'INVALID_TYPE' } as unknown as PolygonPartValidationErrorItem,
               { code: ValidationErrorType.RESOLUTION, isExceeded: true },
             ],
           },
@@ -736,7 +736,7 @@ describe('ValidationErrorCollector', () => {
         parts: [
           {
             id: feature.properties.id,
-            errors: [{ code: 'UNKNOWN_ERROR_TYPE' as any }],
+            errors: [{ code: 'UNKNOWN_ERROR_TYPE' } as unknown as PolygonPartValidationErrorItem],
           },
         ],
         smallHolesCount: 0,
@@ -1507,6 +1507,31 @@ describe('ValidationErrorCollector', () => {
       const features = collector.getFeaturesWithErrorProperties();
       expect(features).toHaveLength(1);
       expect(features[0].properties.id).toBe(props2.id);
+    });
+  });
+
+  describe('hasResolutionExceeded', () => {
+    it('should return false by default', () => {
+      expect(collector.hasResolutionExceeded()).toBe(false);
+    });
+
+    it('should return true when resolution is exceeded', () => {
+      // Arrange
+      const feature: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: [{ id: feature.properties.id, errors: [{ code: ValidationErrorType.RESOLUTION, isExceeded: true }] }],
+        smallHolesCount: 0,
+      };
+
+      // Act
+      collector.addValidationErrors(validationResult, [feature], 1);
+
+      // Assert
+      expect(collector.hasResolutionExceeded()).toBe(true);
     });
   });
 });

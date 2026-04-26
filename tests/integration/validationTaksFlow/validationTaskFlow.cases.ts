@@ -1,4 +1,4 @@
-import { PolygonPartsChunkValidationResult, PolygonPartValidationErrorsType } from '@map-colonies/raster-shared';
+import { PolygonPartsChunkValidationResult, PolygonPartValidationErrorItem } from '@map-colonies/raster-shared';
 import { ErrorsCount } from '../../../src/models/ingestion/types';
 
 const defaultExpectedErrorsCount: ErrorsCount = {
@@ -102,7 +102,7 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
     shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
     ppManagerValidationResult: [
       {
-        parts: [{ id: '1', errors: [{ code: 'NotListedErrorType' as any }] }],
+        parts: [{ id: '1', errors: [{ code: 'NotListedErrorType' } as unknown as PolygonPartValidationErrorItem] }],
         smallHolesCount: 0,
       },
     ],
