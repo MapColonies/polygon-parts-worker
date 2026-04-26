@@ -128,7 +128,18 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
     shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
     ppManagerValidationResult: [
       {
-        parts: [{ id: '1', errors: [{ code: 'Resolution', isExceeded: false }, { code: 'Small_Geometry' }, { code: 'Small_Holes' }, { code: 'Geometry_Validity' }, { code: 'Unknown' }] }],
+        parts: [
+          {
+            id: '1',
+            errors: [
+              { code: 'Resolution', isExceeded: false },
+              { code: 'Small_Geometry' },
+              { code: 'Small_Holes' },
+              { code: 'Geometry_Validity' },
+              { code: 'Unknown' },
+            ],
+          },
+        ],
         smallHolesCount: 200,
       },
     ],

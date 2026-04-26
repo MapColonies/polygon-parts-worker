@@ -233,7 +233,11 @@ describe('ValidationErrorCollector', () => {
         parts: [
           {
             id: feature.properties.id,
-            errors: [{ code: ValidationErrorType.GEOMETRY_VALIDITY }, { code: 'INVALID_TYPE' as any }, { code: ValidationErrorType.RESOLUTION, isExceeded: true }],
+            errors: [
+              { code: ValidationErrorType.GEOMETRY_VALIDITY },
+              { code: 'INVALID_TYPE' as any },
+              { code: ValidationErrorType.RESOLUTION, isExceeded: true },
+            ],
           },
         ],
         smallHolesCount: 0,
