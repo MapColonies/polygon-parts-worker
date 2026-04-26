@@ -116,6 +116,9 @@ export function createTask(options: CreateTaskOptions = {}): ITaskResponse<Valid
             count: 50,
             exceeded: false,
           },
+          resolution: {
+            exceeded: false,
+          },
         },
       },
       isValid: false,

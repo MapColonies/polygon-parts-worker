@@ -48,7 +48,7 @@ describe('PolygonPartsManagerClient', () => {
       const requestBody: PolygonPartsPayload = createFakePolygonPartsPayload(1);
 
       const expectedResponse: PolygonPartsChunkValidationResult = {
-        parts: [{ id: requestBody.partsData.features[0].properties.id, errors: [ValidationErrorType.GEOMETRY_VALIDITY] }],
+        parts: [{ id: requestBody.partsData.features[0].properties.id, errors: [{ code: ValidationErrorType.GEOMETRY_VALIDITY }] }],
         smallHolesCount: 0,
       };
 

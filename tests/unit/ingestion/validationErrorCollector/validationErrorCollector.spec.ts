@@ -200,7 +200,7 @@ describe('ValidationErrorCollector', () => {
         parts: [
           {
             id: feature.properties.id,
-            errors: ['UNKNOWN_ERROR_TYPE' as PolygonPartValidationErrorsType],
+            errors: [{ code: 'UNKNOWN_ERROR_TYPE' as any }],
           },
         ],
         smallHolesCount: 0,
@@ -233,7 +233,7 @@ describe('ValidationErrorCollector', () => {
         parts: [
           {
             id: feature.properties.id,
-            errors: [ValidationErrorType.GEOMETRY_VALIDITY, 'INVALID_TYPE' as PolygonPartValidationErrorsType, ValidationErrorType.RESOLUTION],
+            errors: [{ code: ValidationErrorType.GEOMETRY_VALIDITY }, { code: 'INVALID_TYPE' as any }, { code: ValidationErrorType.RESOLUTION, isExceeded: true }],
           },
         ],
         smallHolesCount: 0,
@@ -267,7 +267,7 @@ describe('ValidationErrorCollector', () => {
         parts: [
           {
             id: feature.properties.id,
-            errors: [ValidationErrorType.GEOMETRY_VALIDITY],
+            errors: [{ code: ValidationErrorType.GEOMETRY_VALIDITY }],
           },
         ],
         smallHolesCount: 0,
@@ -300,10 +300,10 @@ describe('ValidationErrorCollector', () => {
           {
             id: feature.properties.id,
             errors: [
-              ValidationErrorType.GEOMETRY_VALIDITY,
-              ValidationErrorType.RESOLUTION,
-              ValidationErrorType.SMALL_GEOMETRY,
-              ValidationErrorType.SMALL_HOLES,
+              { code: ValidationErrorType.GEOMETRY_VALIDITY },
+              { code: ValidationErrorType.RESOLUTION, isExceeded: true },
+              { code: ValidationErrorType.SMALL_GEOMETRY },
+              { code: ValidationErrorType.SMALL_HOLES },
             ],
           },
         ],
@@ -348,11 +348,11 @@ describe('ValidationErrorCollector', () => {
         parts: [
           {
             id: feature1.properties.id,
-            errors: [ValidationErrorType.GEOMETRY_VALIDITY, ValidationErrorType.RESOLUTION],
+            errors: [{ code: ValidationErrorType.GEOMETRY_VALIDITY }, { code: ValidationErrorType.RESOLUTION, isExceeded: true }],
           },
           {
             id: feature2.properties.id,
-            errors: [ValidationErrorType.SMALL_GEOMETRY],
+            errors: [{ code: ValidationErrorType.SMALL_GEOMETRY }],
           },
         ],
         smallHolesCount: 0,
@@ -393,7 +393,7 @@ describe('ValidationErrorCollector', () => {
         parts: [
           {
             id: missingFeatureId, // This ID does not match any feature in the chunk
-            errors: [ValidationErrorType.GEOMETRY_VALIDITY, ValidationErrorType.RESOLUTION],
+            errors: [{ code: ValidationErrorType.GEOMETRY_VALIDITY }, { code: ValidationErrorType.RESOLUTION, isExceeded: false }],
           },
         ],
         smallHolesCount: 0,
@@ -432,7 +432,7 @@ describe('ValidationErrorCollector', () => {
         parts: [
           {
             id: feature.properties.id,
-            errors: [ValidationErrorType.SMALL_HOLES],
+            errors: [{ code: ValidationErrorType.SMALL_HOLES }],
           },
         ],
         smallHolesCount: smallHoles,
@@ -467,7 +467,7 @@ describe('ValidationErrorCollector', () => {
       const validationResult: PolygonPartsChunkValidationResult = {
         parts: features.map((feature) => ({
           id: feature.properties.id,
-          errors: [ValidationErrorType.SMALL_GEOMETRY],
+          errors: [{ code: ValidationErrorType.SMALL_GEOMETRY }],
         })),
         smallHolesCount: 0,
       };
@@ -496,7 +496,7 @@ describe('ValidationErrorCollector', () => {
         parts: [
           {
             id: feature.properties.id,
-            errors: [ValidationErrorType.GEOMETRY_VALIDITY, ValidationErrorType.RESOLUTION],
+            errors: [{ code: ValidationErrorType.GEOMETRY_VALIDITY }, { code: ValidationErrorType.RESOLUTION, isExceeded: false }],
           },
         ],
         smallHolesCount: 0,
@@ -564,7 +564,7 @@ describe('ValidationErrorCollector', () => {
       const validationResult: PolygonPartsChunkValidationResult = {
         parts: features.map((feature) => ({
           id: feature.properties.id,
-          errors: [ValidationErrorType.SMALL_GEOMETRY],
+          errors: [{ code: ValidationErrorType.SMALL_GEOMETRY }],
         })),
         smallHolesCount: 0,
       };
@@ -594,7 +594,7 @@ describe('ValidationErrorCollector', () => {
       const validationResult: PolygonPartsChunkValidationResult = {
         parts: features.map((feature) => ({
           id: feature.properties.id,
-          errors: [ValidationErrorType.SMALL_GEOMETRY],
+          errors: [{ code: ValidationErrorType.SMALL_GEOMETRY }],
         })),
         smallHolesCount: 0,
       };
@@ -625,7 +625,7 @@ describe('ValidationErrorCollector', () => {
         parts: [
           {
             id: feature.properties.id,
-            errors: [ValidationErrorType.SMALL_HOLES],
+            errors: [{ code: ValidationErrorType.SMALL_HOLES }],
           },
         ],
         smallHolesCount: smallHolesCount,
@@ -663,11 +663,11 @@ describe('ValidationErrorCollector', () => {
         parts: [
           {
             id: feature1.properties.id,
-            errors: [ValidationErrorType.SMALL_HOLES],
+            errors: [{ code: ValidationErrorType.SMALL_HOLES }],
           },
           {
             id: feature2.properties.id,
-            errors: [ValidationErrorType.SMALL_HOLES],
+            errors: [{ code: ValidationErrorType.SMALL_HOLES }],
           },
         ],
         smallHolesCount: smallHolesCount,
@@ -705,7 +705,7 @@ describe('ValidationErrorCollector', () => {
       const validationResult: PolygonPartsChunkValidationResult = {
         parts: nonCriticalFeatures.map((feature) => ({
           id: feature.properties.id,
-          errors: [ValidationErrorType.SMALL_GEOMETRY],
+          errors: [{ code: ValidationErrorType.SMALL_GEOMETRY }],
         })),
         smallHolesCount: 0,
       };
@@ -732,7 +732,7 @@ describe('ValidationErrorCollector', () => {
         parts: [
           {
             id: feature.properties.id,
-            errors: ['UNKNOWN_ERROR_TYPE' as PolygonPartValidationErrorsType],
+            errors: [{ code: 'UNKNOWN_ERROR_TYPE' as any }],
           },
         ],
         smallHolesCount: 0,
@@ -769,6 +769,50 @@ describe('ValidationErrorCollector', () => {
       // Assert
       expect(features).toHaveLength(1);
       expect(features[0].properties[expectedProperty]).toBeDefined();
+    });
+
+    it('should set res_exceed to "false" when resolution error has isExceeded false', () => {
+      // Arrange
+      const feature: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: [{ id: feature.properties.id, errors: [{ code: ValidationErrorType.RESOLUTION, isExceeded: false }] }],
+        smallHolesCount: 0,
+      };
+
+      // Act
+      collector.addValidationErrors(validationResult, [feature], 1);
+      const features = collector.getFeaturesWithErrorProperties();
+
+      // Assert
+      expect(features).toHaveLength(1);
+      expect(features[0].properties.e_res).toBeDefined();
+      expect(features[0].properties.res_exceed).toBe('false');
+    });
+
+    it('should set res_exceed to "true" when resolution error has isExceeded true', () => {
+      // Arrange
+      const feature: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: [{ id: feature.properties.id, errors: [{ code: ValidationErrorType.RESOLUTION, isExceeded: true }] }],
+        smallHolesCount: 0,
+      };
+
+      // Act
+      collector.addValidationErrors(validationResult, [feature], 1);
+      const features = collector.getFeaturesWithErrorProperties();
+
+      // Assert
+      expect(features).toHaveLength(1);
+      expect(features[0].properties.e_res).toBeDefined();
+      expect(features[0].properties.res_exceed).toBe('true');
     });
 
     it('should preserve original feature properties', () => {
@@ -857,10 +901,10 @@ describe('ValidationErrorCollector', () => {
           {
             id: validationFeature.properties.id,
             errors: [
-              ValidationErrorType.GEOMETRY_VALIDITY,
-              ValidationErrorType.RESOLUTION,
-              ValidationErrorType.SMALL_GEOMETRY,
-              ValidationErrorType.SMALL_HOLES,
+              { code: ValidationErrorType.GEOMETRY_VALIDITY },
+              { code: ValidationErrorType.RESOLUTION, isExceeded: false },
+              { code: ValidationErrorType.SMALL_GEOMETRY },
+              { code: ValidationErrorType.SMALL_HOLES },
             ],
           },
         ],
@@ -900,6 +944,9 @@ describe('ValidationErrorCollector', () => {
           exceeded: false,
           count: 0,
         },
+        resolution: {
+          exceeded: false,
+        },
       });
     });
 
@@ -919,7 +966,7 @@ describe('ValidationErrorCollector', () => {
       const validationResult: PolygonPartsChunkValidationResult = {
         parts: features.map((feature) => ({
           id: feature.properties.id,
-          errors: [ValidationErrorType.SMALL_GEOMETRY],
+          errors: [{ code: ValidationErrorType.SMALL_GEOMETRY }],
         })),
         smallHolesCount: 0,
       };
@@ -955,11 +1002,11 @@ describe('ValidationErrorCollector', () => {
         parts: [
           {
             id: feature1.properties.id,
-            errors: [ValidationErrorType.SMALL_HOLES],
+            errors: [{ code: ValidationErrorType.SMALL_HOLES }],
           },
           {
             id: feature2.properties.id,
-            errors: [ValidationErrorType.SMALL_HOLES],
+            errors: [{ code: ValidationErrorType.SMALL_HOLES }],
           },
         ],
         smallHolesCount: smallHolesCount,
@@ -1005,7 +1052,7 @@ describe('ValidationErrorCollector', () => {
       const validationResult: PolygonPartsChunkValidationResult = {
         parts: features.map((feature) => ({
           id: feature.properties.id,
-          errors: [ValidationErrorType.SMALL_GEOMETRY],
+          errors: [{ code: ValidationErrorType.SMALL_GEOMETRY }],
         })),
         smallHolesCount: 0,
       };
@@ -1023,7 +1070,7 @@ describe('ValidationErrorCollector', () => {
       const validationResult2: PolygonPartsChunkValidationResult = {
         parts: smallFeatureSet.map((feature) => ({
           id: feature.properties.id,
-          errors: [ValidationErrorType.SMALL_GEOMETRY],
+          errors: [{ code: ValidationErrorType.SMALL_GEOMETRY }],
         })),
         smallHolesCount: 0,
       };
@@ -1085,10 +1132,10 @@ describe('ValidationErrorCollector', () => {
         parts: features.map((feature) => ({
           id: feature.properties.id,
           errors: [
-            ValidationErrorType.GEOMETRY_VALIDITY,
-            ValidationErrorType.RESOLUTION,
-            ValidationErrorType.SMALL_GEOMETRY,
-            ValidationErrorType.SMALL_HOLES,
+            { code: ValidationErrorType.GEOMETRY_VALIDITY },
+            { code: ValidationErrorType.RESOLUTION, isExceeded: false },
+            { code: ValidationErrorType.SMALL_GEOMETRY },
+            { code: ValidationErrorType.SMALL_HOLES },
           ],
         })),
         smallHolesCount: 10,
@@ -1146,6 +1193,9 @@ describe('ValidationErrorCollector', () => {
         smallHoles: {
           exceeded: false,
           count: 0,
+        },
+        resolution: {
+          exceeded: false,
         },
       });
 
@@ -1215,7 +1265,7 @@ describe('ValidationErrorCollector', () => {
         properties: createFakeShpFeatureProperties(),
       };
       const validationResult: PolygonPartsChunkValidationResult = {
-        parts: [{ id: feature.properties.id, errors: [ValidationErrorType.GEOMETRY_VALIDITY] }],
+        parts: [{ id: feature.properties.id, errors: [{ code: ValidationErrorType.GEOMETRY_VALIDITY }] }],
         smallHolesCount: 0,
       };
 
@@ -1242,7 +1292,7 @@ describe('ValidationErrorCollector', () => {
         parts: [
           {
             id: feature.properties.id,
-            errors: [ValidationErrorType.SMALL_GEOMETRY],
+            errors: [{ code: ValidationErrorType.SMALL_GEOMETRY }],
           },
         ],
         smallHolesCount: 0,
@@ -1360,7 +1410,7 @@ describe('ValidationErrorCollector', () => {
       const validationResult: PolygonPartsChunkValidationResult = {
         parts: features.map((feature) => ({
           id: feature.properties.id,
-          errors: [ValidationErrorType.SMALL_GEOMETRY],
+          errors: [{ code: ValidationErrorType.SMALL_GEOMETRY }],
         })),
         smallHolesCount: 0,
       };
@@ -1406,7 +1456,7 @@ describe('ValidationErrorCollector', () => {
       const validationResult: PolygonPartsChunkValidationResult = {
         parts: features.map((feature) => ({
           id: feature.properties.id,
-          errors: [ValidationErrorType.SMALL_GEOMETRY],
+          errors: [{ code: ValidationErrorType.SMALL_GEOMETRY }],
         })),
         smallHolesCount: 0,
       };

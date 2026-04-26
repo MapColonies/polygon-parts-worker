@@ -50,7 +50,7 @@ export const hasCriticalErrorsTestCases = [
         properties: createFakeShpFeatureProperties(),
       };
       const validationResult: PolygonPartsChunkValidationResult = {
-        parts: [{ id: feature.properties.id, errors: [ValidationErrorType.GEOMETRY_VALIDITY] }],
+        parts: [{ id: feature.properties.id, errors: [{ code: ValidationErrorType.GEOMETRY_VALIDITY }] }],
         smallHolesCount: 0,
       };
       collector.addValidationErrors(validationResult, [feature], 1);
@@ -66,7 +66,23 @@ export const hasCriticalErrorsTestCases = [
         properties: createFakeShpFeatureProperties(),
       };
       const validationResult: PolygonPartsChunkValidationResult = {
-        parts: [{ id: feature.properties.id, errors: [ValidationErrorType.RESOLUTION] }],
+        parts: [{ id: feature.properties.id, errors: [{ code: ValidationErrorType.RESOLUTION, isExceeded: true }] }],
+        smallHolesCount: 0,
+      };
+      collector.addValidationErrors(validationResult, [feature], 1);
+    },
+    expectedCritical: true,
+  },
+  {
+    description: 'resolution errors (isExceeded false)',
+    setup: (collector: ValidationErrorCollector): void => {
+      const feature: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: [{ id: feature.properties.id, errors: [{ code: ValidationErrorType.RESOLUTION, isExceeded: false }] }],
         smallHolesCount: 0,
       };
       collector.addValidationErrors(validationResult, [feature], 1);
@@ -119,11 +135,27 @@ export const getFeaturesWithErrorPropertiesTestCases = [
         properties: createFakeShpFeatureProperties(),
       };
       const validationResult: PolygonPartsChunkValidationResult = {
-        parts: [{ id: feature.properties.id, errors: [ValidationErrorType.GEOMETRY_VALIDITY] }],
+        parts: [{ id: feature.properties.id, errors: [{ code: ValidationErrorType.GEOMETRY_VALIDITY }] }],
         smallHolesCount: 0,
       };
       collector.addValidationErrors(validationResult, [feature], 1);
     },
     expectedProperty: 'e_validity',
+  },
+  {
+    description: 'resolution error properties (isExceeded false)',
+    setup: (collector: ValidationErrorCollector): void => {
+      const feature: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: [{ id: feature.properties.id, errors: [{ code: ValidationErrorType.RESOLUTION, isExceeded: false }] }],
+        smallHolesCount: 0,
+      };
+      collector.addValidationErrors(validationResult, [feature], 1);
+    },
+    expectedProperty: 'e_res',
   },
 ];

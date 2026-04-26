@@ -47,7 +47,7 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
     shapefilePath: '/invalid/geometry_validity_error/self_intersecting/ShapeMetadata.shp',
     ppManagerValidationResult: [
       {
-        parts: [{ id: '1', errors: ['Geometry_Validity'] }],
+        parts: [{ id: '1', errors: [{ code: 'Geometry_Validity' }] }],
         smallHolesCount: 0,
       },
     ],
@@ -58,7 +58,7 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
     shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
     ppManagerValidationResult: [
       {
-        parts: [{ id: '1', errors: ['Small_Geometry'] }],
+        parts: [{ id: '1', errors: [{ code: 'Small_Geometry' }] }],
         smallHolesCount: 0,
       },
     ],
@@ -69,7 +69,7 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
     shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
     ppManagerValidationResult: [
       {
-        parts: [{ id: '1', errors: ['Small_Holes'] }],
+        parts: [{ id: '1', errors: [{ code: 'Small_Holes' }] }],
         smallHolesCount: 100,
       },
     ],
@@ -80,7 +80,7 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
     shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
     ppManagerValidationResult: [
       {
-        parts: [{ id: '1', errors: ['Resolution'] }],
+        parts: [{ id: '1', errors: [{ code: 'Resolution', isExceeded: false }] }],
         smallHolesCount: 0,
       },
     ],
@@ -91,7 +91,7 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
     shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
     ppManagerValidationResult: [
       {
-        parts: [{ id: '1', errors: ['Unknown'] }],
+        parts: [{ id: '1', errors: [{ code: 'Unknown' }] }],
         smallHolesCount: 0,
       },
     ],
@@ -102,7 +102,7 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
     shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
     ppManagerValidationResult: [
       {
-        parts: [{ id: '1', errors: ['NotListedErrorType'] as unknown as PolygonPartValidationErrorsType[] }],
+        parts: [{ id: '1', errors: [{ code: 'NotListedErrorType' as any }] }],
         smallHolesCount: 0,
       },
     ],
@@ -128,7 +128,7 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
     shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
     ppManagerValidationResult: [
       {
-        parts: [{ id: '1', errors: ['Resolution', 'Small_Geometry', 'Small_Holes', 'Geometry_Validity', 'Unknown'] }],
+        parts: [{ id: '1', errors: [{ code: 'Resolution', isExceeded: false }, { code: 'Small_Geometry' }, { code: 'Small_Holes' }, { code: 'Geometry_Validity' }, { code: 'Unknown' }] }],
         smallHolesCount: 200,
       },
     ],
@@ -146,11 +146,11 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
     shapefilePath: '/invalid/different_errors_different_chunks/ShapeMetadata.shp',
     chunkMaxVertices: 100,
     ppManagerValidationResult: [
-      { parts: [{ id: '1', errors: ['Small_Holes'] }], smallHolesCount: 100 },
-      { parts: [{ id: '2', errors: ['Geometry_Validity'] }], smallHolesCount: 0 },
-      { parts: [{ id: '3', errors: ['Small_Holes'] }], smallHolesCount: 100 },
-      { parts: [{ id: '4', errors: ['Geometry_Validity'] }], smallHolesCount: 0 },
-      { parts: [{ id: '5', errors: ['Small_Holes'] }], smallHolesCount: 100 },
+      { parts: [{ id: '1', errors: [{ code: 'Small_Holes' }] }], smallHolesCount: 100 },
+      { parts: [{ id: '2', errors: [{ code: 'Geometry_Validity' }] }], smallHolesCount: 0 },
+      { parts: [{ id: '3', errors: [{ code: 'Small_Holes' }] }], smallHolesCount: 100 },
+      { parts: [{ id: '4', errors: [{ code: 'Geometry_Validity' }] }], smallHolesCount: 0 },
+      { parts: [{ id: '5', errors: [{ code: 'Small_Holes' }] }], smallHolesCount: 100 },
     ],
     expectedErrorsCount: {
       ...defaultExpectedErrorsCount,

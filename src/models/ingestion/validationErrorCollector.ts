@@ -42,6 +42,8 @@ export class ValidationErrorCollector {
     smallHoles: 0,
     unknown: 0,
   };
+  // Tracks whether any part exceeded the requested ingestion resolution
+  private resolutionExceeded = false;
 
   //Thresholds
   private thresholdsResult: ThresholdsResult = {
@@ -51,6 +53,9 @@ export class ValidationErrorCollector {
     smallHoles: {
       exceeded: false,
       count: 0,
+    },
+    resolution: {
+      exceeded: false,
     },
   };
   private readonly smallGeometriesPercentageThreshold: number;
@@ -211,11 +216,19 @@ export class ValidationErrorCollector {
         exceeded: false,
         count: 0,
       },
+      resolution: {
+        exceeded: false,
+      },
     };
+    this.resolutionExceeded = false;
   }
 
   public clearInvalidFeatures(): void {
     this.invalidFeaturesMap.clear();
+  }
+
+  public hasResolutionExceeded(): boolean {
+    return this.resolutionExceeded;
   }
 
   private getInvalidFeatures(): InvalidFeature[] {
@@ -254,19 +267,43 @@ export class ValidationErrorCollector {
   }
 
   private addPartErrorsToFeature(partError: PolygonPartValidationError, feature: Feature<Geometry, unknown>, chunkId: number): void {
-    partError.errors.forEach((errorType) => {
-      const message = this.mapErrorTypeToMessage(errorType);
-      const isUnknownErrorType = !(errorType in VALIDATION_ERROR_TYPE_FORMATS);
-      errorType = isUnknownErrorType ? ValidationErrorType.UNKNOWN : errorType;
+    partError.errors.forEach((errorItem) => {
+      const code = this.getErrorCode(errorItem);
+
+      const message = this.mapErrorTypeToMessage(code);
+      const isUnknownErrorType = !(code in VALIDATION_ERROR_TYPE_FORMATS);
+      const resolvedCode = isUnknownErrorType ? ValidationErrorType.UNKNOWN : code;
 
       const error: ValidationError = {
-        type: errorType,
-        columnName: VALIDATION_ERROR_TYPE_FORMATS[errorType].columnName,
-        message: message,
+        type: resolvedCode,
+        columnName: VALIDATION_ERROR_TYPE_FORMATS[resolvedCode].columnName,
+        message,
       };
+
+      if (resolvedCode === ValidationErrorType.RESOLUTION) {
+        const isExceeded = this.getIsExceeded(errorItem);
+        if (typeof isExceeded === 'boolean') {
+          const props = feature.properties as Record<string, unknown>;
+          props['res_exceed'] = isExceeded ? 'true' : 'false';
+          if (isExceeded) {
+            this.resolutionExceeded = true;
+          }
+        }
+      }
 
       this.addOrUpdateInvalidFeature(partError.id, chunkId, feature, error);
     });
+  }
+
+  private getErrorCode(item: unknown): PolygonPartValidationErrorsType {
+    // Assume upstream always provides an object-shaped item with a `code` field.
+    // Use a narrow assertion to access the code directly.
+    return (item as { code: PolygonPartValidationErrorsType }).code;
+  }
+
+  private getIsExceeded(item: unknown): boolean {
+    // Assume upstream provides an object with a boolean `isExceeded` field for resolution errors.
+    return (item as { isExceeded: boolean }).isExceeded;
   }
 
   private incrementErrorCounter(errorType: ValidationErrorType): void {
@@ -284,6 +321,8 @@ export class ValidationErrorCollector {
       this.errorsCount.smallGeometries,
       this.smallGeometriesPercentageThreshold
     );
+
+    // resolution exceeded is tracked separately via `hasResolutionExceeded()`
   }
 
   private addVerticesError(feature: Feature<Geometry, unknown>, chunkId: number, maxVerticesAllowed: number): void {

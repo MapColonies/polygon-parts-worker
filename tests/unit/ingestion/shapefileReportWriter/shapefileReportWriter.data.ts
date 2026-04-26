@@ -51,6 +51,9 @@ export const createFakeErrorsSummary = (): ValidationAggregatedErrors => {
         exceeded: faker.datatype.boolean(),
         count: faker.number.int({ min: 0, max: 10 }),
       },
+      resolution: {
+        exceeded: faker.datatype.boolean(),
+      },
     },
   };
 };
