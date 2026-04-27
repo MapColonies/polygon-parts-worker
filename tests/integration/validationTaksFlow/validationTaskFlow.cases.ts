@@ -17,6 +17,7 @@ export interface FailedValidationTestCase {
   expectedErrorsCount: ErrorsCount;
   ppManagerValidationResult: PolygonPartsChunkValidationResult[];
   chunkMaxVertices?: number;
+  expectedResolutionExceeded?: boolean;
 }
 
 export const failedValidationTestCases: FailedValidationTestCase[] = [
@@ -85,6 +86,19 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
       },
     ],
     expectedErrorsCount: { ...defaultExpectedErrorsCount, resolution: 1 },
+    expectedResolutionExceeded: false,
+  },
+  {
+    description: 'Resolution error (exceeded)',
+    shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
+    ppManagerValidationResult: [
+      {
+        parts: [{ id: '1', errors: [{ code: 'Resolution', isExceeded: true }] }],
+        smallHolesCount: 0,
+      },
+    ],
+    expectedErrorsCount: { ...defaultExpectedErrorsCount, resolution: 1 },
+    expectedResolutionExceeded: true,
   },
   {
     description: 'Unknown error',
@@ -96,6 +110,17 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
       },
     ],
     expectedErrorsCount: { ...defaultExpectedErrorsCount, unknown: 1 },
+  },
+  {
+    description: 'Resolution error (exceeded)',
+    shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
+    ppManagerValidationResult: [
+      {
+        parts: [{ id: '1', errors: [{ code: 'Resolution', isExceeded: true }] }],
+        smallHolesCount: 0,
+      },
+    ],
+    expectedErrorsCount: { ...defaultExpectedErrorsCount, resolution: 1 },
   },
   {
     description: 'Not listed error type',
