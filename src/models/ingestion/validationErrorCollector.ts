@@ -314,6 +314,7 @@ export class ValidationErrorCollector {
   private updateThresholdsTracking(smallHolesCount: number): void {
     if (smallHolesCount > 0) {
       this.thresholdsResult.smallHoles.count += smallHolesCount;
+
       this.thresholdsResult.smallHoles.exceeded = this.checkThresholdExceeded(this.errorsCount.smallHoles, this.smallHolesPercentageThreshold);
     }
 
@@ -322,7 +323,7 @@ export class ValidationErrorCollector {
       this.smallGeometriesPercentageThreshold
     );
 
-    // resolution exceeded is tracked separately via `hasResolutionExceeded()`
+    this.thresholdsResult.resolution.exceeded = this.resolutionExceeded;
   }
 
   private addVerticesError(feature: Feature<Geometry, unknown>, chunkId: number, maxVerticesAllowed: number): void {

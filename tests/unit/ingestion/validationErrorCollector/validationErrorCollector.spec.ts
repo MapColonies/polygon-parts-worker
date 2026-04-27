@@ -1024,6 +1024,110 @@ describe('ValidationErrorCollector', () => {
       expect(thresholds.smallHoles.count).toBe(smallHolesCount);
       expect(thresholds.smallHoles.exceeded).toBe(true); // 2/2 features = 100% > 5% threshold
     });
+
+    it('should set resolution.exceeded to true when at least one resolution error has isExceeded true', () => {
+      // Arrange
+      const feature: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: [{ id: feature.properties.id, errors: [{ code: ValidationErrorType.RESOLUTION, isExceeded: true }] }],
+        smallHolesCount: 0,
+      };
+
+      // Act
+      collector.addValidationErrors(validationResult, [feature], 1);
+
+      // Assert
+      const thresholds = collector.getThresholdsInfo();
+      expect(thresholds.resolution.exceeded).toBe(true);
+    });
+
+    it('should keep resolution.exceeded false when all resolution errors have isExceeded false', () => {
+      // Arrange
+      const feature1: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+      const feature2: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: [
+          { id: feature1.properties.id, errors: [{ code: ValidationErrorType.RESOLUTION, isExceeded: false }] },
+          { id: feature2.properties.id, errors: [{ code: ValidationErrorType.RESOLUTION, isExceeded: false }] },
+        ],
+        smallHolesCount: 0,
+      };
+
+      // Act
+      collector.addValidationErrors(validationResult, [feature1, feature2], 1);
+
+      // Assert
+      const thresholds = collector.getThresholdsInfo();
+      expect(thresholds.resolution.exceeded).toBe(false);
+    });
+
+    it('should set resolution.exceeded to true in a mix of isExceeded true and false, alongside other error types', () => {
+      // Arrange
+      const totalFeatures = 100;
+      collector.setShapefileStats({ totalFeatures, totalVertices: 5000 });
+
+      const featureWithExceeded: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+      const featureWithoutExceeded: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+      const featureWithGeomError: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: [
+          {
+            id: featureWithExceeded.properties.id,
+            errors: [{ code: ValidationErrorType.RESOLUTION, isExceeded: true }],
+          },
+          {
+            id: featureWithoutExceeded.properties.id,
+            errors: [{ code: ValidationErrorType.RESOLUTION, isExceeded: false }],
+          },
+          {
+            id: featureWithGeomError.properties.id,
+            errors: [{ code: ValidationErrorType.GEOMETRY_VALIDITY }],
+          },
+        ],
+        smallHolesCount: 0,
+      };
+
+      // Act
+      collector.addValidationErrors(validationResult, [featureWithExceeded, featureWithoutExceeded, featureWithGeomError], 1);
+
+      // Assert
+      const thresholds = collector.getThresholdsInfo();
+      expect(thresholds.resolution.exceeded).toBe(true);
+      // Other thresholds unaffected
+      expect(thresholds.smallGeometries.exceeded).toBe(false);
+      expect(thresholds.smallHoles.exceeded).toBe(false);
+      // Error counts are still correct
+      const errorCounts = collector.getErrorCounts();
+      expect(errorCounts.resolution).toBe(2);
+      expect(errorCounts.geometryValidity).toBe(1);
+    });
   });
 
   describe('getErrorsSummary', () => {
