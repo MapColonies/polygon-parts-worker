@@ -37,6 +37,7 @@ export class PolygonPartsManagerClient extends HttpClient {
       this.logger.error(errorMsg);
       throw new Error(errorMsg);
     }
+
   }
 
   // TODO: remove ignore when adding integration tests for export job handler
