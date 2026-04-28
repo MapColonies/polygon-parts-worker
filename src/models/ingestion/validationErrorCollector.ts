@@ -296,13 +296,10 @@ export class ValidationErrorCollector {
   }
 
   private getErrorCode(item: unknown): PolygonPartValidationErrorsType {
-    // Assume upstream always provides an object-shaped item with a `code` field.
-    // Use a narrow assertion to access the code directly.
     return (item as { code: PolygonPartValidationErrorsType }).code;
   }
 
   private getIsExceeded(item: unknown): boolean {
-    // Assume upstream provides an object with a boolean `isExceeded` field for resolution errors.
     return (item as { isExceeded: boolean }).isExceeded;
   }
 
