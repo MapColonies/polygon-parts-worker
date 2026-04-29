@@ -182,6 +182,7 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
       ...defaultExpectedErrorsCount,
       geometryValidity: 2,
       smallHoles: 3,
+      resolution: 1,
     },
     expectedResolutionExceeded: true,
   },
