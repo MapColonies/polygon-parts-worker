@@ -1614,28 +1614,5 @@ describe('ValidationErrorCollector', () => {
     });
   });
 
-  describe('hasResolutionExceeded', () => {
-    it('should return false by default', () => {
-      expect(collector.hasResolutionExceeded()).toBe(false);
-    });
-
-    it('should return true when resolution is exceeded', () => {
-      // Arrange
-      const feature: Feature<Polygon, { id: string }> = {
-        type: 'Feature',
-        geometry: { type: 'Polygon', coordinates: [[[]]] },
-        properties: createFakeShpFeatureProperties(),
-      };
-      const validationResult: PolygonPartsChunkValidationResult = {
-        parts: [{ id: feature.properties.id, errors: [{ code: ValidationErrorType.RESOLUTION, isExceeded: true }] }],
-        smallHolesCount: 0,
-      };
-
-      // Act
-      collector.addValidationErrors(validationResult, [feature], 1);
-
-      // Assert
-      expect(collector.hasResolutionExceeded()).toBe(true);
-    });
-  });
+  // hasResolutionExceeded was removed as it was used only in tests and duplicated the resolution threshold state
 });
