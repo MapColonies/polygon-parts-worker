@@ -112,17 +112,6 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
     expectedErrorsCount: { ...defaultExpectedErrorsCount, unknown: 1 },
   },
   {
-    description: 'Resolution error (exceeded)',
-    shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
-    ppManagerValidationResult: [
-      {
-        parts: [{ id: '1', errors: [{ code: 'Resolution', isExceeded: true }] }],
-        smallHolesCount: 0,
-      },
-    ],
-    expectedErrorsCount: { ...defaultExpectedErrorsCount, resolution: 1 },
-  },
-  {
     description: 'Not listed error type',
     shapefilePath: '/invalid/external_shapefile_validation/ShapeMetadata.shp',
     ppManagerValidationResult: [
@@ -182,16 +171,18 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
     shapefilePath: '/invalid/different_errors_different_chunks/ShapeMetadata.shp',
     chunkMaxVertices: 100,
     ppManagerValidationResult: [
-      { parts: [{ id: '1', errors: [{ code: 'Small_Holes' }] }], smallHolesCount: 100 },
+      { parts: [{ id: '1', errors: [{ code: 'Small_Holes' }, { code: 'Resolution', isExceeded: true }] }], smallHolesCount: 100 },
       { parts: [{ id: '2', errors: [{ code: 'Geometry_Validity' }] }], smallHolesCount: 0 },
       { parts: [{ id: '3', errors: [{ code: 'Small_Holes' }] }], smallHolesCount: 100 },
       { parts: [{ id: '4', errors: [{ code: 'Geometry_Validity' }] }], smallHolesCount: 0 },
       { parts: [{ id: '5', errors: [{ code: 'Small_Holes' }] }], smallHolesCount: 100 },
+      { parts: [{ id: '6', errors: [{ code: 'Resolution', isExceeded: false }] }], smallHolesCount: 0 },
     ],
     expectedErrorsCount: {
       ...defaultExpectedErrorsCount,
       geometryValidity: 2,
       smallHoles: 3,
     },
+    expectedResolutionExceeded: true,
   },
 ];
