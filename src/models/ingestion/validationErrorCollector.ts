@@ -279,7 +279,7 @@ export class ValidationErrorCollector {
         const resolutionItem = errorItem as PolygonPartValidationResolutionErrorItem;
         const isExceeded = resolutionItem.isExceeded;
         const featureProperties = feature.properties as Record<string, unknown>;
-        props['res_exceed'] = isExceeded ? 'true' : 'false';
+        featureProperties['res_exceed'] = isExceeded ? 'true' : 'false';
         if (isExceeded) {
           this.thresholdsResult.resolution.exceeded = true;
         }
