@@ -35,6 +35,7 @@ export const QMD_ERROR_LABELS: Record<keyof ErrorsCount, string> = {
 export const QMD_THRESHOLD_LABELS: { key: keyof ValidationAggregatedErrors['thresholds']; label: string }[] = [
   { key: 'smallGeometries', label: 'Small geometries validation' },
   { key: 'smallHoles', label: 'Small holes validation' },
+  { key: 'resolution', label: 'Resolution validation' },
 ];
 
 export const QMD_REPORT_FILE_NAME = 'report.qmd';

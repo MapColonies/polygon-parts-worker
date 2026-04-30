@@ -18,7 +18,7 @@ import { loggerMock, tracerMock } from '../../unit/mocks/telemetryMock';
 import { createIngestionJob, createTask } from '../fixtures/testFixturesFactory';
 import { HttpMockHelper } from '../mocks/httpMocks';
 import { CallbackClient } from '../../../src/clients/callbackClient';
-import { getActualReportErrorsCount, reportPathBuilder, setUpValidationReportsDir, tearDownValidationReportsDir } from './vlidationTaskFlow.helpers';
+import { getActualReportErrorsCount, reportPathBuilder, setUpValidationReportsDir, tearDownValidationReportsDir } from './validationTaskFlow.helpers';
 import { failedValidationTestCases } from './validationTaskFlow.cases';
 
 describe('Validation Task Flow', () => {

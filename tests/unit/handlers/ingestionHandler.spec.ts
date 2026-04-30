@@ -514,7 +514,7 @@ describe('IngestionJobHandler', () => {
         };
 
         const validationErrors: PolygonPartsChunkValidationResult = {
-          parts: [{ id: featureId, errors: [ValidationErrorType.GEOMETRY_VALIDITY] }],
+          parts: [{ id: featureId, errors: [{ code: ValidationErrorType.GEOMETRY_VALIDITY }] }],
           smallHolesCount: 0,
         };
 

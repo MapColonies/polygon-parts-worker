@@ -40,7 +40,7 @@ describe('ShapefileReportWriter', () => {
       const jobId = faker.string.uuid();
       const reportsPath = configMock.get<string>('reportsPath');
       const expectedOutputPath = path.join(reportsPath, jobId);
-      const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
+      const expectedShpPath = path.join(expectedOutputPath, SHAPEFILE_REPORT_FILE_NAME);
 
       if (reportShapefileExists) {
         (fsAsync.access as jest.Mock).mockResolvedValue(undefined);
@@ -169,7 +169,7 @@ describe('ShapefileReportWriter', () => {
 
       const reportsPath = configMock.get<string>('reportsPath');
       const expectedOutputPath = path.join(reportsPath, jobId);
-      const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
+      const expectedShpPath = path.join(expectedOutputPath, SHAPEFILE_REPORT_FILE_NAME);
 
       // Mock fs.stat to fail for invalid zip path
       (fsAsync.stat as jest.Mock).mockRejectedValue(new Error('ENOENT: no such file or directory'));
@@ -198,7 +198,7 @@ describe('ShapefileReportWriter', () => {
 
       const reportsPath = configMock.get<string>('reportsPath');
       const expectedOutputPath = path.join(reportsPath, jobId);
-      const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
+      const expectedShpPath = path.join(expectedOutputPath, SHAPEFILE_REPORT_FILE_NAME);
 
       (fsAsync.access as jest.Mock).mockRejectedValue(new Error('File not found'));
 
@@ -222,7 +222,7 @@ describe('ShapefileReportWriter', () => {
 
       const reportsPath = configMock.get<string>('reportsPath');
       const expectedOutputPath = path.join(reportsPath, jobId);
-      const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
+      const expectedShpPath = path.join(expectedOutputPath, SHAPEFILE_REPORT_FILE_NAME);
 
       // Shapefile exists
       (fsAsync.access as jest.Mock).mockResolvedValue(undefined);
@@ -253,7 +253,7 @@ describe('ShapefileReportWriter', () => {
 
       const reportsPath = configMock.get<string>('reportsPath');
       const expectedOutputPath = path.join(reportsPath, jobId);
-      const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
+      const expectedShpPath = path.join(expectedOutputPath, SHAPEFILE_REPORT_FILE_NAME);
 
       // Shapefile exists
       (fsAsync.access as jest.Mock).mockResolvedValue(undefined);
@@ -288,7 +288,7 @@ describe('ShapefileReportWriter', () => {
 
       const reportsPath = configMock.get<string>('reportsPath');
       const expectedOutputPath = path.join(reportsPath, jobId);
-      const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
+      const expectedShpPath = path.join(expectedOutputPath, SHAPEFILE_REPORT_FILE_NAME);
       const expectedQmdPath = path.join(expectedOutputPath, 'report.qmd');
 
       // Shapefile exists
@@ -347,7 +347,7 @@ describe('ShapefileReportWriter', () => {
 
       const reportsPath = configMock.get<string>('reportsPath');
       const expectedOutputPath = path.join(reportsPath, jobId);
-      const expectedShpPath = `${expectedOutputPath}/${SHAPEFILE_REPORT_FILE_NAME}`;
+      const expectedShpPath = path.join(expectedOutputPath, SHAPEFILE_REPORT_FILE_NAME);
 
       // Shapefile exists
       (fsAsync.access as jest.Mock).mockResolvedValue(undefined);
