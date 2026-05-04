@@ -4,9 +4,9 @@
 import { singleton, inject } from 'tsyringe';
 import { ChunkMetrics, FileMetrics } from '@map-colonies/shapefile-reader';
 import { Registry, Histogram } from 'prom-client';
-import { Logger } from '@map-colonies/js-logger';
+import type { Logger } from '@map-colonies/js-logger';
 import { SERVICES } from '../../constants';
-import { IConfig } from '../../interfaces';
+import type { IConfig } from '../../interfaces';
 
 @singleton()
 export class ShapefileMetrics {

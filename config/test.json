@@ -1,11 +1,21 @@
 {
+  "openapiConfig": {
+    "filePath": "./openapi3.yaml",
+    "basePath": "/docs",
+    "rawPath": "/api",
+    "uiPath": "/api"
+  },
   "telemetry": {
     "logger": {
       "level": "info",
-      "prettyPrint": false
+      "prettyPrint": false,
+      "opentelemetryOptions": {
+        "enabled": false
+      }
     },
+    "shared": {},
     "tracing": {
-      "enabled": false,
+      "isEnabled": false,
       "url": "http://localhost:4318/v1/traces"
     },
     "metrics": {
@@ -51,9 +61,21 @@
   "polygonPartsManager": {
     "baseUrl": "http://polygon-parts-manager-test"
   },
+  "downloadServer": {
+    "publicDns": "http://localhost:8085",
+    "reportsDownloadPath": "downloads/validation-reports"
+  },
+  "reportStorageProvider": "FS",
   "gpkgsLocation": "/app/tiles_outputs/gpkgs",
   "ingestionSourcesDirPath": "tests/integration/shapeFiles",
   "reportsPath": "tests/integration/validation-reports",
+  "S3": {
+    "accessKeyId": "accessKeyId",
+    "secretAccessKey": "secretAccessKey",
+    "endpointUrl": "http://localhost:9000",
+    "bucket": "bucket",
+    "sslEnabled": false
+  },
   "jobDefinitions": {
     "tasks": {
       "polygonParts": {

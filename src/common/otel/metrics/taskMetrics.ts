@@ -1,8 +1,8 @@
 import { singleton, inject } from 'tsyringe';
 import { Registry, Counter, Histogram, Gauge } from 'prom-client';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
-import { Logger } from '@map-colonies/js-logger';
-import { IConfig } from 'config';
+import type { Logger } from '@map-colonies/js-logger';
+import type { IConfig } from '../../interfaces';
 import { SERVICES } from '../../constants';
 
 export interface TaskMetricLabels {
@@ -97,7 +97,7 @@ export class TaskMetrics {
         this.tasksFailureCounter?.inc({ jobType, taskType, errorType: labels.errorType ?? 'UnknownError' });
       }
     } catch (error) {
-      this.logger.error({ msg: 'Failed to record task processing metrics', error, labels });
+      this.logger.error({ msg: 'Failed to record task processing metrics', err: error, labels });
     }
   }
   //#endregion
@@ -111,7 +111,7 @@ export class TaskMetrics {
     try {
       this.activeTasksGauge?.inc(labels);
     } catch (error) {
-      this.logger.error({ msg: 'Failed to increment active tasks gauge', error, labels });
+      this.logger.error({ msg: 'Failed to increment active tasks gauge', err: error, labels });
     }
   }
 
@@ -123,7 +123,7 @@ export class TaskMetrics {
     try {
       this.activeTasksGauge?.dec(labels);
     } catch (error) {
-      this.logger.error({ msg: 'Failed to decrement active tasks gauge', error, labels });
+      this.logger.error({ msg: 'Failed to decrement active tasks gauge', err: error, labels });
     }
   }
   //#endregion

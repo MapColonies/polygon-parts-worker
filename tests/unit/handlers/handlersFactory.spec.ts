@@ -1,18 +1,22 @@
 import * as fs from 'fs';
 import { BadRequestError } from '@map-colonies/error-types';
-import { HANDLERS, SERVICES } from '../../../src/common/constants';
+import { SERVICES } from '../../../src/common/constants';
 import { initJobHandler } from '../../../src/models/handlerFactory';
 import { IngestionJobHandler } from '../../../src/models/ingestion/ingestionHandler';
-import { configMock } from '../mocks/configMock';
+import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { registerExternalValues } from '../../../src/containerConfig';
 import { ingestionJobHandlerInstance } from '../jobProcessor/jobProcessorSetup';
 import { loggerMock } from '../mocks/telemetryMock';
+import { getHandlerTokens } from '../../../src/common/handlerTokens';
+import { initConfig } from '../../../src/common/config';
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
-  accessSync: jest.fn(),
-}));
+jest.mock('fs', () => {
+  const actual = jest.requireActual<typeof import('fs')>('fs');
+  return {
+    ...actual,
+    accessSync: jest.fn(),
+  };
+});
 
 describe('HandlerFactory', () => {
   const ingestionNew = configMock.get<string>('jobDefinitions.jobs.new.type');
@@ -21,13 +25,18 @@ describe('HandlerFactory', () => {
   const exportJob = configMock.get<string>('jobDefinitions.jobs.export.type');
   const jobTypesToProcess = { ingestionNew, ingestionUpdate, ingestionSwapUpdate, exportJob };
 
-  beforeEach(() => {
-    (fs.accessSync as jest.Mock).mockImplementation(() => undefined); // simulate directories exist
+  beforeAll(async () => {
+    await initConfig(true);
+  });
 
-    registerExternalValues({
+  beforeEach(async () => {
+    (fs.accessSync as jest.Mock).mockImplementation(() => undefined);
+    registerDefaultConfig();
+    const handlers = getHandlerTokens(configMock);
+    await registerExternalValues({
       override: [
         { token: SERVICES.LOGGER, provider: { useValue: loggerMock } },
-        { token: HANDLERS.NEW, provider: { useValue: ingestionJobHandlerInstance() } },
+        { token: handlers.NEW, provider: { useValue: ingestionJobHandlerInstance() } },
       ],
     });
   });

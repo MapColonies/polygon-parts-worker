@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import fs from 'fs';
+import * as fs from 'fs';
 import { S3Client } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { IS3Config, S3Service, UploadFile } from '../../../src/common/storage/s3Service';
@@ -11,10 +11,18 @@ import { loggerMock, tracerMock } from '../mocks/telemetryMock';
 jest.mock('@aws-sdk/client-s3');
 jest.mock('@aws-sdk/lib-storage');
 
+jest.mock('fs', () => {
+  const actual = jest.requireActual<typeof import('fs')>('fs');
+  return {
+    ...actual,
+    createReadStream: jest.fn(),
+  };
+});
+
 describe('s3Service', () => {
   let s3Service: S3Service;
-  let createReadStreamSpy: jest.SpyInstance;
   let uploadDoneSpy: jest.Mock;
+  const createReadStreamMock = jest.mocked(fs.createReadStream);
   const testS3Key = 'test/file.gpkg';
   const mockReadStream = { fake: 'stream' };
 
@@ -25,11 +33,11 @@ describe('s3Service', () => {
   ];
 
   registerDefaultConfig();
-  const mockS3Config = configMock.get<IS3Config>('s3');
+  const mockS3Config = configMock.get<IS3Config>('S3');
   beforeEach(() => {
     jest.clearAllMocks();
 
-    createReadStreamSpy = jest.spyOn(fs, 'createReadStream').mockReturnValue(mockReadStream as unknown as fs.ReadStream);
+    createReadStreamMock.mockReturnValue(mockReadStream as unknown as fs.ReadStream);
 
     uploadDoneSpy = jest.fn().mockResolvedValue({
       Bucket: mockS3Config.bucket,
@@ -72,12 +80,12 @@ describe('s3Service', () => {
       const urls = await s3Service.uploadFiles(testFiles);
 
       expect(urls).toEqual(expectedUrls);
-      expect(createReadStreamSpy).toHaveBeenCalledTimes(testFiles.length);
+      expect(createReadStreamMock).toHaveBeenCalledTimes(testFiles.length);
       expect(S3Client).toHaveBeenCalledWith(s3ClientCtorArgs);
       expect(Upload).toHaveBeenCalledTimes(testFiles.length);
 
       testFiles.forEach((file, index) => {
-        expect(createReadStreamSpy).toHaveBeenNthCalledWith(index + 1, file.filePath);
+        expect(createReadStreamMock).toHaveBeenNthCalledWith(index + 1, file.filePath);
 
         const expectedUploadParams = {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -109,10 +117,10 @@ describe('s3Service', () => {
       };
       const urls = await s3Service.uploadFiles([testFiles[0]]);
       expect(urls).toEqual([expectedUrl]);
-      expect(createReadStreamSpy).toHaveBeenCalledTimes(1);
+      expect(createReadStreamMock).toHaveBeenCalledTimes(1);
       expect(S3Client).toHaveBeenCalledWith(s3ClientCtorArgs);
       expect(Upload).toHaveBeenCalledTimes(1);
-      expect(createReadStreamSpy).toHaveBeenCalledWith(testFiles[0].filePath);
+      expect(createReadStreamMock).toHaveBeenCalledWith(testFiles[0].filePath);
       const expectedUploadParams = {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         client: expect.any(S3Client),
@@ -138,7 +146,7 @@ describe('s3Service', () => {
 
     it('should handle file system errors during multiple upload', async () => {
       const fsError = new Error('file system error');
-      createReadStreamSpy.mockImplementationOnce(() => {
+      createReadStreamMock.mockImplementationOnce(() => {
         throw fsError;
       });
 
@@ -151,7 +159,7 @@ describe('s3Service', () => {
       const urls = await s3Service.uploadFiles([]);
 
       expect(urls).toEqual([]);
-      expect(createReadStreamSpy).not.toHaveBeenCalled();
+      expect(createReadStreamMock).not.toHaveBeenCalled();
       expect(Upload).not.toHaveBeenCalled();
       expect(uploadDoneSpy).not.toHaveBeenCalled();
     });

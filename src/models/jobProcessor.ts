@@ -1,14 +1,15 @@
 import { setTimeout as setTimeoutPromise } from 'timers/promises';
-import { Logger } from '@map-colonies/js-logger';
-import { ITaskResponse, OperationStatus, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import type { Logger } from '@map-colonies/js-logger';
+import type { ITaskResponse } from '@map-colonies/mc-priority-queue';
+import { OperationStatus, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { withSpanAsyncV4, withSpanV4 } from '@map-colonies/telemetry';
-import { Tracer } from '@opentelemetry/api';
+import type { Tracer } from '@opentelemetry/api';
 import { inject, injectable } from 'tsyringe';
 import { JobTrackerClient } from '../clients/jobTrackerClient';
 import { SERVICES } from '../common/constants';
 import { TaskMetricLabels, TaskMetrics } from '../common/otel/metrics/taskMetrics';
 import { ReachedMaxTaskAttemptsError, UnrecoverableTaskError } from '../common/errors';
-import { IConfig, IJobAndTaskResponse, IJobHandler, IPermittedJobTypes, ITasksConfig } from '../common/interfaces';
+import type { IConfig, IJobAndTaskResponse, IJobHandler, IPermittedJobTypes, ITasksConfig } from '../common/interfaces';
 import { initJobHandler } from './handlerFactory';
 
 @injectable()
@@ -67,7 +68,7 @@ export class JobProcessor {
         }
       } catch (error) {
         const errMessage = this.getErrorMessages(error, jobAndTask);
-        this.logger.error({ msg: 'error during job processing', error: errMessage });
+        this.logger.error({ msg: 'error during job processing', reason: errMessage });
 
         if (!jobAndTask) {
           continue;
@@ -102,7 +103,7 @@ export class JobProcessor {
 
     for (const jobType of jobTypes) {
       for (const taskType of this.taskTypesToProcess) {
-        this.logger.debug({ msg: `dequeuing` }, jobType, taskType);
+        this.logger.debug({ msg: 'dequeuing', jobType, taskType });
         const task = await this.queueClient.dequeue(jobType, taskType);
         if (task) {
           this.logger.info({ msg: `getting task's job ${task.id}`, task });

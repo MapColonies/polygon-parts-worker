@@ -1,11 +1,11 @@
 import fs from 'fs';
-import { Logger } from '@map-colonies/js-logger';
-import { IJobResponse } from '@map-colonies/mc-priority-queue';
+import type { Logger } from '@map-colonies/js-logger';
+import type { IJobResponse } from '@map-colonies/mc-priority-queue';
 import ogr2ogr from 'ogr2ogr';
 import { inject, injectable } from 'tsyringe';
 import { ExportJobParameters } from '@map-colonies/raster-shared';
 import { OgrFormat, SERVICES } from '../../common/constants';
-import { IConfig, IJobHandler } from '../../common/interfaces';
+import type { IConfig, IJobHandler } from '../../common/interfaces';
 import { PolygonPartsManagerClient } from '../../clients/polygonPartsManagerClient';
 import { addFeatureIds, manipulateFeatures } from '../../utils/utils';
 
@@ -46,7 +46,7 @@ export class ExportJobHandler implements IJobHandler<ExportJobParameters> {
       this.logger.info(`finished merging ${layer} features into gpkg`);
       return;
     } catch (error) {
-      this.logger.error({ msg: 'error while processing job', error });
+      this.logger.error({ msg: 'error while processing job', err: error });
       throw error;
     }
   }

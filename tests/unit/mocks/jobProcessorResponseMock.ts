@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 import { IJobResponse, IUpdateJobBody } from '@map-colonies/mc-priority-queue';
 import { RasterProductTypes } from '@map-colonies/raster-shared';

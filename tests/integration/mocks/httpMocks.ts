@@ -1,9 +1,8 @@
 import nock from 'nock';
-import config from 'config';
 import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { PolygonPartsChunkValidationResult } from '@map-colonies/raster-shared';
 import { StatusCodes } from 'http-status-codes';
-import { HANDLERS } from '../../../src/common/constants';
+import { DEFAULT_JOB_HANDLER_TYPES } from '../../../src/common/handlerTokens';
 
 export interface MockHttpUrls {
   polygonPartsManagerUrl: string;
@@ -13,10 +12,10 @@ export interface MockHttpUrls {
 }
 
 export const mockUrls: MockHttpUrls = {
-  polygonPartsManagerUrl: config.get<string>('polygonPartsManager.baseUrl'),
-  jobManagerUrl: config.get<string>('jobManagement.config.jobManagerBaseUrl'),
-  jobTrackerUrl: config.get<string>('jobManagement.config.jobTracker.baseUrl'),
-  heartbeatUrl: config.get<string>('jobManagement.config.heartbeat.baseUrl'),
+  polygonPartsManagerUrl: 'http://polygon-parts-manager-test',
+  jobManagerUrl: 'http://job-manager-test',
+  jobTrackerUrl: 'http://job-tracker-test',
+  heartbeatUrl: 'http://heart-beat-test',
 };
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -49,7 +48,7 @@ export class HttpMockHelper {
   }
 
   public static mockJobManagerSearchTasks(jobType: string, taskTypes: string[], task: ITaskResponse<unknown>): void {
-    for (const handler of [HANDLERS.NEW, HANDLERS.UPDATE, HANDLERS.SWAP, HANDLERS.EXPORT]) {
+    for (const handler of Object.values(DEFAULT_JOB_HANDLER_TYPES)) {
       for (const taskType of taskTypes) {
         nock(mockUrls.jobManagerUrl)
           .post(`/tasks/${handler}/${taskType}/startPending`)

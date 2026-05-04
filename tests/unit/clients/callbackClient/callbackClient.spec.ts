@@ -1,6 +1,5 @@
-import jsLogger from '@map-colonies/js-logger';
-import nock from 'nock';
-import { tracerMock } from '../../mocks/telemetryMock';
+import nock, { cleanAll } from 'nock';
+import { loggerMock, tracerMock } from '../../mocks/telemetryMock';
 import { configMock, registerDefaultConfig } from '../../mocks/configMock';
 import { CallbackClient } from '../../../../src/clients/callbackClient';
 import { callbackResponse } from './callbackClient.data';
@@ -12,12 +11,12 @@ describe('callbackClient', () => {
 
   beforeEach(() => {
     registerDefaultConfig();
-    callbackClient = new CallbackClient(configMock, jsLogger({ enabled: false }), tracerMock);
+    callbackClient = new CallbackClient(configMock, loggerMock, tracerMock);
   });
 
   afterEach(() => {
-    nock.cleanAll();
-    jest.resetAllMocks();
+    cleanAll();
+    jest.clearAllMocks();
   });
 
   describe('send', () => {

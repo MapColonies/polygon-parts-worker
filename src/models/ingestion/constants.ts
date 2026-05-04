@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import { SHAPEFILE_EXTENSIONS_LIST, ValidationAggregatedErrors, ValidationErrorType } from '@map-colonies/raster-shared';
 import { ErrorsCount } from './types';
 

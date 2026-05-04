@@ -1,24 +1,32 @@
 import { accessSync } from 'fs';
-import config, { IConfig } from 'config';
-import { getOtelMixin } from '@map-colonies/telemetry';
+import { getOtelMixin } from '@map-colonies/tracing-utils';
 import { trace } from '@opentelemetry/api';
 import { DependencyContainer } from 'tsyringe/dist/typings/types';
-import jsLogger, { Logger, LoggerOptions } from '@map-colonies/js-logger';
+import { jsLogger } from '@map-colonies/js-logger';
+import type { Logger } from '@map-colonies/js-logger';
 import { instanceCachingFactory, instancePerContainerCachingFactory } from 'tsyringe';
 import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
-import { IHttpRetryConfig } from '@map-colonies/mc-utils';
+import type { IHttpRetryConfig } from '@map-colonies/mc-utils';
 import { Registry } from 'prom-client';
-import { HANDLERS, SERVICES, SERVICE_NAME } from './common/constants';
-import { tracing } from './common/tracing';
+import { SERVICES, SERVICE_NAME } from './common/constants';
+import { getHandlerTokens } from './common/handlerTokens';
+import { getTracing } from './common/tracing';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
-import { IJobManagerConfig } from './common/interfaces';
+import type { IJobManagerConfig } from './common/interfaces';
 import { IngestionJobHandler } from './models/ingestion/ingestionHandler';
 import { ExportJobHandler } from './models/export/exportJobHandler';
-import { IS3Config } from './common/storage/s3Service';
+import type { IS3Config } from './common/storage/s3Service';
+import { getConfig, type ConfigType } from './common/config';
+
+interface LoggerBootstrapConfig {
+  level: string;
+  prettyPrint: boolean;
+  opentelemetryOptions?: Record<string, unknown>;
+}
 
 const queueClientFactory = (container: DependencyContainer): QueueClient => {
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
-  const config = container.resolve<IConfig>(SERVICES.CONFIG);
+  const config = container.resolve<ConfigType>(SERVICES.CONFIG);
   const queueConfig = config.get<IJobManagerConfig>('jobManagement.config');
   const httpRetryConfig = config.get<IHttpRetryConfig>('httpRetry');
   return new QueueClient(
@@ -32,13 +40,12 @@ const queueClientFactory = (container: DependencyContainer): QueueClient => {
 };
 
 const validateRequiredDirectories = (container: DependencyContainer): void => {
-  const config = container.resolve<IConfig>(SERVICES.CONFIG);
+  const config = container.resolve<ConfigType>(SERVICES.CONFIG);
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
 
   const requiredDirectories = [
     { name: 'reportsPath', path: config.get<string>('reportsPath') },
     { name: 'ingestionSourcesDirPath', path: config.get<string>('ingestionSourcesDirPath') },
-    // Add more required directories here in the future
   ];
 
   const missingDirectories: string[] = [];
@@ -51,7 +58,7 @@ const validateRequiredDirectories = (container: DependencyContainer): void => {
         name: dir.name,
         path: dir.path,
       });
-    } catch (error) {
+    } catch {
       missingDirectories.push(`${dir.name}: ${dir.path}`);
     }
   }
@@ -68,24 +75,26 @@ export interface RegisterOptions {
   useChild?: boolean;
 }
 
-export const registerExternalValues = (options?: RegisterOptions): DependencyContainer => {
-  const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
+export const registerExternalValues = async (options?: RegisterOptions): Promise<DependencyContainer> => {
+  const configInstance = getConfig();
+  const handlerTokens = getHandlerTokens(configInstance);
 
-  const logger = jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, mixin: getOtelMixin() });
+  const loggerConfig = configInstance.get<LoggerBootstrapConfig>('telemetry.logger');
+  const logger = await jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, mixin: getOtelMixin() });
 
   const metricsRegistry = new Registry();
   const tracer = trace.getTracer(SERVICE_NAME);
-  const s3Config = config.get<IS3Config>('S3');
+  const s3Config = configInstance.get<IS3Config>('S3');
 
   const dependencies: InjectionObject<unknown>[] = [
-    { token: SERVICES.CONFIG, provider: { useValue: config } },
+    { token: SERVICES.CONFIG, provider: { useValue: configInstance } },
     { token: SERVICES.LOGGER, provider: { useValue: logger } },
     { token: SERVICES.TRACER, provider: { useValue: tracer } },
     { token: SERVICES.QUEUE_CLIENT, provider: { useFactory: instancePerContainerCachingFactory(queueClientFactory) } },
-    { token: HANDLERS.NEW, provider: { useClass: IngestionJobHandler } },
-    { token: HANDLERS.UPDATE, provider: { useClass: IngestionJobHandler } },
-    { token: HANDLERS.SWAP, provider: { useClass: IngestionJobHandler } },
-    { token: HANDLERS.EXPORT, provider: { useClass: ExportJobHandler } },
+    { token: handlerTokens.NEW, provider: { useClass: IngestionJobHandler } },
+    { token: handlerTokens.UPDATE, provider: { useClass: IngestionJobHandler } },
+    { token: handlerTokens.SWAP, provider: { useClass: IngestionJobHandler } },
+    { token: handlerTokens.EXPORT, provider: { useClass: ExportJobHandler } },
     {
       token: SERVICES.S3CONFIG,
       provider: {
@@ -95,23 +104,26 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     {
       token: SERVICES.METRICS_REGISTRY,
       provider: {
-        useFactory: instanceCachingFactory((container) => {
-          const config = container.resolve<IConfig>(SERVICES.CONFIG);
-          const useMetrics = config.get<boolean>('telemetry.metrics.enabled');
+        useFactory: instanceCachingFactory((c) => {
+          const cfg = c.resolve<ConfigType>(SERVICES.CONFIG);
+          const useMetrics = cfg.get<boolean>('telemetry.metrics.enabled');
           if (useMetrics) {
             metricsRegistry.setDefaultLabels({
               app: SERVICE_NAME,
             });
             return metricsRegistry;
           }
+          return undefined;
         }),
       },
     },
     {
       token: 'onSignal',
       provider: {
-        useValue: async (): Promise<void> => {
-          await Promise.all([tracing.stop()]);
+        useValue: {
+          useValue: async (): Promise<void> => {
+            await Promise.all([getTracing().stop()]);
+          },
         },
       },
     },

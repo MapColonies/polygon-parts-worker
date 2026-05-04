@@ -1,19 +1,24 @@
-import { HttpClient, IHttpRetryConfig } from '@map-colonies/mc-utils';
+import { HttpClient } from '@map-colonies/mc-utils';
+import type { IHttpRetryConfig } from '@map-colonies/mc-utils';
 import { inject, injectable } from 'tsyringe';
-import { Logger } from '@map-colonies/js-logger';
-import { Tracer } from '@opentelemetry/api';
-import { PolygonPartsChunkValidationResult } from '@map-colonies/raster-shared';
+import type { Logger } from '@map-colonies/js-logger';
+import type { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
-import { RoiFeatureCollection, PolygonPartsPayload, PolygonPartsEntityName } from '@map-colonies/raster-shared';
+import type {
+  PolygonPartsChunkValidationResult,
+  PolygonPartsPayload,
+  PolygonPartsEntityName,
+  RoiFeatureCollection,
+} from '@map-colonies/raster-shared';
 import { SERVICES } from '../common/constants';
-import { FindPolygonPartsResponse, IConfig } from '../common/interfaces';
+import type { FindPolygonPartsResponse, IConfig } from '../common/interfaces';
 
 const POLYGON_PARTS_MANAGER_SERVICE_NAME = 'PolygonPartsManager';
 
 @injectable()
 export class PolygonPartsManagerClient extends HttpClient {
   public constructor(
-    @inject(SERVICES.LOGGER) protected readonly logger: Logger,
+    @inject(SERVICES.LOGGER) protected override readonly logger: Logger,
     @inject(SERVICES.CONFIG) private readonly config: IConfig,
     @inject(SERVICES.TRACER) public readonly tracer: Tracer
   ) {

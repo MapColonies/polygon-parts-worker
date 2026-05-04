@@ -1,4 +1,4 @@
-import z from 'zod';
+import { z } from 'zod';
 import { IJobResponse, ITaskResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
 import type { FeatureCollection, Polygon } from 'geojson';
 import { ProcessingState } from '@map-colonies/shapefile-reader';
@@ -9,6 +9,7 @@ import {
   ValidationAggregatedErrors,
 } from '@map-colonies/raster-shared';
 import { ingestionJobParamsSchema } from '../schemas/ingestion.schema';
+import type { ConfigType } from './config';
 
 type PolygonPartExtended = PartFeatureProperties &
   Omit<z.infer<typeof polygonPartsPayloadSchema>, 'partsDataChunk'> & {
@@ -17,10 +18,8 @@ type PolygonPartExtended = PartFeatureProperties &
     ingestionDateUTC: Date;
     id: string;
   };
-export interface IConfig {
-  get: <T>(setting: string) => T;
-  has: (setting: string) => boolean;
-}
+
+export type IConfig = ConfigType;
 
 export interface IJobManagerConfig {
   jobManagerBaseUrl: string;

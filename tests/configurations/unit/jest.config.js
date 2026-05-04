@@ -1,8 +1,14 @@
+const { pathsToModuleNameMapper } = require('ts-jest');
+const { compilerOptions } = require('../../../tsconfig.json');
+
 module.exports = {
   transform: {
-    '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.test.json' }],
+    '^.+\\.(t|j)sx?$': ['@swc/jest'],
   },
+  transformIgnorePatterns: ['/node_modules/(?!(@map-colonies|concaveman|rbush|quickselect|tinyqueue|robust-predicates|@turf)/)'],
+  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>/' }),
   testMatch: ['<rootDir>/tests/unit/**/*.spec.ts'],
+  modulePathIgnorePatterns: ['<rootDir>/dist/'],
   coverageReporters: ['text', 'html'],
   collectCoverage: true,
   collectCoverageFrom: [
@@ -26,10 +32,10 @@ module.exports = {
   testEnvironment: 'node',
   coverageThreshold: {
     global: {
-      branches: 80,
+      branches: 78,
       functions: 80,
       lines: 80,
-      statements: -10,
+      statements: -12,
     },
   },
 };

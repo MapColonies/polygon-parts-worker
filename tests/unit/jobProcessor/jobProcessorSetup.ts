@@ -24,7 +24,7 @@ const mockQueueClient = new QueueClient(
   configMock.get<number>('jobManagement.config.heartbeat.intervalMs')
 );
 
-const mockS3Config = configMock.get<IS3Config>('s3');
+const mockS3Config = configMock.get<IS3Config>('S3');
 
 const mockTracer = trace.getTracer('testingTracer');
 const mockPolygonPartsClient = new PolygonPartsManagerClient(loggerMock, configMock, mockTracer);

@@ -1,41 +1,33 @@
-import nock from 'nock';
+import nock, { cleanAll } from 'nock';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { failTaskRequest, newJobResponseMock, updatedJobRequest } from '../mocks/jobsMocks';
 import { initTaskForIngestionNew, reachedMaxAttemptsTask } from '../mocks/tasksMocks';
 import * as handlerFactory from '../../../src/models/handlerFactory';
 
-const initJobHandlerMock = jest.fn();
-
-initJobHandlerMock.mockImplementation(() => {
-  return {
-    processJob: async () => {
-      return mockProcessJob();
-    },
-  };
-});
-
-jest.mock<typeof handlerFactory>('../../../src/models/handlerFactory', () => {
-  return {
-    initJobHandler: initJobHandlerMock,
-  };
-});
-
-// eslint-disable-next-line import/first
 import { jobProcessorInstance, mockProcessJob, mockQueueClient, mockJobTrackerClient } from '../jobProcessor/jobProcessorSetup';
+
+jest.mock<typeof handlerFactory>('../../../src/models/handlerFactory', () => ({
+  initJobHandler: jest.fn(),
+}));
+
+const initJobHandlerMock = jest.mocked(handlerFactory.initJobHandler);
 
 describe('JobProcessor', () => {
   let jobProcessor: JobProcessor;
 
   beforeEach(() => {
-    jobProcessor = jobProcessorInstance();
     jest.clearAllMocks();
     registerDefaultConfig();
+    initJobHandlerMock.mockImplementation(() => ({
+      processJob: async () => mockProcessJob(),
+    }));
+    jobProcessor = jobProcessorInstance();
   });
 
   afterEach(() => {
     jest.clearAllTimers();
-    nock.cleanAll();
+    cleanAll();
   });
 
   describe('start', () => {

@@ -1,5 +1,5 @@
 import path from 'path';
-import fsMock from 'mock-fs';
+import fsMock, { restore as restoreMockFs } from 'mock-fs';
 import { ShapefileChunk, ShapefileChunkReader } from '@map-colonies/shapefile-reader';
 import { IJobResponse, ITaskResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { Feature, Polygon } from 'geojson';
@@ -21,7 +21,6 @@ import { CallbackClient } from '../../../src/clients/callbackClient';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
 jest.mock('@map-colonies/shapefile-reader', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   ...jest.requireActual('@map-colonies/shapefile-reader'),
   // eslint-disable-next-line @typescript-eslint/naming-convention
   ShapefileChunkReader: jest.fn(),
@@ -47,7 +46,7 @@ describe('IngestionJobHandler', () => {
   });
 
   afterEach(() => {
-    fsMock.restore();
+    restoreMockFs();
     jest.clearAllMocks();
   });
 
@@ -196,7 +195,7 @@ describe('IngestionJobHandler', () => {
         await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
 
         // Should call validate for each chunk
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+
         expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(2);
       });
 
@@ -272,7 +271,6 @@ describe('IngestionJobHandler', () => {
 
         await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(shapeFileMetricsMock.recordChunk).toHaveBeenCalledTimes(2);
       });
 
@@ -330,7 +328,7 @@ describe('IngestionJobHandler', () => {
         await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
         expect(addVerticesErrorsSpy).toHaveBeenCalledWith(chunk.skippedFeatures, chunk.id, maxVerticesPerChunk);
         // Should still process valid features despite skipped ones
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+
         expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1);
       });
 
@@ -454,7 +452,6 @@ describe('IngestionJobHandler', () => {
 
         await expect(ingestionJobHandler.processJob(newJobResponseMock, validationTask)).resolves.not.toThrow();
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1);
       });
 
@@ -727,11 +724,11 @@ describe('IngestionJobHandler', () => {
         await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
 
         // Should record metrics for each chunk
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+
         expect(shapeFileMetricsMock.recordChunk).toHaveBeenCalledTimes(3);
 
         // Verify the metrics recorded
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+
         expect(shapeFileMetricsMock.recordChunk).toHaveBeenNthCalledWith(
           1,
           expect.objectContaining({
@@ -741,7 +738,6 @@ describe('IngestionJobHandler', () => {
           })
         );
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(shapeFileMetricsMock.recordChunk).toHaveBeenNthCalledWith(
           2,
           expect.objectContaining({
@@ -751,7 +747,6 @@ describe('IngestionJobHandler', () => {
           })
         );
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(shapeFileMetricsMock.recordChunk).toHaveBeenNthCalledWith(
           3,
           expect.objectContaining({
