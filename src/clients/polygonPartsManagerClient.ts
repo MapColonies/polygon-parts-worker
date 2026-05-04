@@ -24,10 +24,10 @@ export class PolygonPartsManagerClient extends HttpClient {
   ) {
     super(
       logger,
-      config.get<string>('polygonPartsManager.baseUrl'),
+      config.get('polygonPartsManager.baseUrl') as unknown as string,
       POLYGON_PARTS_MANAGER_SERVICE_NAME,
-      config.get<IHttpRetryConfig>('httpRetry'),
-      config.get<boolean>('disableHttpClientLogs')
+      config.get('httpRetry') as IHttpRetryConfig,
+      config.get('disableHttpClientLogs') as boolean
     );
   }
 

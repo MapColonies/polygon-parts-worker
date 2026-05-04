@@ -65,8 +65,10 @@ export class ValidationErrorCollector {
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.CONFIG) private readonly config: IConfig
   ) {
-    this.smallGeometriesPercentageThreshold = this.config.get('jobDefinitions.tasks.validation.smallGeometriesPercentageThreshold');
-    this.smallHolesPercentageThreshold = this.config.get('jobDefinitions.tasks.validation.smallHolesPercentageThreshold');
+    this.smallGeometriesPercentageThreshold = this.config.get(
+      'jobDefinitions.tasks.validation.smallGeometriesPercentageThreshold'
+    ) as unknown as number;
+    this.smallHolesPercentageThreshold = this.config.get('jobDefinitions.tasks.validation.smallHolesPercentageThreshold') as unknown as number;
   }
   // Map of feature ID to invalid feature with all its errors
 

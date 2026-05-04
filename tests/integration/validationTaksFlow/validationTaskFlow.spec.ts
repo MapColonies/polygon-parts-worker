@@ -53,8 +53,8 @@ describe('Validation Task Flow', () => {
       ],
     });
     testContainer = container;
-    const validationTaskType = testConfigProxy.get<string>('jobDefinitions.tasks.validation.type');
-    const polygonPartsTaskType = testConfigProxy.get<string>('jobDefinitions.tasks.polygonParts.type');
+    const validationTaskType = testConfigProxy.get('jobDefinitions.tasks.validation.type') as unknown as string;
+    const polygonPartsTaskType = testConfigProxy.get('jobDefinitions.tasks.polygonParts.type') as unknown as string;
     taskTypesToProcess = [validationTaskType, polygonPartsTaskType];
   });
 

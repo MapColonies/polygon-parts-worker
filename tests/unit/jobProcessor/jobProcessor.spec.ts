@@ -31,12 +31,12 @@ describe('JobProcessor', () => {
   });
 
   describe('start', () => {
-    const jobManagerBaseUrl = configMock.get<string>('jobManagement.config.jobManagerBaseUrl');
-    const jobTrackerBaseUrl = configMock.get<string>('jobManagement.config.jobTracker.baseUrl');
-    const heartbeatBaseUrl = configMock.get<string>('jobManagement.config.heartbeat.baseUrl');
-    const validationTaskType = configMock.get<string>('jobDefinitions.tasks.validation.type');
-    const polygonPartsTaskType = configMock.get<string>('jobDefinitions.tasks.polygonParts.type');
-    const jobType = configMock.get<string>('jobDefinitions.jobs.new.type');
+    const jobManagerBaseUrl = configMock.get('jobManagement.config.jobManagerBaseUrl') as unknown as string;
+    const jobTrackerBaseUrl = configMock.get('jobManagement.config.jobTracker.baseUrl') as unknown as string;
+    const heartbeatBaseUrl = configMock.get('jobManagement.config.heartbeat.baseUrl') as unknown as string;
+    const validationTaskType = configMock.get('jobDefinitions.tasks.validation.type') as unknown as string;
+    const polygonPartsTaskType = configMock.get('jobDefinitions.tasks.polygonParts.type') as unknown as string;
+    const jobType = configMock.get('jobDefinitions.jobs.new.type') as unknown as string;
 
     it('should successfully fetch new validation task and process it', async () => {
       const jobManagerUrlValidationDequeuePath = `/tasks/${jobType}/${validationTaskType}/startPending`;

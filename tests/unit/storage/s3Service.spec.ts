@@ -33,7 +33,7 @@ describe('s3Service', () => {
   ];
 
   registerDefaultConfig();
-  const mockS3Config = configMock.get<IS3Config>('S3');
+  const mockS3Config = configMock.get('S3') as IS3Config;
   beforeEach(() => {
     jest.clearAllMocks();
 

@@ -13,7 +13,7 @@ export class JobTrackerClient extends HttpClient {
     @inject(SERVICES.CONFIG) private readonly config: IConfig,
     @inject(SERVICES.TRACER) public readonly tracer: Tracer
   ) {
-    super(logger, config.get<string>('jobManagement.config.jobTracker.baseUrl'), 'JobTracker');
+    super(logger, config.get('jobManagement.config.jobTracker.baseUrl') as unknown as string, 'JobTracker');
   }
 
   @withSpanAsyncV4

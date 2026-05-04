@@ -19,10 +19,10 @@ jest.mock('fs', () => {
 });
 
 describe('HandlerFactory', () => {
-  const ingestionNew = configMock.get<string>('jobDefinitions.jobs.new.type');
-  const ingestionUpdate = configMock.get<string>('jobDefinitions.jobs.update.type');
-  const ingestionSwapUpdate = configMock.get<string>('jobDefinitions.jobs.swapUpdate.type');
-  const exportJob = configMock.get<string>('jobDefinitions.jobs.export.type');
+  const ingestionNew = configMock.get('jobDefinitions.jobs.new.type') as unknown as string;
+  const ingestionUpdate = configMock.get('jobDefinitions.jobs.update.type') as unknown as string;
+  const ingestionSwapUpdate = configMock.get('jobDefinitions.jobs.swapUpdate.type') as unknown as string;
+  const exportJob = configMock.get('jobDefinitions.jobs.export.type') as unknown as string;
   const jobTypesToProcess = { ingestionNew, ingestionUpdate, ingestionSwapUpdate, exportJob };
 
   beforeAll(async () => {

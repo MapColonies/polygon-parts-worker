@@ -12,7 +12,7 @@ describe('PolygonPartsManagerClient', () => {
 
   beforeEach(() => {
     registerDefaultConfig();
-    baseUrl = configMock.get<string>('polygonPartsManager.baseUrl');
+    baseUrl = configMock.get('polygonPartsManager.baseUrl') as unknown as string;
     validateEndpoint = '/polygonParts/validate';
     polygonPartsManagerClient = new PolygonPartsManagerClient(loggerMock, configMock, tracerMock);
   });

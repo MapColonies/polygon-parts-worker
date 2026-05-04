@@ -28,13 +28,13 @@ export class JobProcessor {
     @inject(JobTrackerClient) private readonly jobTrackerClient: JobTrackerClient,
     @inject(TaskMetrics) private readonly taskMetrics: TaskMetrics
   ) {
-    this.dequeueIntervalMs = this.config.get<number>('jobManagement.config.dequeueIntervalMs');
-    const ingestionNew = this.config.get<string>('jobDefinitions.jobs.new.type');
-    const ingestionUpdate = this.config.get<string>('jobDefinitions.jobs.update.type');
-    const ingestionSwapUpdate = this.config.get<string>('jobDefinitions.jobs.swapUpdate.type');
-    const exportJob = this.config.get<string>('jobDefinitions.jobs.export.type');
+    this.dequeueIntervalMs = this.config.get('jobManagement.config.dequeueIntervalMs') as unknown as number;
+    const ingestionNew = this.config.get('jobDefinitions.jobs.new.type') as unknown as string;
+    const ingestionUpdate = this.config.get('jobDefinitions.jobs.update.type') as unknown as string;
+    const ingestionSwapUpdate = this.config.get('jobDefinitions.jobs.swapUpdate.type') as unknown as string;
+    const exportJob = this.config.get('jobDefinitions.jobs.export.type') as unknown as string;
     this.jobTypesToProcess = { ingestionNew, ingestionUpdate, ingestionSwapUpdate, exportJob };
-    this.configuredTasks = this.config.get<ITasksConfig>('jobDefinitions.tasks');
+    this.configuredTasks = this.config.get('jobDefinitions.tasks') as unknown as ITasksConfig;
     this.taskTypesToProcess = this.setUpTaskTypesToProcess(this.configuredTasks);
   }
 

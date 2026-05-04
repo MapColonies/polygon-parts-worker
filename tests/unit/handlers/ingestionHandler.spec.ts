@@ -30,7 +30,7 @@ describe('IngestionJobHandler', () => {
   let ingestionJobHandler: IngestionJobHandler;
   const mockReadAndProcess = jest.fn();
   const mockGetShapefileStats = jest.fn();
-  const ingestionSourcePath = configMock.get<string>('ingestionSourcesDirPath');
+  const ingestionSourcePath = configMock.get('ingestionSourcesDirPath') as string;
   const absoluteShapefilePath = path.join(ingestionSourcePath, newJobResponseMock.parameters.inputFiles.metadataShapefilePath);
   const jobManagerClientUpdateJobSpy = jest.spyOn(mockQueueClient.jobManagerClient, 'updateJob').mockResolvedValue(undefined);
 
@@ -57,7 +57,7 @@ describe('IngestionJobHandler', () => {
     });
 
     it('should set maxChunkMaxVertices from config', () => {
-      const expectedMaxVertices = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+      const expectedMaxVertices = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
       expect(expectedMaxVertices).toBe(ingestionJobHandler['chunkMaxVertices']);
     });
   });
@@ -275,7 +275,7 @@ describe('IngestionJobHandler', () => {
       });
 
       it('should handle shapefile with skipped features', async () => {
-        const maxVerticesPerChunk = configMock.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
+        const maxVerticesPerChunk = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
         const mockValidFeature: Feature<Polygon> = {
           type: 'Feature',
           geometry: {
@@ -825,7 +825,7 @@ describe('IngestionJobHandler', () => {
 
     it('should send error callback when task reaches max attempts and callback array exist', async () => {
       const mockError = new Error();
-      const taskMaxAttempts = configMock.get<number>('jobDefinitions.tasks.validation.maxAttempts');
+      const taskMaxAttempts = configMock.get('jobDefinitions.tasks.validation.maxAttempts') as unknown as number;
 
       const maxAttemptsTask: ITaskResponse<ValidationTaskParameters> = {
         ...validationTask,

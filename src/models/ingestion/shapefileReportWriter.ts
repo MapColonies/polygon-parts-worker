@@ -45,7 +45,7 @@ export class ShapefileReportWriter {
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.CONFIG) private readonly config: IConfig
   ) {
-    this.shapefileReportBasePath = this.config.get<string>('reportsPath');
+    this.shapefileReportBasePath = this.config.get('reportsPath') as string;
   }
 
   /**

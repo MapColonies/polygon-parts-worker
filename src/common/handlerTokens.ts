@@ -22,7 +22,7 @@ function getHandlerTokens(config: ConfigType): {
   SWAP: string;
   EXPORT: string;
 } {
-  const jobs = config.get<JobDefinitionsJobs>('jobDefinitions.jobs');
+  const jobs = config.get('jobDefinitions.jobs') as unknown as JobDefinitionsJobs;
   return {
     NEW: jobs.new.type,
     UPDATE: jobs.update.type,

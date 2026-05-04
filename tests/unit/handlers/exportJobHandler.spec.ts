@@ -17,8 +17,8 @@ jest.mock('uuid', () => ({
 }));
 
 describe('ExportJobHandler', () => {
-  const gpkgLocation = configMock.get<string>('gpkgsLocation');
-  const polygonPartsUrl = configMock.get<string>('polygonPartsManager.baseUrl');
+  const gpkgLocation = configMock.get('gpkgsLocation') as string;
+  const polygonPartsUrl = configMock.get('polygonPartsManager.baseUrl') as unknown as string;
 
   let exportJobHandler: ExportJobHandler;
 

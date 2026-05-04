@@ -14,7 +14,7 @@ void getApp()
     const config = container.resolve<ConfigType>(SERVICES.CONFIG);
     const tracer = container.resolve<Tracer>(SERVICES.TRACER);
 
-    const port = config.get<number>('server.port');
+    const port = config.get('server.port');
     const stubHealthCheck = async (): Promise<void> => Promise.resolve();
     const server = createTerminus(createServer(app), { healthChecks: { '/liveness': stubHealthCheck }, onSignal: container.resolve('onSignal') });
     const jobProcessor = container.resolve(JobProcessor);

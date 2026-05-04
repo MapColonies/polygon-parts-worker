@@ -27,8 +27,8 @@ interface LoggerBootstrapConfig {
 const queueClientFactory = (container: DependencyContainer): QueueClient => {
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
   const config = container.resolve<ConfigType>(SERVICES.CONFIG);
-  const queueConfig = config.get<IJobManagerConfig>('jobManagement.config');
-  const httpRetryConfig = config.get<IHttpRetryConfig>('httpRetry');
+  const queueConfig = config.get('jobManagement.config') as unknown as IJobManagerConfig;
+  const httpRetryConfig = config.get('httpRetry') as IHttpRetryConfig;
   return new QueueClient(
     logger,
     queueConfig.jobManagerBaseUrl,
@@ -44,8 +44,8 @@ const validateRequiredDirectories = (container: DependencyContainer): void => {
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
 
   const requiredDirectories = [
-    { name: 'reportsPath', path: config.get<string>('reportsPath') },
-    { name: 'ingestionSourcesDirPath', path: config.get<string>('ingestionSourcesDirPath') },
+    { name: 'reportsPath', path: config.get('reportsPath') as string },
+    { name: 'ingestionSourcesDirPath', path: config.get('ingestionSourcesDirPath') as string },
   ];
 
   const missingDirectories: string[] = [];
@@ -79,12 +79,12 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
   const configInstance = getConfig();
   const handlerTokens = getHandlerTokens(configInstance);
 
-  const loggerConfig = configInstance.get<LoggerBootstrapConfig>('telemetry.logger');
+  const loggerConfig = configInstance.get('telemetry.logger') as LoggerBootstrapConfig;
   const logger = await jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, mixin: getOtelMixin() });
 
   const metricsRegistry = new Registry();
   const tracer = trace.getTracer(SERVICE_NAME);
-  const s3Config = configInstance.get<IS3Config>('S3');
+  const s3Config = configInstance.get('S3') as IS3Config;
 
   const dependencies: InjectionObject<unknown>[] = [
     { token: SERVICES.CONFIG, provider: { useValue: configInstance } },
@@ -106,7 +106,7 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
       provider: {
         useFactory: instanceCachingFactory((c) => {
           const cfg = c.resolve<ConfigType>(SERVICES.CONFIG);
-          const useMetrics = cfg.get<boolean>('telemetry.metrics.enabled');
+          const useMetrics = cfg.get('telemetry.metrics.enabled') as unknown as boolean;
           if (useMetrics) {
             metricsRegistry.setDefaultLabels({
               app: SERVICE_NAME,

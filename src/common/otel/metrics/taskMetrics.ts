@@ -32,8 +32,8 @@ export class TaskMetrics {
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.METRICS_REGISTRY) private readonly registry?: Registry
   ) {
-    this.metricsEnabled = this.config.get<boolean>('telemetry.metrics.enabled');
-    this.taskBuckets = this.config.get<number[]>('telemetry.metrics.buckets');
+    this.metricsEnabled = this.config.get('telemetry.metrics.enabled') as unknown as boolean;
+    this.taskBuckets = this.config.get('telemetry.metrics.buckets') as unknown as number[];
 
     if (this.registry && this.metricsEnabled) {
       this.initializeMetrics();

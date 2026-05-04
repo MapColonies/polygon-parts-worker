@@ -18,7 +18,7 @@ export class ExportJobHandler implements IJobHandler<ExportJobParameters> {
     @inject(SERVICES.CONFIG) private readonly config: IConfig,
     @inject(PolygonPartsManagerClient) private readonly polygonPartsManagerClient: PolygonPartsManagerClient
   ) {
-    this.gpkgsLocation = config.get<string>('gpkgsLocation');
+    this.gpkgsLocation = config.get('gpkgsLocation') as string;
   }
 
   public async processJob(job: IJobResponse<ExportJobParameters, unknown>): Promise<void> {

@@ -17,8 +17,8 @@ export class CallbackClient extends HttpClient {
   ) {
     const serviceName = 'CallbackClient';
     const baseUrl = ''; // base url is empty because the callback client is used to call the callback url
-    const httpRetryConfig = config.get<IHttpRetryConfig>('httpRetry');
-    const disableHttpClientLogs = config.get<boolean>('disableHttpClientLogs');
+    const httpRetryConfig = config.get('httpRetry') as IHttpRetryConfig;
+    const disableHttpClientLogs = config.get('disableHttpClientLogs') as boolean;
     super(logger, baseUrl, serviceName, httpRetryConfig, disableHttpClientLogs);
   }
 

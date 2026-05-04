@@ -1,19 +1,21 @@
 import { type ConfigInstance, config } from '@map-colonies/config';
 import { commonBoilerplateV3, type commonBoilerplateV3Type } from '@map-colonies/schemas';
 
-type RawConfig = ConfigInstance<commonBoilerplateV3Type>;
-
-type ConfigType = Omit<RawConfig, 'get'> & {
-  get: <T = unknown>(key: string) => T;
-};
+// Choose here the type of the config instance and import this type from the entire application
+type ConfigType = ConfigInstance<commonBoilerplateV3Type>;
 
 let configInstance: ConfigType | undefined;
 
+/**
+ * Initializes the configuration by fetching it from the server.
+ * This should only be called from the instrumentation file.
+ * @returns A Promise that resolves when the configuration is successfully initialized.
+ */
 async function initConfig(offlineMode?: boolean): Promise<void> {
-  configInstance = (await config({
+  configInstance = await config({
     schema: commonBoilerplateV3,
     offlineMode,
-  })) as unknown as ConfigType;
+  });
 }
 
 function getConfig(): ConfigType {
@@ -23,5 +25,5 @@ function getConfig(): ConfigType {
   return configInstance;
 }
 
-export type { ConfigType };
 export { getConfig, initConfig };
+export type { ConfigType };

@@ -46,12 +46,12 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     @inject(S3Service) private readonly s3Service: S3Service,
     @inject(CallbackClient) private readonly callbackClient: CallbackClient
   ) {
-    this.chunkMaxVertices = this.config.get<number>('jobDefinitions.tasks.validation.chunkMaxVertices');
-    this.ingestionSourcesDirPath = this.config.get<string>('ingestionSourcesDirPath');
-    const provider = this.config.get<string>('reportStorageProvider') as StorageProvider;
+    this.chunkMaxVertices = this.config.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
+    this.ingestionSourcesDirPath = this.config.get('ingestionSourcesDirPath') as string;
+    const provider = this.config.get('reportStorageProvider') as StorageProvider;
     this.shouldUploadToS3 = provider === StorageProvider.S3;
-    const downloadServerPublicDns = this.config.get<string>('downloadServer.publicDns');
-    const reportsDownloadPath = this.config.get<string>('downloadServer.reportsDownloadPath');
+    const downloadServerPublicDns = this.config.get('downloadServer.publicDns') as unknown as string;
+    const reportsDownloadPath = this.config.get('downloadServer.reportsDownloadPath') as unknown as string;
     this.downloadServerUrl = buildUrl(downloadServerPublicDns, reportsDownloadPath);
   }
 
