@@ -1,5 +1,0 @@
-openapi: 3.0.3
-info:
-  title: polygon-parts-worker
-  version: 0.0.0
-paths: {}

@@ -39,12 +39,6 @@ const setConfigValues = (values: Record<string, unknown>): void => {
 
 const registerDefaultConfig = (): void => {
   const configValues = {
-    openapiConfig: {
-      filePath: './openapi3.yaml',
-      basePath: '/docs',
-      rawPath: '/api',
-      uiPath: '/api',
-    },
     telemetry: {
       logger: {
         level: 'info',
