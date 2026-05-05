@@ -10,7 +10,8 @@ import archiver from 'archiver';
 import { IJobResponse } from '@map-colonies/mc-priority-queue';
 import type { Feature, Geometry } from 'geojson';
 import { OgrFormat, SERVICES, UTF8_ENCODING } from '../../common/constants';
-import type { IConfig, IngestionJobParams, ValidationTaskParameters } from '../../common/interfaces';
+import type { ConfigType } from '../../common/config';
+import type { IngestionJobParams, ValidationTaskParameters } from '../../common/interfaces';
 import {
   OGR2OGR_SHP_REPORT_OPTIONS,
   QMD_ERROR_LABELS,
@@ -43,7 +44,7 @@ export class ShapefileReportWriter {
 
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(SERVICES.CONFIG) private readonly config: IConfig
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType
   ) {
     this.shapefileReportBasePath = this.config.get('reportsPath') as string;
   }

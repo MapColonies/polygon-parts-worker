@@ -5,7 +5,8 @@ import ogr2ogr from 'ogr2ogr';
 import { inject, injectable } from 'tsyringe';
 import { ExportJobParameters } from '@map-colonies/raster-shared';
 import { OgrFormat, SERVICES } from '../../common/constants';
-import type { IConfig, IJobHandler } from '../../common/interfaces';
+import type { IJobHandler } from '../../common/interfaces';
+import type { ConfigType } from '../../common/config';
 import { PolygonPartsManagerClient } from '../../clients/polygonPartsManagerClient';
 import { addFeatureIds, manipulateFeatures } from '../../utils/utils';
 
@@ -15,7 +16,7 @@ export class ExportJobHandler implements IJobHandler<ExportJobParameters> {
 
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType,
     @inject(PolygonPartsManagerClient) private readonly polygonPartsManagerClient: PolygonPartsManagerClient
   ) {
     this.gpkgsLocation = config.get('gpkgsLocation') as string;

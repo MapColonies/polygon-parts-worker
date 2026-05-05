@@ -15,7 +15,7 @@ import {
 import { SERVICES } from '../../common/constants';
 import { exceededVerticesShpFeatureSchema, ExceededVerticesShpProperties, featureIdSchema, verticesSchema } from '../../schemas/shpFile.schema';
 import { formatZodIssues } from '../../schemas/common.schema';
-import type { IConfig } from '../../common/interfaces';
+import type { ConfigType } from '../../common/config';
 import { ErrorsCount, InvalidFeature, ThresholdsResult, ValidationError } from './types';
 import { VALIDATION_ERROR_TYPE_FORMATS, METADATA_ERROR_SEPARATOR, UNKNOWN_ID } from './constants';
 
@@ -63,7 +63,7 @@ export class ValidationErrorCollector {
 
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(SERVICES.CONFIG) private readonly config: IConfig
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType
   ) {
     this.smallGeometriesPercentageThreshold = this.config.get(
       'jobDefinitions.tasks.validation.smallGeometriesPercentageThreshold'

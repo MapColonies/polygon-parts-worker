@@ -9,7 +9,8 @@ import { JobTrackerClient } from '../clients/jobTrackerClient';
 import { SERVICES } from '../common/constants';
 import { TaskMetricLabels, TaskMetrics } from '../common/otel/metrics/taskMetrics';
 import { ReachedMaxTaskAttemptsError, UnrecoverableTaskError } from '../common/errors';
-import type { IConfig, IJobAndTaskResponse, IJobHandler, IPermittedJobTypes, ITasksConfig } from '../common/interfaces';
+import type { IJobAndTaskResponse, IJobHandler, IPermittedJobTypes, ITasksConfig } from '../common/interfaces';
+import type { ConfigType } from '../common/config';
 import { initJobHandler } from './handlerFactory';
 
 @injectable()
@@ -24,7 +25,7 @@ export class JobProcessor {
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.TRACER) public readonly tracer: Tracer,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
-    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType,
     @inject(JobTrackerClient) private readonly jobTrackerClient: JobTrackerClient,
     @inject(TaskMetrics) private readonly taskMetrics: TaskMetrics
   ) {

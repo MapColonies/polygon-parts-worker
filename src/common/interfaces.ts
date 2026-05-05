@@ -9,7 +9,6 @@ import {
   ValidationAggregatedErrors,
 } from '@map-colonies/raster-shared';
 import { ingestionJobParamsSchema } from '../schemas/ingestion.schema';
-import type { ConfigType } from './config';
 
 type PolygonPartExtended = PartFeatureProperties &
   Omit<z.infer<typeof polygonPartsPayloadSchema>, 'partsDataChunk'> & {
@@ -18,8 +17,6 @@ type PolygonPartExtended = PartFeatureProperties &
     ingestionDateUTC: Date;
     id: string;
   };
-
-export type IConfig = ConfigType;
 
 export interface IJobManagerConfig {
   jobManagerBaseUrl: string;

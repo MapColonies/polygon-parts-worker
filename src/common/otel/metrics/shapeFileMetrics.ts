@@ -6,7 +6,7 @@ import { ChunkMetrics, FileMetrics } from '@map-colonies/shapefile-reader';
 import { Registry, Histogram } from 'prom-client';
 import type { Logger } from '@map-colonies/js-logger';
 import { SERVICES } from '../../constants';
-import type { IConfig } from '../../interfaces';
+import type { ConfigType } from '../../config';
 
 @singleton()
 export class ShapefileMetrics {
@@ -20,7 +20,7 @@ export class ShapefileMetrics {
   private readonly metricsEnabled: boolean;
 
   public constructor(
-    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType,
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.METRICS_REGISTRY) private readonly metricsRegistry?: Registry
   ) {

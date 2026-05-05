@@ -5,13 +5,13 @@ import { HttpClient } from '@map-colonies/mc-utils';
 import { inject, injectable } from 'tsyringe';
 import { context, trace } from '@opentelemetry/api';
 import type { Tracer } from '@opentelemetry/api';
-import type { IConfig } from '../common/interfaces';
+import type { ConfigType } from '../common/config';
 import { SERVICES } from '../common/constants';
 
 @injectable()
 export class CallbackClient extends HttpClient {
   public constructor(
-    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType,
     @inject(SERVICES.LOGGER) protected override readonly logger: Logger,
     @inject(SERVICES.TRACER) private readonly tracer: Tracer
   ) {

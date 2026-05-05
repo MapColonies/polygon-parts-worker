@@ -2,7 +2,7 @@ import { singleton, inject } from 'tsyringe';
 import { Registry, Counter, Histogram, Gauge } from 'prom-client';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import type { Logger } from '@map-colonies/js-logger';
-import type { IConfig } from '../../interfaces';
+import type { ConfigType } from '../../config';
 import { SERVICES } from '../../constants';
 
 export interface TaskMetricLabels {
@@ -28,7 +28,7 @@ export class TaskMetrics {
   private readonly metricsEnabled: boolean;
 
   public constructor(
-    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType,
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.METRICS_REGISTRY) private readonly registry?: Registry
   ) {

@@ -4,13 +4,13 @@ import type { Logger } from '@map-colonies/js-logger';
 import type { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4 } from '@map-colonies/telemetry';
 import { SERVICES } from '../common/constants';
-import type { IConfig } from '../common/interfaces';
+import type { ConfigType } from '../common/config';
 
 @injectable()
 export class JobTrackerClient extends HttpClient {
   public constructor(
     @inject(SERVICES.LOGGER) protected override readonly logger: Logger,
-    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType,
     @inject(SERVICES.TRACER) public readonly tracer: Tracer
   ) {
     super(logger, config.get('jobManagement.config.jobTracker.baseUrl') as unknown as string, 'JobTracker');

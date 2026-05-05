@@ -16,7 +16,8 @@ import {
   ValidationCallbackData,
 } from '@map-colonies/raster-shared';
 import { ZodError } from 'zod';
-import type { FeatureResolutions, IConfig, IJobHandler, IngestionJobParams, ValidationTaskParameters } from '../../common/interfaces';
+import type { ConfigType } from '../../common/config';
+import type { FeatureResolutions, IJobHandler, IngestionJobParams, ValidationTaskParameters } from '../../common/interfaces';
 import { PolygonPartsManagerClient } from '../../clients/polygonPartsManagerClient';
 import { S3_VALIDATION_REPORTS_FOLDER, SERVICES, StorageProvider, ZIP_CONTENT_TYPE } from '../../common/constants';
 import { PolygonPartFeature, ShpFeature, shpFeatureSchema } from '../../schemas/shpFile.schema';
@@ -41,7 +42,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     @inject(PolygonPartsManagerClient) private readonly polygonPartsManager: PolygonPartsManagerClient,
     @inject(ValidationErrorCollector) private readonly validationErrorCollector: ValidationErrorCollector,
     @inject(ShapefileMetrics) private readonly shapeFileMetrics: ShapefileMetrics,
-    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType,
     @inject(ShapefileReportWriter) private readonly shapefileReportWriter: ShapefileReportWriter,
     @inject(S3Service) private readonly s3Service: S3Service,
     @inject(CallbackClient) private readonly callbackClient: CallbackClient

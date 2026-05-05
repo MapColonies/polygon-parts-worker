@@ -11,7 +11,8 @@ import type {
   RoiFeatureCollection,
 } from '@map-colonies/raster-shared';
 import { SERVICES } from '../common/constants';
-import type { FindPolygonPartsResponse, IConfig } from '../common/interfaces';
+import type { ConfigType } from '../common/config';
+import type { FindPolygonPartsResponse } from '../common/interfaces';
 
 const POLYGON_PARTS_MANAGER_SERVICE_NAME = 'PolygonPartsManager';
 
@@ -19,7 +20,7 @@ const POLYGON_PARTS_MANAGER_SERVICE_NAME = 'PolygonPartsManager';
 export class PolygonPartsManagerClient extends HttpClient {
   public constructor(
     @inject(SERVICES.LOGGER) protected override readonly logger: Logger,
-    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType,
     @inject(SERVICES.TRACER) public readonly tracer: Tracer
   ) {
     super(
