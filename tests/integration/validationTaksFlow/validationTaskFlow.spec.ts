@@ -10,16 +10,15 @@ import { faker } from '@faker-js/faker';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { getApp } from '../../../src/app';
 import { IngestionJobHandler } from '../../../src/models/ingestion/ingestionHandler';
-import { SERVICES } from '../../../src/common/constants';
 import { initConfig, type ConfigType } from '../../../src/common/config';
 import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsManagerClient';
 import { ShapefileNotFoundError } from '../../../src/common/errors';
 import { JobTrackerClient } from '../../../src/clients/jobTrackerClient';
-import { loggerMock, tracerMock } from '../../unit/mocks/telemetryMock';
 import { configMock, getConfigValues, registerDefaultConfig } from '../../unit/mocks/configMock';
 import { createIngestionJob, createTask, integrationJobHandlerTokens } from '../fixtures/testFixturesFactory';
 import { HttpMockHelper } from '../mocks/httpMocks';
 import { CallbackClient } from '../../../src/clients/callbackClient';
+import { getTestContainerConfig, resetContainer } from '../testContainerConfig';
 import { getActualReportErrorsCount, reportPathBuilder, setUpValidationReportsDir, tearDownValidationReportsDir } from './validationTaskFlow.helpers';
 import { failedValidationTestCases } from './validationTaskFlow.cases';
 
@@ -45,11 +44,7 @@ describe('Validation Task Flow', () => {
       get: <T>(key: string): T => get(testConfigData, key) as T,
     } as ConfigType;
     const [, container] = await getApp({
-      override: [
-        { token: SERVICES.LOGGER, provider: { useValue: loggerMock } },
-        { token: SERVICES.TRACER, provider: { useValue: tracerMock } },
-        { token: SERVICES.CONFIG, provider: { useValue: testConfigProxy } },
-      ],
+      override: getTestContainerConfig(testConfigProxy),
     });
     testContainer = container;
     const validationTaskType = testConfigProxy.get('jobDefinitions.tasks.validation.type') as unknown as string;
@@ -60,6 +55,7 @@ describe('Validation Task Flow', () => {
   afterEach(() => {
     cleanAll();
     jest.clearAllMocks();
+    resetContainer();
   });
 
   afterAll(async () => {
