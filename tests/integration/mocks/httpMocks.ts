@@ -3,6 +3,7 @@ import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { PolygonPartsChunkValidationResult } from '@map-colonies/raster-shared';
 import { StatusCodes } from 'http-status-codes';
 import { integrationJobHandlerTokens } from '../fixtures/testFixturesFactory';
+import { configMock } from '../../unit/mocks/configMock';
 
 export interface MockHttpUrls {
   polygonPartsManagerUrl: string;
@@ -12,10 +13,10 @@ export interface MockHttpUrls {
 }
 
 export const mockUrls: MockHttpUrls = {
-  polygonPartsManagerUrl: 'http://polygon-parts-manager-test',
-  jobManagerUrl: 'http://job-manager-test',
-  jobTrackerUrl: 'http://job-tracker-test',
-  heartbeatUrl: 'http://heart-beat-test',
+  polygonPartsManagerUrl: configMock.get('polygonPartsManager.baseUrl') as unknown as string,
+  jobManagerUrl: configMock.get('jobManagement.config.jobManagerBaseUrl') as unknown as string,
+  jobTrackerUrl: configMock.get('jobManagement.config.jobTracker.baseUrl') as unknown as string,
+  heartbeatUrl: configMock.get('jobManagement.config.heartbeat.baseUrl') as unknown as string,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
