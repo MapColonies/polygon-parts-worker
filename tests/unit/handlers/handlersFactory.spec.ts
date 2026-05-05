@@ -1,13 +1,12 @@
 import * as fs from 'fs';
 import { BadRequestError } from '@map-colonies/error-types';
-import { SERVICES } from '../../../src/common/constants';
+import { getHandlerTokens, SERVICES } from '../../../src/common/constants';
 import { initJobHandler } from '../../../src/models/handlerFactory';
 import { IngestionJobHandler } from '../../../src/models/ingestion/ingestionHandler';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { registerExternalValues } from '../../../src/containerConfig';
 import { ingestionJobHandlerInstance } from '../jobProcessor/jobProcessorSetup';
 import { loggerMock } from '../mocks/telemetryMock';
-import { getHandlerTokens } from '../../../src/common/handlerTokens';
 import { initConfig } from '../../../src/common/config';
 
 jest.mock('fs', () => {

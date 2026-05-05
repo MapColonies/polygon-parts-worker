@@ -1,8 +1,7 @@
 import { container } from 'tsyringe';
 import { BadRequestError } from '@map-colonies/error-types';
 import { IJobHandler, IPermittedJobTypes } from '../common/interfaces';
-import { getHandlerTokens } from '../common/handlerTokens';
-import { SERVICES } from '../common/constants';
+import { getHandlerTokens, SERVICES } from '../common/constants';
 import type { ConfigType } from '../common/config';
 import { IngestionJobHandler } from './ingestion/ingestionHandler';
 import { ExportJobHandler } from './export/exportJobHandler';

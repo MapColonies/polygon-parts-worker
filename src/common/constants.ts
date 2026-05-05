@@ -1,13 +1,14 @@
 import { readPackageJsonSync } from '@map-colonies/read-pkg';
+import { getConfig, type ConfigType } from './config';
 
-export const SERVICE_NAME = readPackageJsonSync().name ?? 'unknown_service';
-export const DEFAULT_SERVER_PORT = 80;
+const SERVICE_NAME = readPackageJsonSync().name ?? 'unknown_service';
+const DEFAULT_SERVER_PORT = 80;
 
-export const IGNORED_OUTGOING_TRACE_ROUTES = [/^.*\/v1\/metrics.*$/];
-export const IGNORED_INCOMING_TRACE_ROUTES = [/^.*\/docs.*$/];
+const IGNORED_OUTGOING_TRACE_ROUTES = [/^.*\/v1\/metrics.*$/];
+const IGNORED_INCOMING_TRACE_ROUTES = [/^.*\/docs.*$/];
 
 /* eslint-disable @typescript-eslint/naming-convention */
-export const SERVICES = {
+const SERVICES = {
   LOGGER: Symbol('Logger'),
   CONFIG: Symbol('Config'),
   TRACER: Symbol('Tracer'),
@@ -20,21 +21,70 @@ export const SERVICES = {
   TRACING: Symbol('TracingManager'),
 } satisfies Record<string, symbol>;
 
-export const StorageProvider = {
+const StorageProvider = {
   FS: 'FS',
   S3: 'S3',
 } as const;
 
-export type StorageProvider = (typeof StorageProvider)[keyof typeof StorageProvider];
+type StorageProviderType = (typeof StorageProvider)[keyof typeof StorageProvider];
 
-export const OgrFormat = {
+const OgrFormat = {
   GPKG: 'GPKG',
   ESRI_SHAPEFILE: 'ESRI Shapefile',
 };
-export type OgrFormat = (typeof OgrFormat)[keyof typeof OgrFormat];
 
-export const S3_VALIDATION_REPORTS_FOLDER = 'validation-reports';
+type OgrFormatType = (typeof OgrFormat)[keyof typeof OgrFormat];
 
-export const ZIP_CONTENT_TYPE = 'application/zip';
+const S3_VALIDATION_REPORTS_FOLDER = 'validation-reports';
 
-export const UTF8_ENCODING = 'utf-8';
+const ZIP_CONTENT_TYPE = 'application/zip';
+
+const UTF8_ENCODING = 'utf-8';
+
+/* Job handler DI tokens: resolve from config after init — do not read config at module load time. */
+/* eslint-disable @typescript-eslint/naming-convention */
+interface JobDefinitionsJobs {
+  new: { type: string };
+  update: { type: string };
+  swapUpdate: { type: string };
+  export: { type: string };
+}
+
+interface HandlerTokens {
+  NEW: string;
+  UPDATE: string;
+  SWAP: string;
+  EXPORT: string;
+}
+
+function getHandlerTokens(config: ConfigType): HandlerTokens {
+  const jobs = config.get('jobDefinitions.jobs') as unknown as JobDefinitionsJobs;
+  return {
+    NEW: jobs.new.type,
+    UPDATE: jobs.update.type,
+    SWAP: jobs.swapUpdate.type,
+    EXPORT: jobs.export.type,
+  };
+}
+
+function getHandlers(): HandlerTokens {
+  return getHandlerTokens(getConfig());
+}
+/* eslint-enable @typescript-eslint/naming-convention */
+
+export {
+  DEFAULT_SERVER_PORT,
+  IGNORED_INCOMING_TRACE_ROUTES,
+  IGNORED_OUTGOING_TRACE_ROUTES,
+  OgrFormat,
+  S3_VALIDATION_REPORTS_FOLDER,
+  SERVICES,
+  SERVICE_NAME,
+  StorageProvider,
+  type OgrFormatType,
+  type StorageProviderType,
+  UTF8_ENCODING,
+  ZIP_CONTENT_TYPE,
+  getHandlers,
+  getHandlerTokens,
+};

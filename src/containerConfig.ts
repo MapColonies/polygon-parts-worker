@@ -8,8 +8,7 @@ import { instanceCachingFactory, instancePerContainerCachingFactory } from 'tsyr
 import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import type { IHttpRetryConfig } from '@map-colonies/mc-utils';
 import { Registry } from 'prom-client';
-import { SERVICES, SERVICE_NAME } from './common/constants';
-import { getHandlerTokens } from './common/handlerTokens';
+import { getHandlerTokens, SERVICES, SERVICE_NAME } from './common/constants';
 import { getTracing } from './common/tracing';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
 import type { IJobManagerConfig } from './common/interfaces';

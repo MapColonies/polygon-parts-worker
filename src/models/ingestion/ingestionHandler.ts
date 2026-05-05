@@ -49,7 +49,7 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
   ) {
     this.chunkMaxVertices = this.config.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
     this.ingestionSourcesDirPath = this.config.get('ingestionSourcesDirPath') as string;
-    const provider = this.config.get('reportStorageProvider') as StorageProvider;
+    const provider = this.config.get('reportStorageProvider');
     this.shouldUploadToS3 = provider === StorageProvider.S3;
     const downloadServerPublicDns = this.config.get('downloadServer.publicDns') as unknown as string;
     const reportsDownloadPath = this.config.get('downloadServer.reportsDownloadPath') as unknown as string;

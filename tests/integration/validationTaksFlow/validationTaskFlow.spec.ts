@@ -1,5 +1,4 @@
-import { existsSync, readFileSync } from 'fs';
-import { join } from 'path';
+import { existsSync } from 'fs';
 import { cloneDeep, get, set } from 'lodash';
 import { cleanAll } from 'nock';
 import { DependencyContainer } from 'tsyringe';
@@ -13,21 +12,21 @@ import { getApp } from '../../../src/app';
 import { IngestionJobHandler } from '../../../src/models/ingestion/ingestionHandler';
 import { SERVICES } from '../../../src/common/constants';
 import { initConfig, type ConfigType } from '../../../src/common/config';
-import { DEFAULT_JOB_HANDLER_TYPES } from '../../../src/common/handlerTokens';
 import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsManagerClient';
 import { ShapefileNotFoundError } from '../../../src/common/errors';
 import { JobTrackerClient } from '../../../src/clients/jobTrackerClient';
 import { loggerMock, tracerMock } from '../../unit/mocks/telemetryMock';
-import { createIngestionJob, createTask } from '../fixtures/testFixturesFactory';
+import { configMock, getConfigValues, registerDefaultConfig } from '../../unit/mocks/configMock';
+import { createIngestionJob, createTask, integrationJobHandlerTokens } from '../fixtures/testFixturesFactory';
 import { HttpMockHelper } from '../mocks/httpMocks';
 import { CallbackClient } from '../../../src/clients/callbackClient';
 import { getActualReportErrorsCount, reportPathBuilder, setUpValidationReportsDir, tearDownValidationReportsDir } from './validationTaskFlow.helpers';
 import { failedValidationTestCases } from './validationTaskFlow.cases';
 
 describe('Validation Task Flow', () => {
-  const testConfigFixture = JSON.parse(readFileSync(join(__dirname, '../../../config/test.json'), 'utf8')) as Record<string, unknown>;
-  const reportsDirPath = get(testConfigFixture, 'reportsPath') as string;
-  const maxVertices = get(testConfigFixture, 'jobDefinitions.tasks.validation.chunkMaxVertices') as number;
+  registerDefaultConfig();
+  const reportsDirPath = configMock.get('reportsPath') as string;
+  const maxVertices = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
 
   let shpReader: ShapefileChunkReader;
   let testContainer: DependencyContainer;
@@ -41,7 +40,7 @@ describe('Validation Task Flow', () => {
   });
 
   beforeEach(async () => {
-    testConfigData = cloneDeep(testConfigFixture);
+    testConfigData = cloneDeep(getConfigValues());
     const testConfigProxy = {
       get: <T>(key: string): T => get(testConfigData, key) as T,
     } as ConfigType;
@@ -68,7 +67,7 @@ describe('Validation Task Flow', () => {
   });
 
   describe('Happy Path - Successful Validation', () => {
-    test.each([DEFAULT_JOB_HANDLER_TYPES.NEW, DEFAULT_JOB_HANDLER_TYPES.UPDATE, DEFAULT_JOB_HANDLER_TYPES.SWAP])(
+    test.each([integrationJobHandlerTokens.NEW, integrationJobHandlerTokens.UPDATE, integrationJobHandlerTokens.SWAP])(
       'should complete validation task successfully for %s handler',
       async (type) => {
         const job = createIngestionJob({

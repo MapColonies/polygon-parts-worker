@@ -2,7 +2,7 @@ import nock from 'nock';
 import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { PolygonPartsChunkValidationResult } from '@map-colonies/raster-shared';
 import { StatusCodes } from 'http-status-codes';
-import { DEFAULT_JOB_HANDLER_TYPES } from '../../../src/common/handlerTokens';
+import { integrationJobHandlerTokens } from '../fixtures/testFixturesFactory';
 
 export interface MockHttpUrls {
   polygonPartsManagerUrl: string;
@@ -48,7 +48,7 @@ export class HttpMockHelper {
   }
 
   public static mockJobManagerSearchTasks(jobType: string, taskTypes: string[], task: ITaskResponse<unknown>): void {
-    for (const handler of Object.values(DEFAULT_JOB_HANDLER_TYPES)) {
+    for (const handler of Object.values(integrationJobHandlerTokens)) {
       for (const taskType of taskTypes) {
         nock(mockUrls.jobManagerUrl)
           .post(`/tasks/${handler}/${taskType}/startPending`)

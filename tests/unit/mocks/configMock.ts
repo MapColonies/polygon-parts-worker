@@ -28,6 +28,10 @@ const clear = (): void => {
   mockConfig = {};
 };
 
+const getConfigValues = (): Record<string, unknown> => {
+  return mockConfig;
+};
+
 const setConfigValues = (values: Record<string, unknown>): void => {
   getMock.mockImplementation((key: string) => {
     return (get as (object: Record<string, unknown>, path: string) => unknown)(values, key);
@@ -146,4 +150,4 @@ const registerDefaultConfig = (): void => {
   setConfigValues(configValues);
 };
 
-export { getMock, hasMock, configMock, setValue, clear, init, setConfigValues, registerDefaultConfig };
+export { getMock, hasMock, configMock, getConfigValues, setValue, clear, init, setConfigValues, registerDefaultConfig };
