@@ -1,5 +1,5 @@
 import path from 'path';
-import nock, { cleanAll } from 'nock';
+import nock from 'nock';
 import ogr2ogr from 'ogr2ogr';
 import fsMock, { restore as restoreMockFs } from 'mock-fs';
 import { v4 as uuidv4 } from 'uuid';
@@ -39,7 +39,7 @@ describe('ExportJobHandler', () => {
   afterEach(() => {
     jest.clearAllTimers();
     jest.resetAllMocks();
-    cleanAll();
+    nock.cleanAll();
     restoreMockFs();
   });
 

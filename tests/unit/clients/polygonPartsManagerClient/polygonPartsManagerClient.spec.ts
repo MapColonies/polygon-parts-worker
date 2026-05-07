@@ -1,4 +1,4 @@
-import nock, { cleanAll } from 'nock';
+import nock from 'nock';
 import { PolygonPartsPayload, PolygonPartsChunkValidationResult, ValidationErrorType } from '@map-colonies/raster-shared';
 import { loggerMock, tracerMock } from '../../mocks/telemetryMock';
 import { configMock, registerDefaultConfig } from '../../mocks/configMock';
@@ -18,7 +18,7 @@ describe('PolygonPartsManagerClient', () => {
   });
 
   afterEach(() => {
-    cleanAll();
+    nock.cleanAll();
     jest.resetAllMocks();
   });
 

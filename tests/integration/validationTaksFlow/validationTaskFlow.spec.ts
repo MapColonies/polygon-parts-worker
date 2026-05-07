@@ -1,5 +1,5 @@
 import { existsSync } from 'fs';
-import { cleanAll } from 'nock';
+import nock from 'nock';
 import { DependencyContainer } from 'tsyringe';
 import { StatusCodes } from 'http-status-codes';
 import { PolygonPartsChunkValidationResult } from '@map-colonies/raster-shared';
@@ -49,7 +49,7 @@ describe('Validation Task Flow', () => {
   });
 
   afterEach(() => {
-    cleanAll();
+    nock.cleanAll();
     jest.clearAllMocks();
     resetContainer();
   });

@@ -1,4 +1,4 @@
-import nock, { cleanAll } from 'nock';
+import nock from 'nock';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
 import { failTaskRequest, newJobResponseMock, updatedJobRequest } from '../mocks/jobsMocks';
@@ -27,7 +27,7 @@ describe('JobProcessor', () => {
 
   afterEach(() => {
     jest.clearAllTimers();
-    cleanAll();
+    nock.cleanAll();
   });
 
   describe('start', () => {

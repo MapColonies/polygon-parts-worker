@@ -1,4 +1,4 @@
-import nock, { cleanAll } from 'nock';
+import nock from 'nock';
 import { loggerMock, tracerMock } from '../../mocks/telemetryMock';
 import { configMock, registerDefaultConfig } from '../../mocks/configMock';
 import { CallbackClient } from '../../../../src/clients/callbackClient';
@@ -15,7 +15,7 @@ describe('callbackClient', () => {
   });
 
   afterEach(() => {
-    cleanAll();
+    nock.cleanAll();
     jest.clearAllMocks();
   });
 
