@@ -1,10 +1,8 @@
 import type { Logger } from '@map-colonies/js-logger';
 import type { CallbackResponse } from '@map-colonies/raster-shared';
-import type { IHttpRetryConfig } from '@map-colonies/mc-utils';
-import { HttpClient } from '@map-colonies/mc-utils';
+import { HttpClient, type IHttpRetryConfig } from '@map-colonies/mc-utils';
 import { inject, injectable } from 'tsyringe';
-import { context, trace } from '@opentelemetry/api';
-import type { Tracer } from '@opentelemetry/api';
+import { context, trace, type Tracer } from '@opentelemetry/api';
 import type { ConfigType } from '../common/config';
 import { SERVICES } from '../common/constants';
 

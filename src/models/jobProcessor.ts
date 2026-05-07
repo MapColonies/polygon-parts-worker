@@ -69,7 +69,7 @@ export class JobProcessor {
         }
       } catch (error) {
         const errMessage = this.getErrorMessages(error, jobAndTask);
-        this.logger.error({ msg: 'error during job processing', reason: errMessage });
+        this.logger.error({ msg: 'error during job processing', err: errMessage });
 
         if (!jobAndTask) {
           continue;

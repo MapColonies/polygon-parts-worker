@@ -17,12 +17,6 @@ import { ExportJobHandler } from './models/export/exportJobHandler';
 import type { IS3Config } from './common/storage/s3Service';
 import { getConfig, type ConfigType } from './common/config';
 
-interface LoggerBootstrapConfig {
-  level: string;
-  prettyPrint: boolean;
-  opentelemetryOptions?: Record<string, unknown>;
-}
-
 const queueClientFactory = (container: DependencyContainer): QueueClient => {
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
   const config = container.resolve<ConfigType>(SERVICES.CONFIG);
@@ -78,7 +72,7 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
   const configInstance = getConfig();
   const handlerTokens = getHandlerTokens(configInstance);
 
-  const loggerConfig = configInstance.get('telemetry.logger') as LoggerBootstrapConfig;
+  const loggerConfig = configInstance.get('telemetry.logger');
   const logger = await jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, mixin: getOtelMixin() });
 
   const metricsRegistry = new Registry();
@@ -104,8 +98,8 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
       token: SERVICES.METRICS_REGISTRY,
       provider: {
         useFactory: instanceCachingFactory((c) => {
-          const cfg = c.resolve<ConfigType>(SERVICES.CONFIG);
-          const useMetrics = cfg.get('telemetry.metrics.enabled') as unknown as boolean;
+          const config = c.resolve<ConfigType>(SERVICES.CONFIG);
+          const useMetrics = config.get('telemetry.metrics.enabled') as unknown as boolean;
           if (useMetrics) {
             metricsRegistry.setDefaultLabels({
               app: SERVICE_NAME,

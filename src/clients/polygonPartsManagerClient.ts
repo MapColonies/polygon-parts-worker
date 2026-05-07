@@ -1,5 +1,4 @@
-import { HttpClient } from '@map-colonies/mc-utils';
-import type { IHttpRetryConfig } from '@map-colonies/mc-utils';
+import { HttpClient, type IHttpRetryConfig } from '@map-colonies/mc-utils';
 import { inject, injectable } from 'tsyringe';
 import type { Logger } from '@map-colonies/js-logger';
 import type { Tracer } from '@opentelemetry/api';
