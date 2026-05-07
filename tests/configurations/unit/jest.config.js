@@ -3,7 +3,7 @@ const { compilerOptions } = require('../../../tsconfig.json');
 
 module.exports = {
   transform: {
-    '^.+\\.(t|j)sx?$': ['@swc/jest'],
+    '^.+\\.ts$': ['@swc/jest'],
   },
   transformIgnorePatterns: ['/node_modules/(?!(@map-colonies|concaveman|rbush|quickselect|tinyqueue|robust-predicates|@turf)/)'],
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>/' }),
@@ -35,7 +35,7 @@ module.exports = {
       branches: 78,
       functions: 80,
       lines: 80,
-      statements: -12,
+      statements: 80,
     },
   },
 };

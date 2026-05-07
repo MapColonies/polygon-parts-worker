@@ -8,9 +8,9 @@ await initConfig();
 
 const config = getConfig();
 
-const tracing = tracingFactory({
-  ...config.get('telemetry.tracing'),
-  ...config.get('telemetry.shared'),
-});
+const tracingConfig = config.get('telemetry.tracing');
+const sharedConfig = config.get('telemetry.shared');
+
+const tracing = tracingFactory({ ...tracingConfig, ...sharedConfig });
 
 tracing.start();

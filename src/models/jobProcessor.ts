@@ -1,7 +1,6 @@
 import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import type { Logger } from '@map-colonies/js-logger';
-import type { ITaskResponse } from '@map-colonies/mc-priority-queue';
-import { OperationStatus, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import { OperationStatus, TaskHandler as QueueClient, type ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { withSpanAsyncV4, withSpanV4 } from '@map-colonies/telemetry';
 import type { Tracer } from '@opentelemetry/api';
 import { inject, injectable } from 'tsyringe';
