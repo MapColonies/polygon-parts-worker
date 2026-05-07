@@ -1,5 +1,4 @@
 import { existsSync } from 'fs';
-import { cloneDeep, get, set } from 'lodash';
 import { cleanAll } from 'nock';
 import { DependencyContainer } from 'tsyringe';
 import { StatusCodes } from 'http-status-codes';
@@ -10,12 +9,12 @@ import { faker } from '@faker-js/faker';
 import { JobProcessor } from '../../../src/models/jobProcessor';
 import { getApp } from '../../../src/app';
 import { IngestionJobHandler } from '../../../src/models/ingestion/ingestionHandler';
-import { initConfig, type ConfigType } from '../../../src/common/config';
+import { initConfig } from '../../../src/common/config';
 import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsManagerClient';
 import { ShapefileNotFoundError } from '../../../src/common/errors';
 import { JobTrackerClient } from '../../../src/clients/jobTrackerClient';
-import { configMock, getConfigValues, registerDefaultConfig } from '../../unit/mocks/configMock';
-import { createIngestionJob, createTask, integrationJobHandlerTokens } from '../fixtures/testFixturesFactory';
+import { configMock, registerDefaultConfig, setValue } from '../../unit/mocks/configMock';
+import { createIngestionJob, createTask, handlers } from '../fixtures/testFixturesFactory';
 import { HttpMockHelper } from '../mocks/httpMocks';
 import { CallbackClient } from '../../../src/clients/callbackClient';
 import { getTestContainerConfig, resetContainer } from '../testContainerConfig';
@@ -30,25 +29,22 @@ describe('Validation Task Flow', () => {
   let shpReader: ShapefileChunkReader;
   let testContainer: DependencyContainer;
   let taskTypesToProcess: string[];
-  let testConfigData: Record<string, unknown>;
 
   beforeAll(async () => {
-    await initConfig(true);
     await setUpValidationReportsDir(reportsDirPath);
     shpReader = new ShapefileChunkReader({ maxVerticesPerChunk: maxVertices });
   });
 
   beforeEach(async () => {
-    testConfigData = cloneDeep(getConfigValues());
-    const testConfigProxy = {
-      get: <T>(key: string): T => get(testConfigData, key) as T,
-    } as ConfigType;
+    await initConfig(true);
+    registerDefaultConfig();
     const [, container] = await getApp({
-      override: getTestContainerConfig(testConfigProxy),
+      override: getTestContainerConfig(configMock),
+      useChild: false,
     });
     testContainer = container;
-    const validationTaskType = testConfigProxy.get('jobDefinitions.tasks.validation.type') as unknown as string;
-    const polygonPartsTaskType = testConfigProxy.get('jobDefinitions.tasks.polygonParts.type') as unknown as string;
+    const validationTaskType = configMock.get('jobDefinitions.tasks.validation.type') as unknown as string;
+    const polygonPartsTaskType = configMock.get('jobDefinitions.tasks.polygonParts.type') as unknown as string;
     taskTypesToProcess = [validationTaskType, polygonPartsTaskType];
   });
 
@@ -63,46 +59,43 @@ describe('Validation Task Flow', () => {
   });
 
   describe('Happy Path - Successful Validation', () => {
-    test.each([integrationJobHandlerTokens.NEW, integrationJobHandlerTokens.UPDATE, integrationJobHandlerTokens.SWAP])(
-      'should complete validation task successfully for %s handler',
-      async (type) => {
-        const job = createIngestionJob({
-          shapefilePath: '/valid/137_parts_valid/ShapeMetadata.shp',
-          type,
-        });
+    test.each([handlers.NEW, handlers.UPDATE, handlers.SWAP])('should complete validation task successfully for %s handler', async (type) => {
+      const job = createIngestionJob({
+        shapefilePath: '/valid/137_parts_valid/ShapeMetadata.shp',
+        type,
+      });
 
-        const validationResult: PolygonPartsChunkValidationResult = {
-          parts: [],
-          smallHolesCount: 0,
-        };
-        const expectedReportPath = reportPathBuilder(reportsDirPath, job.id);
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: [],
+        smallHolesCount: 0,
+      };
+      const expectedReportPath = reportPathBuilder(reportsDirPath, job.id);
 
-        const task = createTask({ jobId: job.id });
+      const task = createTask({ jobId: job.id });
 
-        HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
-        HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
-        HttpMockHelper.mockJobManagerGetJob(job.id, job);
-        HttpMockHelper.mockPolygonPartsValidate(validationResult);
-        HttpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
-        HttpMockHelper.mockJobTrackerFinishTask(task.id);
-        HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
-        HttpMockHelper.mockJobManagerGetJob(job.id, job, true);
+      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
+      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
+      HttpMockHelper.mockJobManagerGetJob(job.id, job);
+      HttpMockHelper.mockPolygonPartsValidate(validationResult);
+      HttpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
+      HttpMockHelper.mockJobTrackerFinishTask(task.id);
+      HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
+      HttpMockHelper.mockJobManagerGetJob(job.id, job, true);
 
-        const ingestionHandlerProcessJobSpy = jest.spyOn(IngestionJobHandler.prototype, 'processJob');
-        const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validate');
-        const jobTrackerNotifySpy = jest.spyOn(JobTrackerClient.prototype, 'notifyOnFinishedTask');
+      const ingestionHandlerProcessJobSpy = jest.spyOn(IngestionJobHandler.prototype, 'processJob');
+      const polygonPartsManagerValidateSpy = jest.spyOn(PolygonPartsManagerClient.prototype, 'validate');
+      const jobTrackerNotifySpy = jest.spyOn(JobTrackerClient.prototype, 'notifyOnFinishedTask');
 
-        const processor = testContainer.resolve(JobProcessor);
+      const processor = testContainer.resolve(JobProcessor);
 
-        await processor.start({ runOnce: true });
+      await processor.start({ runOnce: true });
 
-        expect(existsSync(expectedReportPath)).toBe(false); // Report file should not be created in happy path
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        expect(ingestionHandlerProcessJobSpy).toHaveBeenCalledWith(expect.objectContaining({ ...job, expirationDate: expect.any(String) }), task);
-        expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(8); // 8 chunks created from the shapefile
-        expect(jobTrackerNotifySpy).toHaveBeenCalledWith(task.id);
-      }
-    );
+      expect(existsSync(expectedReportPath)).toBe(false); // Report file should not be created in happy path
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      expect(ingestionHandlerProcessJobSpy).toHaveBeenCalledWith(expect.objectContaining({ ...job, expirationDate: expect.any(String) }), task);
+      expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(8); // 8 chunks created from the shapefile
+      expect(jobTrackerNotifySpy).toHaveBeenCalledWith(task.id);
+    });
 
     it('should complete validation task successfully for shapefile with producer data', async () => {
       const job = createIngestionJob({
@@ -145,7 +138,7 @@ describe('Validation Task Flow', () => {
   describe('Sad Path - Validation Failures', () => {
     test.each(failedValidationTestCases)('should create report with $description', async (testCase) => {
       if (testCase.chunkMaxVertices !== undefined) {
-        set(testConfigData, 'jobDefinitions.tasks.validation.chunkMaxVertices', testCase.chunkMaxVertices);
+        setValue('jobDefinitions.tasks.validation.chunkMaxVertices', testCase.chunkMaxVertices);
       }
 
       const jobId = faker.string.uuid();

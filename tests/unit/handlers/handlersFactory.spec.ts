@@ -10,9 +10,9 @@ import { loggerMock } from '../mocks/telemetryMock';
 import { initConfig } from '../../../src/common/config';
 
 jest.mock('fs', () => {
-  const actual = jest.requireActual<typeof import('fs')>('fs');
+  const actualFsModule = jest.requireActual<typeof import('fs')>('fs');
   return {
-    ...actual,
+    ...actualFsModule,
     accessSync: jest.fn(),
   };
 });

@@ -12,9 +12,9 @@ jest.mock('@aws-sdk/client-s3');
 jest.mock('@aws-sdk/lib-storage');
 
 jest.mock('fs', () => {
-  const actual = jest.requireActual<typeof import('fs')>('fs');
+  const actualFsModule = jest.requireActual<typeof import('fs')>('fs');
   return {
-    ...actual,
+    ...actualFsModule,
     createReadStream: jest.fn(),
   };
 });

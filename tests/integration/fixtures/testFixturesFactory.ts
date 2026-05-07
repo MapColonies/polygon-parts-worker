@@ -10,9 +10,9 @@ import { getHandlerTokens } from '../../../src/common/constants';
 registerDefaultConfig();
 
 /** Job handler type strings as defined in the integration test config. */
-const integrationJobHandlerTokens = getHandlerTokens(configMock);
+const handlers = getHandlerTokens(configMock);
 
-export { integrationJobHandlerTokens };
+export { handlers };
 
 export interface CreateJobOptions {
   jobId?: string;
@@ -38,7 +38,7 @@ export interface CreateTaskOptions {
 
 export function createIngestionJob(options: CreateJobOptions = {}): IJobResponse<IngestionJobParams, unknown> {
   const jobId = options.jobId ?? randomUUID();
-  const type = options.type ?? integrationJobHandlerTokens.NEW;
+  const type = options.type ?? handlers.NEW;
   const resourceId = options.resourceId ?? 'test_product_id';
   const version = options.version ?? '1.0';
   const productType = options.productType ?? ProductType.ORTHOPHOTO;

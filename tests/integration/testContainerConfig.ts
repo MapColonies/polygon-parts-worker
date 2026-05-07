@@ -1,10 +1,10 @@
 import { container } from 'tsyringe';
 import { SERVICES } from '../../src/common/constants';
 import type { InjectionObject } from '../../src/common/dependencyRegistration';
-import { registerDefaultConfig } from '../unit/mocks/configMock';
+import { configMock, registerDefaultConfig } from '../unit/mocks/configMock';
 import { loggerMock, tracerMock } from '../unit/mocks/telemetryMock';
 
-function getTestContainerConfig(configProxy: unknown, extra?: InjectionObject<unknown>[]): InjectionObject<unknown>[] {
+function getTestContainerConfig(configProxy: unknown = configMock, extra?: InjectionObject<unknown>[]): InjectionObject<unknown>[] {
   registerDefaultConfig();
 
   return [
