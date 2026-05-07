@@ -30,10 +30,9 @@ data:
   {{ if $tracing.enabled }}
   TELEMETRY_TRACING_URL: {{ $tracing.url }}
   {{ end }}
-  {{ if $metrics.enabled }}
-  TELEMETRY_METRICS_ENABLED: {{ $metrics.enabled | quote }}
-  TELEMETRY_METRICS_URL: {{ $metrics.url }}
-  {{ end }}
+  MCLABELS_PROMETHEUS_ENABLED: {{ .Values.mclabels.prometheus.enabled | quote }}
+  MCLABELS_PROMETHEUS_PORT: {{ .Values.mclabels.prometheus.port | quote }}
+  MCLABELS_PROMETHEUS_BUCKETS: {{ .Values.mclabels.prometheus.buckets | toJson | quote }}
   JOB_MANAGER_BASE_URL: {{ $serviceUrls.jobManager | quote}}
   HEARTBEAT_BASE_URL: {{ $serviceUrls.heartbeatManager | quote}}
   POLYGON_PARTS_MANAGER_BASE_URL: {{ $serviceUrls.polygonPartsManager | quote}}

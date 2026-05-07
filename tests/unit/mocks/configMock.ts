@@ -56,10 +56,11 @@ const registerDefaultConfig = (): void => {
         isEnabled: false,
         url: 'http://localhost:4318/v1/traces',
       },
-      metrics: {
+    },
+    mclabels: {
+      prometheus: {
         enabled: false,
-        url: 'http://localhost:4318/v1/metrics',
-        interval: 5,
+        port: 8080,
         buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 15, 50, 250, 500],
       },
     },

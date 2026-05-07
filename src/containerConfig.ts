@@ -4,7 +4,7 @@ import { trace } from '@opentelemetry/api';
 import { DependencyContainer } from 'tsyringe/dist/typings/types';
 import { jsLogger } from '@map-colonies/js-logger';
 import type { Logger } from '@map-colonies/js-logger';
-import { instanceCachingFactory, instancePerContainerCachingFactory } from 'tsyringe';
+import { instancePerContainerCachingFactory } from 'tsyringe';
 import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import type { IHttpRetryConfig } from '@map-colonies/mc-utils';
 import { Registry } from 'prom-client';
@@ -83,6 +83,7 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
     { token: SERVICES.CONFIG, provider: { useValue: configInstance } },
     { token: SERVICES.LOGGER, provider: { useValue: logger } },
     { token: SERVICES.TRACER, provider: { useValue: tracer } },
+    { token: SERVICES.METRICS, provider: { useValue: metricsRegistry } },
     { token: SERVICES.QUEUE_CLIENT, provider: { useFactory: instancePerContainerCachingFactory(queueClientFactory) } },
     { token: handlerTokens.NEW, provider: { useClass: IngestionJobHandler } },
     { token: handlerTokens.UPDATE, provider: { useClass: IngestionJobHandler } },
@@ -92,22 +93,6 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
       token: SERVICES.S3CONFIG,
       provider: {
         useValue: s3Config,
-      },
-    },
-    {
-      token: SERVICES.METRICS_REGISTRY,
-      provider: {
-        useFactory: instanceCachingFactory((c) => {
-          const config = c.resolve<ConfigType>(SERVICES.CONFIG);
-          const useMetrics = config.get('telemetry.metrics.enabled') as unknown as boolean;
-          if (useMetrics) {
-            metricsRegistry.setDefaultLabels({
-              app: SERVICE_NAME,
-            });
-            return metricsRegistry;
-          }
-          return undefined;
-        }),
       },
     },
     {

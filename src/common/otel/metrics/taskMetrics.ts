@@ -30,10 +30,10 @@ export class TaskMetrics {
   public constructor(
     @inject(SERVICES.CONFIG) private readonly config: ConfigType,
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(SERVICES.METRICS_REGISTRY) private readonly registry?: Registry
+    @inject(SERVICES.METRICS) private readonly registry?: Registry
   ) {
-    this.metricsEnabled = this.config.get('telemetry.metrics.enabled') as unknown as boolean;
-    this.taskBuckets = this.config.get('telemetry.metrics.buckets') as unknown as number[];
+    this.metricsEnabled = this.config.get('mclabels.prometheus.enabled') as unknown as boolean;
+    this.taskBuckets = this.config.get('mclabels.prometheus.buckets') as unknown as number[];
 
     if (this.registry && this.metricsEnabled) {
       this.initializeMetrics();

@@ -22,9 +22,9 @@ export class ShapefileMetrics {
   public constructor(
     @inject(SERVICES.CONFIG) private readonly config: ConfigType,
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(SERVICES.METRICS_REGISTRY) private readonly metricsRegistry?: Registry
+    @inject(SERVICES.METRICS) private readonly metricsRegistry?: Registry
   ) {
-    this.metricsEnabled = this.config.get('telemetry.metrics.enabled') as unknown as boolean;
+    this.metricsEnabled = this.config.get('mclabels.prometheus.enabled') as unknown as boolean;
 
     if (this.metricsRegistry && this.metricsEnabled) {
       this.initializeMetrics();

@@ -34,6 +34,22 @@
       "interval": "TELEMETRY_METRICS_INTERVAL"
     }
   },
+  "mclabels": {
+    "prometheus": {
+      "enabled": {
+        "__name": "MCLABELS_PROMETHEUS_ENABLED",
+        "__format": "boolean"
+      },
+      "port": {
+        "__name": "MCLABELS_PROMETHEUS_PORT",
+        "__format": "number"
+      },
+      "buckets": {
+        "__name": "MCLABELS_PROMETHEUS_BUCKETS",
+        "__format": "json"
+      }
+    }
+  },
   "server": {
     "port": {
       "__name": "SERVER_PORT",

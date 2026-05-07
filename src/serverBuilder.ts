@@ -11,13 +11,13 @@ export class ServerBuilder {
 
   public constructor(
     @inject(SERVICES.CONFIG) private readonly config: ConfigType,
-    @inject(SERVICES.METRICS_REGISTRY) private readonly registry?: Registry
+    @inject(SERVICES.METRICS) private readonly registry?: Registry
   ) {
     this.serverInstance = express();
   }
 
   public build(): express.Application {
-    if ((this.config.get('telemetry.metrics.enabled') as unknown as boolean) && this.registry) {
+    if ((this.config.get('mclabels.prometheus.enabled') as unknown as boolean) && this.registry) {
       this.serverInstance.use(collectMetricsExpressMiddleware({ registry: this.registry }));
     }
 
