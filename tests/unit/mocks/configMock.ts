@@ -1,29 +1,24 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
-
-import config, { IConfig, IUtil } from 'config';
-import get from 'lodash.get';
-import has from 'lodash.has';
+import { get, set } from 'lodash';
+import type { ConfigType } from '../../../src/common/config';
 
 let mockConfig: Record<string, unknown> = {};
 const getMock = jest.fn();
 const hasMock = jest.fn();
-const utiMock = jest.fn() as unknown as IUtil;
 
-const configMock: IConfig = {
+const configMock = {
   get: getMock,
-  has: hasMock,
-  util: utiMock,
-};
+} as unknown as ConfigType;
 
 const init = (): void => {
   getMock.mockImplementation((key: string): unknown => {
-    return mockConfig[key] ?? config.get(key);
+    return (get as (object: Record<string, unknown>, path: string) => unknown)(mockConfig, key);
   });
 };
 
 const setValue = (key: string | Record<string, unknown>, value?: unknown): void => {
   if (typeof key === 'string') {
-    mockConfig[key] = value;
+    set(mockConfig, key, value);
   } else {
     mockConfig = { ...mockConfig, ...key };
   }
@@ -33,29 +28,39 @@ const clear = (): void => {
   mockConfig = {};
 };
 
+const getConfigValues = (): Record<string, unknown> => {
+  return mockConfig;
+};
+
 const setConfigValues = (values: Record<string, unknown>): void => {
   getMock.mockImplementation((key: string) => {
-    const value: unknown = (get as (object: Record<string, unknown>, path: string) => unknown)(values, key) ?? config.get(key);
-    return value;
+    return (get as (object: Record<string, unknown>, path: string) => unknown)(values, key);
   });
-  hasMock.mockImplementation((key: string) => (has as (object: Record<string, unknown>, path: string) => boolean)(values, key) || config.has(key));
+  hasMock.mockImplementation((key: string) => {
+    return (get as (object: Record<string, unknown>, path: string) => unknown)(values, key) !== undefined;
+  });
 };
 
 const registerDefaultConfig = (): void => {
-  const config = {
+  const configValues = {
     telemetry: {
       logger: {
         level: 'info',
         prettyPrint: false,
+        opentelemetryOptions: {
+          enabled: false,
+        },
       },
+      shared: {},
       tracing: {
-        enabled: false,
+        isEnabled: false,
         url: 'http://localhost:4318/v1/traces',
       },
-      metrics: {
+    },
+    mclabels: {
+      prometheus: {
         enabled: false,
-        url: 'http://localhost:4318/v1/metrics',
-        interval: 5,
+        port: 8080,
         buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 15, 50, 250, 500],
       },
     },
@@ -78,7 +83,8 @@ const registerDefaultConfig = (): void => {
       delay: 'exponential',
       shouldResetTimeout: true,
     },
-    s3: {
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- matches config key `S3`
+    S3: {
       accessKeyId: 'accessKeyId',
       secretAccessKey: 'secretAccessKey',
       endpointUrl: 'http://localhost:9000',
@@ -102,6 +108,11 @@ const registerDefaultConfig = (): void => {
     polygonPartsManager: {
       baseUrl: 'http://polygon-parts-manager-test',
     },
+    downloadServer: {
+      publicDns: 'http://download-test',
+      reportsDownloadPath: 'downloads/validation-reports',
+    },
+    reportStorageProvider: 'FS',
     gpkgsLocation: '/app/tiles_outputs/gpkgs',
     ingestionSourcesDirPath: 'tests/integration/shapeFiles',
     reportsPath: 'tests/integration/validation-reports',
@@ -136,7 +147,8 @@ const registerDefaultConfig = (): void => {
     },
   };
 
-  setConfigValues(config);
+  mockConfig = configValues;
+  setConfigValues(configValues);
 };
 
-export { getMock, hasMock, configMock, setValue, clear, init, setConfigValues, registerDefaultConfig };
+export { getMock, hasMock, configMock, getConfigValues, setValue, clear, init, setConfigValues, registerDefaultConfig };

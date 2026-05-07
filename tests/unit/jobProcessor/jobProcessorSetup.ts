@@ -18,13 +18,13 @@ const mockProcessJob = jest.fn() as MockProcessJob;
 registerDefaultConfig();
 const mockQueueClient = new QueueClient(
   loggerMock,
-  configMock.get<string>('jobManagement.config.jobManagerBaseUrl'),
-  configMock.get<string>('jobManagement.config.heartbeat.baseUrl'),
-  configMock.get<number>('jobManagement.config.dequeueIntervalMs'),
-  configMock.get<number>('jobManagement.config.heartbeat.intervalMs')
+  configMock.get('jobManagement.config.jobManagerBaseUrl') as unknown as string,
+  configMock.get('jobManagement.config.heartbeat.baseUrl') as unknown as string,
+  configMock.get('jobManagement.config.dequeueIntervalMs') as unknown as number,
+  configMock.get('jobManagement.config.heartbeat.intervalMs') as unknown as number
 );
 
-const mockS3Config = configMock.get<IS3Config>('s3');
+const mockS3Config = configMock.get('S3') as IS3Config;
 
 const mockTracer = trace.getTracer('testingTracer');
 const mockPolygonPartsClient = new PolygonPartsManagerClient(loggerMock, configMock, mockTracer);

@@ -1,14 +1,15 @@
 import { setTimeout as setTimeoutPromise } from 'timers/promises';
-import { Logger } from '@map-colonies/js-logger';
-import { ITaskResponse, OperationStatus, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import type { Logger } from '@map-colonies/js-logger';
+import { OperationStatus, TaskHandler as QueueClient, type ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { withSpanAsyncV4, withSpanV4 } from '@map-colonies/telemetry';
-import { Tracer } from '@opentelemetry/api';
+import type { Tracer } from '@opentelemetry/api';
 import { inject, injectable } from 'tsyringe';
 import { JobTrackerClient } from '../clients/jobTrackerClient';
 import { SERVICES } from '../common/constants';
 import { TaskMetricLabels, TaskMetrics } from '../common/otel/metrics/taskMetrics';
 import { ReachedMaxTaskAttemptsError, UnrecoverableTaskError } from '../common/errors';
-import { IConfig, IJobAndTaskResponse, IJobHandler, IPermittedJobTypes, ITasksConfig } from '../common/interfaces';
+import type { IJobAndTaskResponse, IJobHandler, IPermittedJobTypes, ITasksConfig } from '../common/interfaces';
+import type { ConfigType } from '../common/config';
 import { initJobHandler } from './handlerFactory';
 
 @injectable()
@@ -23,17 +24,17 @@ export class JobProcessor {
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.TRACER) public readonly tracer: Tracer,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
-    @inject(SERVICES.CONFIG) private readonly config: IConfig,
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType,
     @inject(JobTrackerClient) private readonly jobTrackerClient: JobTrackerClient,
     @inject(TaskMetrics) private readonly taskMetrics: TaskMetrics
   ) {
-    this.dequeueIntervalMs = this.config.get<number>('jobManagement.config.dequeueIntervalMs');
-    const ingestionNew = this.config.get<string>('jobDefinitions.jobs.new.type');
-    const ingestionUpdate = this.config.get<string>('jobDefinitions.jobs.update.type');
-    const ingestionSwapUpdate = this.config.get<string>('jobDefinitions.jobs.swapUpdate.type');
-    const exportJob = this.config.get<string>('jobDefinitions.jobs.export.type');
+    this.dequeueIntervalMs = this.config.get('jobManagement.config.dequeueIntervalMs') as unknown as number;
+    const ingestionNew = this.config.get('jobDefinitions.jobs.new.type') as unknown as string;
+    const ingestionUpdate = this.config.get('jobDefinitions.jobs.update.type') as unknown as string;
+    const ingestionSwapUpdate = this.config.get('jobDefinitions.jobs.swapUpdate.type') as unknown as string;
+    const exportJob = this.config.get('jobDefinitions.jobs.export.type') as unknown as string;
     this.jobTypesToProcess = { ingestionNew, ingestionUpdate, ingestionSwapUpdate, exportJob };
-    this.configuredTasks = this.config.get<ITasksConfig>('jobDefinitions.tasks');
+    this.configuredTasks = this.config.get('jobDefinitions.tasks') as unknown as ITasksConfig;
     this.taskTypesToProcess = this.setUpTaskTypesToProcess(this.configuredTasks);
   }
 
@@ -67,7 +68,7 @@ export class JobProcessor {
         }
       } catch (error) {
         const errMessage = this.getErrorMessages(error, jobAndTask);
-        this.logger.error({ msg: 'error during job processing', error: errMessage });
+        this.logger.error({ msg: 'error during job processing', err: errMessage });
 
         if (!jobAndTask) {
           continue;
@@ -102,7 +103,7 @@ export class JobProcessor {
 
     for (const jobType of jobTypes) {
       for (const taskType of this.taskTypesToProcess) {
-        this.logger.debug({ msg: `dequeuing` }, jobType, taskType);
+        this.logger.debug({ msg: 'dequeuing', jobType, taskType });
         const task = await this.queueClient.dequeue(jobType, taskType);
         if (task) {
           this.logger.info({ msg: `getting task's job ${task.id}`, task });

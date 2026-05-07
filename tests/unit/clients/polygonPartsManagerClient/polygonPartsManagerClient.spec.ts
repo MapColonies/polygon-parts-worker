@@ -1,7 +1,6 @@
-import jsLogger from '@map-colonies/js-logger';
 import nock from 'nock';
 import { PolygonPartsPayload, PolygonPartsChunkValidationResult, ValidationErrorType } from '@map-colonies/raster-shared';
-import { tracerMock } from '../../mocks/telemetryMock';
+import { loggerMock, tracerMock } from '../../mocks/telemetryMock';
 import { configMock, registerDefaultConfig } from '../../mocks/configMock';
 import { PolygonPartsManagerClient } from '../../../../src/clients/polygonPartsManagerClient';
 import { createFakePolygonPartsPayload } from './polygonPartsManagerClient.data';
@@ -13,12 +12,13 @@ describe('PolygonPartsManagerClient', () => {
 
   beforeEach(() => {
     registerDefaultConfig();
-    baseUrl = configMock.get<string>('polygonPartsManager.baseUrl');
+    baseUrl = configMock.get('polygonPartsManager.baseUrl') as unknown as string;
     validateEndpoint = '/polygonParts/validate';
-    polygonPartsManagerClient = new PolygonPartsManagerClient(jsLogger({ enabled: false }), configMock, tracerMock);
+    polygonPartsManagerClient = new PolygonPartsManagerClient(loggerMock, configMock, tracerMock);
   });
 
   afterEach(() => {
+    // eslint-disable-next-line import-x/no-named-as-default-member -- prefer nock.cleanAll() for consistency
     nock.cleanAll();
     jest.resetAllMocks();
   });

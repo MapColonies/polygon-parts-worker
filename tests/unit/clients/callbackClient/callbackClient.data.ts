@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { CallbackResponse, RasterProductTypes } from '@map-colonies/raster-shared';
 
-export const ingestionJobTypes = ['Ingestion_New', 'Ingestion_Update', 'Swath_Update'] as const;
+export const ingestionJobTypes = ['Ingestion_New', 'Ingestion_Update', 'Ingestion_Swap_Update'] as const;
 export const callbackResponse: CallbackResponse<unknown> = {
   jobId: faker.string.uuid(),
   taskId: faker.string.uuid(),

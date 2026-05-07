@@ -1,17 +1,30 @@
-import jsLogger from '@map-colonies/js-logger';
+import type { Logger } from '@map-colonies/js-logger';
 import { trace } from '@opentelemetry/api';
 import { ShapefileMetrics } from '../../../src/common/otel/metrics/shapeFileMetrics';
 import { TaskMetrics } from '../../../src/common/otel/metrics/taskMetrics';
 
-export const tracerMock = trace.getTracer('test');
-export const loggerMock = jsLogger({ enabled: false });
+const tracerMock = trace.getTracer('test');
 
-export const shapeFileMetricsMock = {
+const loggerImpl = {
+  trace: jest.fn(),
+  debug: jest.fn(),
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+  fatal: jest.fn(),
+  child: jest.fn(),
+};
+
+loggerImpl.child.mockImplementation(() => loggerImpl);
+
+const loggerMock = loggerImpl as unknown as Logger;
+
+const shapeFileMetricsMock = {
   recordChunk: jest.fn(),
   recordFile: jest.fn(),
 } as unknown as jest.Mocked<ShapefileMetrics>;
 
-export const taskMetricsMock = {
+const taskMetricsMock = {
   recordTaskProcessing: jest.fn(),
   incrementActiveTasks: jest.fn(),
   decrementActiveTasks: jest.fn(),
@@ -21,3 +34,5 @@ export const taskMetricsMock = {
     return fn();
   }),
 } as unknown as jest.Mocked<TaskMetrics>;
+
+export { loggerMock, shapeFileMetricsMock, taskMetricsMock, tracerMock };

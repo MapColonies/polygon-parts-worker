@@ -1,7 +1,12 @@
+const { pathsToModuleNameMapper } = require('ts-jest');
+const { compilerOptions } = require('../../../tsconfig.json');
+
 module.exports = {
   transform: {
-    '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.test.json' }],
+    '^.+\\.(t|j)sx?$': ['@swc/jest'],
   },
+  transformIgnorePatterns: ['/node_modules/(?!(@map-colonies|concaveman|rbush|quickselect|tinyqueue|robust-predicates|@turf)/)'],
+  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>/' }),
   coverageReporters: ['text', 'html'],
   collectCoverage: true,
   collectCoverageFrom: [
@@ -12,7 +17,7 @@ module.exports = {
     '!**/models/export/**',
     '!<rootDir>/src/*',
     '!*/schemas/**',
-    '!*/utils/**', //TODO: remove later (currently utils are related explicitly to export domain and there isn't currently integration tests for it)
+    '!*/utils/**',
   ],
   coverageDirectory: '<rootDir>/coverage',
   rootDir: '../../../.',
@@ -28,12 +33,13 @@ module.exports = {
   moduleDirectories: ['node_modules', 'src'],
   preset: 'ts-jest',
   testEnvironment: 'node',
+  modulePathIgnorePatterns: ['<rootDir>/dist/'],
   coverageThreshold: {
     global: {
       branches: 80,
       functions: 80,
       lines: 80,
-      statements: -41,
+      statements: 80,
     },
   },
 };

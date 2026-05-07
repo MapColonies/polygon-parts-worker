@@ -1,9 +1,9 @@
 import nock from 'nock';
-import config from 'config';
 import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { PolygonPartsChunkValidationResult } from '@map-colonies/raster-shared';
 import { StatusCodes } from 'http-status-codes';
-import { HANDLERS } from '../../../src/common/constants';
+import { handlers } from '../fixtures/testFixturesFactory';
+import { configMock } from '../../unit/mocks/configMock';
 
 export interface MockHttpUrls {
   polygonPartsManagerUrl: string;
@@ -13,10 +13,10 @@ export interface MockHttpUrls {
 }
 
 export const mockUrls: MockHttpUrls = {
-  polygonPartsManagerUrl: config.get<string>('polygonPartsManager.baseUrl'),
-  jobManagerUrl: config.get<string>('jobManagement.config.jobManagerBaseUrl'),
-  jobTrackerUrl: config.get<string>('jobManagement.config.jobTracker.baseUrl'),
-  heartbeatUrl: config.get<string>('jobManagement.config.heartbeat.baseUrl'),
+  polygonPartsManagerUrl: configMock.get('polygonPartsManager.baseUrl') as unknown as string,
+  jobManagerUrl: configMock.get('jobManagement.config.jobManagerBaseUrl') as unknown as string,
+  jobTrackerUrl: configMock.get('jobManagement.config.jobTracker.baseUrl') as unknown as string,
+  heartbeatUrl: configMock.get('jobManagement.config.heartbeat.baseUrl') as unknown as string,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -49,7 +49,7 @@ export class HttpMockHelper {
   }
 
   public static mockJobManagerSearchTasks(jobType: string, taskTypes: string[], task: ITaskResponse<unknown>): void {
-    for (const handler of [HANDLERS.NEW, HANDLERS.UPDATE, HANDLERS.SWAP, HANDLERS.EXPORT]) {
+    for (const handler of Object.values(handlers)) {
       for (const taskType of taskTypes) {
         nock(mockUrls.jobManagerUrl)
           .post(`/tasks/${handler}/${taskType}/startPending`)

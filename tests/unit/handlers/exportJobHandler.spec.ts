@@ -1,7 +1,7 @@
 import path from 'path';
 import nock from 'nock';
 import ogr2ogr from 'ogr2ogr';
-import fsMock from 'mock-fs';
+import fsMock, { restore as restoreMockFs } from 'mock-fs';
 import { v4 as uuidv4 } from 'uuid';
 import { ProductType } from '@map-colonies/mc-model-types';
 import { ExportJobHandler } from '../../../src/models/export/exportJobHandler';
@@ -17,8 +17,8 @@ jest.mock('uuid', () => ({
 }));
 
 describe('ExportJobHandler', () => {
-  const gpkgLocation = configMock.get<string>('gpkgsLocation');
-  const polygonPartsUrl = configMock.get<string>('polygonPartsManager.baseUrl');
+  const gpkgLocation = configMock.get('gpkgsLocation') as string;
+  const polygonPartsUrl = configMock.get('polygonPartsManager.baseUrl') as unknown as string;
 
   let exportJobHandler: ExportJobHandler;
 
@@ -39,8 +39,9 @@ describe('ExportJobHandler', () => {
   afterEach(() => {
     jest.clearAllTimers();
     jest.resetAllMocks();
+    // eslint-disable-next-line import-x/no-named-as-default-member -- prefer nock.cleanAll() for consistency
     nock.cleanAll();
-    fsMock.restore();
+    restoreMockFs();
   });
 
   describe('processJob', () => {

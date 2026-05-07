@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-magic-numbers */
-
 export const validShapefileChunkMock = {
   id: 1,
   verticesCount: 100,
