@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { BadRequestError } from '@map-colonies/error-types';
-import { getHandlerTokens, SERVICES } from '../../../src/common/constants';
+import { HANDLER_TOKENS, SERVICES } from '../../../src/common/constants';
 import { initJobHandler } from '../../../src/models/handlerFactory';
 import { IngestionJobHandler } from '../../../src/models/ingestion/ingestionHandler';
 import { configMock, registerDefaultConfig } from '../mocks/configMock';
@@ -31,11 +31,10 @@ describe('HandlerFactory', () => {
   beforeEach(async () => {
     (fs.accessSync as jest.Mock).mockImplementation(() => undefined);
     registerDefaultConfig();
-    const handlers = getHandlerTokens(configMock);
     await registerExternalValues({
       override: [
         { token: SERVICES.LOGGER, provider: { useValue: loggerMock } },
-        { token: handlers.NEW, provider: { useValue: ingestionJobHandlerInstance() } },
+        { token: HANDLER_TOKENS.INGESTION, provider: { useValue: ingestionJobHandlerInstance() } },
       ],
     });
   });

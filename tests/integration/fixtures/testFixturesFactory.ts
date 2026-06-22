@@ -5,14 +5,18 @@ import { IJobResponse, ITaskResponse, OperationStatus } from '@map-colonies/mc-p
 import { ProductType } from '@map-colonies/mc-model-types';
 import { IngestionJobParams, ValidationTaskParameters } from '../../../src/common/interfaces';
 import { configMock, registerDefaultConfig } from '../../unit/mocks/configMock';
-import { getHandlerTokens } from '../../../src/common/constants';
 
 registerDefaultConfig();
 
-/** Job handler type strings as defined in the integration test config. */
-const handlers = getHandlerTokens(configMock);
+/** Ingestion job type strings as defined in the integration test config. */
+const jobTypes = {
+  new: configMock.get('jobDefinitions.jobs.new.type') as unknown as string,
+  update: configMock.get('jobDefinitions.jobs.update.type') as unknown as string,
+  swapUpdate: configMock.get('jobDefinitions.jobs.swapUpdate.type') as unknown as string,
+  export: configMock.get('jobDefinitions.jobs.export.type') as unknown as string,
+};
 
-export { handlers };
+export { jobTypes };
 
 export interface CreateJobOptions {
   jobId?: string;
@@ -38,7 +42,7 @@ export interface CreateTaskOptions {
 
 export function createIngestionJob(options: CreateJobOptions = {}): IJobResponse<IngestionJobParams, unknown> {
   const jobId = options.jobId ?? randomUUID();
-  const type = options.type ?? handlers.NEW;
+  const type = options.type ?? jobTypes.new;
   const resourceId = options.resourceId ?? 'test_product_id';
   const version = options.version ?? '1.0';
   const productType = options.productType ?? ProductType.ORTHOPHOTO;

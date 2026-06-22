@@ -14,7 +14,7 @@ import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsMana
 import { ShapefileNotFoundError } from '../../../src/common/errors';
 import { JobTrackerClient } from '../../../src/clients/jobTrackerClient';
 import { configMock, registerDefaultConfig, setValue } from '../../unit/mocks/configMock';
-import { createIngestionJob, createTask, handlers } from '../fixtures/testFixturesFactory';
+import { createIngestionJob, createTask, jobTypes } from '../fixtures/testFixturesFactory';
 import { HttpMockHelper } from '../mocks/httpMocks';
 import { CallbackClient } from '../../../src/clients/callbackClient';
 import { getTestContainerConfig, resetContainer } from '../testContainerConfig';
@@ -59,7 +59,7 @@ describe('Validation Task Flow', () => {
   });
 
   describe('Happy Path - Successful Validation', () => {
-    test.each([handlers.NEW, handlers.UPDATE, handlers.SWAP])('should complete validation task successfully for %s handler', async (type) => {
+    test.each([jobTypes.new, jobTypes.update, jobTypes.swapUpdate])('should complete validation task successfully for %s handler', async (type) => {
       const job = createIngestionJob({
         shapefilePath: '/valid/137_parts_valid/ShapeMetadata.shp',
         type,
