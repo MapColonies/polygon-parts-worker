@@ -1,4 +1,5 @@
 {
+  "instanceType": "ingestion",
   "telemetry": {
     "logger": {
       "level": "info",

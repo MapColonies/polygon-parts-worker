@@ -1,4 +1,5 @@
 {
+  "instanceType": "INSTANCE_TYPE",
   "telemetry": {
     "serviceName": "TELEMETRY_SERVICE_NAME",
     "hostname": "TELEMETRY_HOST_NAME",
