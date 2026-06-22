@@ -2,6 +2,7 @@ import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import type { Logger } from '@map-colonies/js-logger';
 import { OperationStatus, TaskHandler as QueueClient, type ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { withSpanAsyncV4, withSpanV4 } from '@map-colonies/telemetry';
+import { InstanceType } from '@map-colonies/raster-shared';
 import type { Tracer } from '@opentelemetry/api';
 import { inject, injectable } from 'tsyringe';
 import { JobTrackerClient } from '../clients/jobTrackerClient';
@@ -29,11 +30,8 @@ export class JobProcessor {
     @inject(TaskMetrics) private readonly taskMetrics: TaskMetrics
   ) {
     this.dequeueIntervalMs = this.config.get('jobManagement.config.dequeueIntervalMs') as unknown as number;
-    const ingestionNew = this.config.get('jobDefinitions.jobs.new.type') as unknown as string;
-    const ingestionUpdate = this.config.get('jobDefinitions.jobs.update.type') as unknown as string;
-    const ingestionSwapUpdate = this.config.get('jobDefinitions.jobs.swapUpdate.type') as unknown as string;
-    const exportJob = this.config.get('jobDefinitions.jobs.export.type') as unknown as string;
-    this.jobTypesToProcess = { ingestionNew, ingestionUpdate, ingestionSwapUpdate, exportJob };
+    const instanceType = this.config.get('instanceType') as InstanceType;
+    this.jobTypesToProcess = this.setUpJobTypesToProcess(instanceType);
     this.configuredTasks = this.config.get('jobDefinitions.tasks') as unknown as ITasksConfig;
     this.taskTypesToProcess = this.setUpTaskTypesToProcess(this.configuredTasks);
   }
@@ -114,10 +112,23 @@ export class JobProcessor {
     }
   }
 
+  private setUpJobTypesToProcess(instanceType: InstanceType): IPermittedJobTypes {
+    if (instanceType === InstanceType.EXPORT) {
+      const exportJob = this.config.get('jobDefinitions.jobs.export.type') as unknown as string;
+      return { exportJob };
+    }
+    const ingestionNew = this.config.get('jobDefinitions.jobs.new.type') as unknown as string;
+    const ingestionUpdate = this.config.get('jobDefinitions.jobs.update.type') as unknown as string;
+    const ingestionSwapUpdate = this.config.get('jobDefinitions.jobs.swapUpdate.type') as unknown as string;
+    return { ingestionNew, ingestionUpdate, ingestionSwapUpdate };
+  }
+
   private setUpTaskTypesToProcess(configTasks: ITasksConfig): string[] {
-    const taskTypes = [];
+    const taskTypes: string[] = [];
     for (const [, taskConfig] of Object.entries(configTasks)) {
-      taskTypes.push(taskConfig.type);
+      if (taskConfig.type) {
+        taskTypes.push(taskConfig.type);
+      }
     }
     return taskTypes;
   }

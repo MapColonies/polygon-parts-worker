@@ -1,21 +1,5 @@
 import { readPackageJsonSync } from '@map-colonies/read-pkg';
-import { getConfig, type ConfigType } from './config';
-
-/* Job handler DI tokens: resolve from config after init — do not read config at module load time. */
-/* eslint-disable @typescript-eslint/naming-convention */
-interface JobDefinitionsJobs {
-  new: { type: string };
-  update: { type: string };
-  swapUpdate: { type: string };
-  export: { type: string };
-}
-
-interface HandlerTokens {
-  NEW: string;
-  UPDATE: string;
-  SWAP: string;
-  EXPORT: string;
-}
+/* eslint-disable @typescript-eslint/naming-convention -- DI tokens and enum-like constants use UPPER_CASE keys */
 
 export const SERVICE_NAME = readPackageJsonSync().name ?? 'unknown_service';
 export const DEFAULT_SERVER_PORT = 80;
@@ -34,6 +18,11 @@ export const SERVICES = {
   TASK_METRICS: Symbol('TaskMetrics'),
   SHAPE_FILE_METRICS: Symbol('ShapeFileMetrics'),
   TRACING: Symbol('TracingManager'),
+} satisfies Record<string, symbol>;
+
+export const HANDLER_TOKENS = {
+  INGESTION: Symbol('IngestionJobHandler'),
+  EXPORT: Symbol('ExportJobHandler'),
 } satisfies Record<string, symbol>;
 
 export const StorageProvider = {
@@ -56,17 +45,4 @@ export const ZIP_CONTENT_TYPE = 'application/zip';
 
 export const UTF8_ENCODING = 'utf-8';
 
-export function getHandlerTokens(config: ConfigType): HandlerTokens {
-  const jobs = config.get('jobDefinitions.jobs') as unknown as JobDefinitionsJobs;
-  return {
-    NEW: jobs.new.type,
-    UPDATE: jobs.update.type,
-    SWAP: jobs.swapUpdate.type,
-    EXPORT: jobs.export.type,
-  };
-}
-
-export function getHandlers(): HandlerTokens {
-  return getHandlerTokens(getConfig());
-}
 /* eslint-enable @typescript-eslint/naming-convention */
