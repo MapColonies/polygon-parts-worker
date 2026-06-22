@@ -7,6 +7,7 @@
 {{ $gpkgLocation := clean (printf "/%s/%s" $fs.internalPvc.mountPath $fs.internalPvc.gpkgSubPath) }}
 {{ $validationReportsLocation := clean (printf "/%s/%s" $fs.internalPvc.mountPath $fs.internalPvc.reportsPath) }}
 {{- $storage := (include "common.storage.merged" .) | fromYaml }}
+{{- include "polygon-parts-worker.validateInstanceType" . }}
 
 
 {{- if .Values.enabled -}}
@@ -15,6 +16,7 @@ kind: ConfigMap
 metadata:
   name: {{ printf "%s-configmap" (include "polygon-parts-worker.fullname" .) }}
 data:
+  INSTANCE_TYPE: {{ .Values.instanceType | quote }}
   REQUEST_PAYLOAD_LIMIT: {{ .Values.env.requestPayloadLimit | quote }}
   RESPONSE_COMPRESSION_ENABLED: {{ .Values.env.responseCompressionEnabled | quote }}
   LOG_LEVEL: {{ .Values.env.logLevel | quote }}
@@ -39,33 +41,37 @@ data:
   JOB_TRACKER_BASE_URL: {{ $serviceUrls.jobTracker | quote}}
   HEARTBEAT_INTERVAL_MS: {{ .Values.env.jobManagement.config.heartBeat.intervalMs | quote }}
   DEQUEUE_INTERVAL_MS: {{ .Values.env.jobManagement.config.dequeueIntervalMs | quote }}
+  POLYGON_PARTS_TASK_MAX_ATTEMPTS: {{ $jobDefinitions.tasks.polygonParts.maxAttempts | quote }}
+  npm_config_cache: /tmp/
+  HTTP_RETRY_ATTEMPTS: {{ .Values.env.httpRetry.attempts | quote }}
+  HTTP_RETRY_DELAY: {{ .Values.env.httpRetry.delay | quote }}
+  HTTP_RETRY_RESET_TIMEOUT: {{ .Values.env.httpRetry.resetTimeout | quote }}
+  DISABLE_HTTP_CLIENT_LOGS: {{ .Values.env.disableHttpClientLogs | quote }}
+  {{- if eq .Values.instanceType "ingestion" }}
+  INGESTION_NEW_JOB_TYPE: {{ $jobDefinitions.jobs.new.type }}
+  INGESTION_UPDATE_JOB_TYPE: {{ $jobDefinitions.jobs.update.type }}
+  INGESTION_SWAP_UPDATE_JOB_TYPE: {{ $jobDefinitions.jobs.swapUpdate.type }}
   VALIDATION_TASK_TYPE: {{ $jobDefinitions.tasks.validation.type }}
   VALIDATION_TASK_MAX_ATTEMPTS: {{ $jobDefinitions.tasks.validation.maxAttempts | quote }}
   VALIDATION_TASK_CHUNK_MAX_VERTICES: {{ $jobDefinitions.tasks.validation.chunkMaxVertices | quote }}
   VALIDATION_TASK_SMALL_GEOMETRIES_PERCENTAGE_THRESHOLD: {{ $jobDefinitions.tasks.validation.smallGeometriesPercentageThreshold | quote }}
   VALIDATION_TASK_SMALL_HOLES_PERCENTAGE_THRESHOLD: {{ $jobDefinitions.tasks.validation.smallHolesPercentageThreshold | quote }}
   VALIDATION_REPORTS_PATH: {{ $validationReportsLocation | quote }}
-  INGESTION_NEW_JOB_TYPE: {{ $jobDefinitions.jobs.new.type }}
-  INGESTION_UPDATE_JOB_TYPE: {{ $jobDefinitions.jobs.update.type }}
-  INGESTION_SWAP_UPDATE_JOB_TYPE: {{ $jobDefinitions.jobs.swapUpdate.type }}
-  EXPORT_JOB_TYPE: {{ $jobDefinitions.jobs.export.type }}
-  POLYGON_PARTS_TASK_MAX_ATTEMPTS: {{ $jobDefinitions.tasks.polygonParts.maxAttempts | quote }}
-  GPKGS_LOCATION: {{ $gpkgLocation | quote }}
-  npm_config_cache: /tmp/
-  HTTP_RETRY_ATTEMPTS: {{ .Values.env.httpRetry.attempts | quote }}
-  HTTP_RETRY_DELAY: {{ .Values.env.httpRetry.delay | quote }}
-  HTTP_RETRY_RESET_TIMEOUT: {{ .Values.env.httpRetry.resetTimeout | quote }}
-  DISABLE_HTTP_CLIENT_LOGS: {{ .Values.env.disableHttpClientLogs | quote }}
   INGESTION_SOURCES_DIR_PATH: {{ printf "/%s" $fs.ingestionSourcePvc.mountPath | quote }}
+  REPORT_STORAGE_PROVIDER: {{ $storage.reportProvider }}
+  DOWNLOAD_SERVER_PUBLIC_DNS: {{ $serviceUrls.downloadServerPublicDNS | quote }}
+  DOWNLOAD_SERVER_REPORTS_DOWNLOAD_PATH: {{ $jobDefinitions.tasks.validation.reportsDownloadPath | quote }}
   {{ if eq (upper $storage.reportProvider) "S3" }}
   {{- $s3HttpProtocol := ternary "https://" "http://" $storage.s3.sslEnabled -}}
   S3_ENDPOINT_URL: {{ printf "%s%s" $s3HttpProtocol $storage.s3.endpointUrl | quote }}
   S3_ARTIFACTS_BUCKET: {{ $storage.s3.artifactsBucket | quote }}
   S3_SSL_ENABLED: {{ $storage.s3.sslEnabled | quote }}
   {{- end }}
-  REPORT_STORAGE_PROVIDER: {{ $storage.reportProvider }}
-  DOWNLOAD_SERVER_PUBLIC_DNS: {{ $serviceUrls.downloadServerPublicDNS | quote }}
-  DOWNLOAD_SERVER_REPORTS_DOWNLOAD_PATH: {{ $jobDefinitions.tasks.validation.reportsDownloadPath | quote }}
+  {{- end }}
+  {{- if eq .Values.instanceType "export" }}
+  EXPORT_JOB_TYPE: {{ $jobDefinitions.jobs.export.type }}
+  GPKGS_LOCATION: {{ $gpkgLocation | quote }}
+  {{- end }}
   {{- with .Values.configManagement }}
   CONFIG_NAME: {{ .name | quote }}
   CONFIG_VERSION: {{ .version | quote }}
