@@ -49,6 +49,7 @@ describe('Validation Task Flow', () => {
   });
 
   afterEach(() => {
+    // eslint-disable-next-line import-x/no-named-as-default-member
     nock.cleanAll();
     jest.clearAllMocks();
     resetContainer();

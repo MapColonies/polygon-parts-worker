@@ -49,11 +49,11 @@ export class HttpMockHelper {
   }
 
   public static mockJobManagerSearchTasks(jobType: string, taskTypes: string[], task: ITaskResponse<unknown>): void {
-    for (const currentJobType of Object.values(jobTypes)) {
+    for (const jobType of Object.values(jobTypes)) {
       for (const taskType of taskTypes) {
         nock(mockUrls.jobManagerUrl)
-          .post(`/tasks/${currentJobType}/${taskType}/startPending`)
-          .reply(StatusCodes.OK, jobType === currentJobType ? task : undefined);
+          .post(`/tasks/${jobType}/${taskType}/startPending`)
+          .reply(StatusCodes.OK, jobType === jobType ? task : undefined);
       }
     }
   }
