@@ -52,14 +52,34 @@ const mockGeoJsonFeature = {
     },
   ],
 };
-const { requestFeatureId, ...filteredProperties } = mockGeoJsonFeature.features[0].properties;
+const sourceProperties = mockGeoJsonFeature.features[0].properties;
+
+// Expected Layer Parts output: only the product-required fields, snake_case column names.
+// roi maxResolutionDeg (0.703125) equals the feature resolutionDegree, so resolution_deg stays 0.703125.
+const exportProperties = {
+  id: sourceProperties.id,
+  description: sourceProperties.description,
+  sensors: sourceProperties.sensors,
+  product_id: sourceProperties.productId,
+  product_type: sourceProperties.productType,
+  product_version: sourceProperties.productVersion,
+  imaging_time_begin_utc: sourceProperties.imagingTimeBeginUTC,
+  imaging_time_end_utc: sourceProperties.imagingTimeEndUTC,
+  ingestion_date_utc: sourceProperties.ingestionDateUTC,
+  resolution_deg: sourceProperties.resolutionDegree,
+  resolution_meter: sourceProperties.resolutionMeter,
+  horizontal_accuracy_ce90: sourceProperties.horizontalAccuracyCE90,
+  countries: sourceProperties.countries,
+  source_name: sourceProperties.sourceName,
+  cities: sourceProperties.cities,
+};
 
 const modifiedGeoJsonFeature = {
   ...mockGeoJsonFeature,
   features: [
     {
       ...mockGeoJsonFeature.features[0],
-      properties: filteredProperties,
+      properties: exportProperties,
     },
   ],
 };

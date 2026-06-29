@@ -1,8 +1,8 @@
 import path from 'path';
-import { RoiFeatureCollection } from '@map-colonies/raster-shared';
+import { convertKeysToExportColumns, RoiFeatureCollection } from '@map-colonies/raster-shared';
 import { v4 as uuidv4 } from 'uuid';
 import { degreesPerPixelToZoomLevel, zoomLevelToResolutionMeter } from '@map-colonies/mc-utils';
-import { FindPolygonPartsResponse, ExportPolygonPartsResponse } from '../common/interfaces';
+import { ExportFeatureProperties, FindPolygonPartsResponse, ExportPolygonPartsResponse } from '../common/interfaces';
 
 export const calculateResMeterFromDegree = (resolutionDegree: number): number => {
   const zoomLevel = degreesPerPixelToZoomLevel(resolutionDegree);
@@ -21,28 +21,46 @@ export const manipulateFeatures = (findFeaturesResponse: FindPolygonPartsRespons
   const featureIdToMaxResolution = new Map(roi.features.map((feature) => [feature.id, feature.properties.maxResolutionDeg]));
 
   const updatedFeatures = findFeaturesResponse.features.map((feature) => {
-    const { requestFeatureId, ...restProperties } = feature.properties; // Extract & omit requestFeatureId
-    const featureResolution = feature.properties.resolutionDegree;
+    const properties = feature.properties;
 
-    const maxResolution = featureIdToMaxResolution.get(requestFeatureId);
+    const maxResolution = featureIdToMaxResolution.get(properties.requestFeatureId);
     if (maxResolution === undefined) {
-      throw new Error(`Feature: ${requestFeatureId} doesnt have set maxResolutionDegree`);
+      throw new Error(`Feature: ${properties.requestFeatureId} doesnt have set maxResolutionDegree`);
     }
 
-    const resolutionDegree = Math.max(featureResolution, maxResolution);
+    const resolutionDegree = Math.max(properties.resolutionDegree, maxResolution);
     const resolutionMeter = calculateResMeterFromDegree(resolutionDegree);
 
+    // Allow-list of the product-required fields (camelCase source keys). Anything not listed here
+    // (e.g. jobType, catalogId, partId, sourceId, sourceResolutionMeter, requestFeatureId) is dropped.
+    // Optional fields default to null so the exported column always exists (fixed schema).
+    const selectedProperties = {
+      id: properties.id,
+      description: properties.description ?? null,
+      sensors: properties.sensors,
+      productId: properties.productId,
+      productType: properties.productType,
+      productVersion: properties.productVersion,
+      imagingTimeBeginUTC: properties.imagingTimeBeginUTC,
+      imagingTimeEndUTC: properties.imagingTimeEndUTC,
+      ingestionDateUTC: properties.ingestionDateUTC,
+      resolutionDegree,
+      resolutionMeter,
+      horizontalAccuracyCE90: properties.horizontalAccuracyCE90,
+      countries: properties.countries ?? null,
+      sourceName: properties.sourceName,
+      cities: properties.cities ?? null,
+    };
+
+    // Rename camelCase -> snake_case export column names via the shared converter
+    // (applies the resolutionDegree -> resolution_deg override).
     return {
       ...feature,
-      properties: {
-        ...restProperties,
-        resolutionDegree: resolutionDegree,
-        resolutionMeter: resolutionMeter,
-      },
+      properties: convertKeysToExportColumns(selectedProperties) as unknown as ExportFeatureProperties,
     };
   });
 
-  return { ...findFeaturesResponse, features: updatedFeatures };
+  return { ...findFeaturesResponse, features: updatedFeatures } as unknown as ExportPolygonPartsResponse;
 };
 
 export const buildUrl = (baseUrl: string, relativePath: string): string => {
