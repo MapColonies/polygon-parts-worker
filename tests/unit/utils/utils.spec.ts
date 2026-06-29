@@ -84,7 +84,7 @@ describe('utils', () => {
   describe('manipulateFeatures', () => {
     const requestFeatureId = 'req-feature-1';
 
-    it('emits exactly the spec\'d export columns and drops all other source fields', () => {
+    it("emits exactly the spec'd export columns and drops all other source fields", () => {
       const result = manipulateFeatures(buildFindResponse(requestFeatureId), buildRoi(requestFeatureId, 0.5));
 
       const keys = Object.keys(result.features[0].properties);

@@ -109,7 +109,7 @@ describe('GeoPackage Layer Parts output', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('writes the layer with exactly the spec\'d attribute columns', () => {
+  it("writes the layer with exactly the spec'd attribute columns", () => {
     const ds = open(gpkgPath);
     try {
       const layer = ds.layers.get(LAYER);
