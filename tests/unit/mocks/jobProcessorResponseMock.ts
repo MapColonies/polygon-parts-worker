@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
+/* eslint-disable @typescript-eslint/naming-convention -- snake_case keys mirror the GeoPackage export columns */
 import { IJobResponse, IUpdateJobBody } from '@map-colonies/mc-priority-queue';
 import { RasterProductTypes } from '@map-colonies/raster-shared';
 import { IngestionJobParams } from '../../../src/common/interfaces';

@@ -2,7 +2,7 @@ import os from 'os';
 import path from 'path';
 import fs from 'fs';
 import ogr2ogr from 'ogr2ogr';
-import gdal from 'gdal-async';
+import { open } from 'gdal-async';
 import { RoiFeatureCollection } from '@map-colonies/raster-shared';
 import { manipulateFeatures } from '../../../src/utils/utils';
 import type { FindPolygonPartsResponse } from '../../../src/common/interfaces';
@@ -110,7 +110,7 @@ describe('GeoPackage Layer Parts output', () => {
   });
 
   it('writes the layer with exactly the spec\'d attribute columns', () => {
-    const ds = gdal.open(gpkgPath);
+    const ds = open(gpkgPath);
     try {
       const layer = ds.layers.get(LAYER);
       const fieldNames = layer.fields.map((field) => field.name);
@@ -121,19 +121,19 @@ describe('GeoPackage Layer Parts output', () => {
   });
 
   it('exposes both fid (generated integer PK) and id (UUID) as distinct values', () => {
-    const ds = gdal.open(gpkgPath);
+    const ds = open(gpkgPath);
     try {
       const layer = ds.layers.get(LAYER);
       const feature = layer.features.first();
 
       // fid is the GeoPackage-generated integer primary key; it is not an attribute field.
       expect(layer.fields.map((field) => field.name)).not.toContain('fid');
-      expect(typeof feature?.fid).toBe('number');
+      expect(typeof feature.fid).toBe('number');
 
       // id is the per-part UUID carried as an attribute, distinct from the integer fid.
-      const idValue = feature?.fields.get('id');
+      const idValue = feature.fields.get('id') as string;
       expect(idValue).toBe(PART_ID);
-      expect(idValue).not.toBe(feature?.fid);
+      expect(idValue).not.toBe(feature.fid);
     } finally {
       ds.close();
     }
@@ -143,17 +143,17 @@ describe('GeoPackage Layer Parts output', () => {
     // GDAL has no native list type in GeoPackage; it encodes a StringList into one text column.
     // On GDAL 3.4.1 the encoding is "(N:a,b)". We assert the stable contract: a string column that
     // contains every member, rather than the exact GDAL-version-specific delimiter format.
-    const ds = gdal.open(gpkgPath);
+    const ds = open(gpkgPath);
     try {
       const layer = ds.layers.get(LAYER);
       const feature = layer.features.first();
 
-      const sensors = feature?.fields.get('sensors');
+      const sensors = feature.fields.get('sensors') as string;
       expect(typeof sensors).toBe('string');
       expect(sensors).toContain('SENSOR_A');
       expect(sensors).toContain('SENSOR_B');
 
-      const countries = feature?.fields.get('countries');
+      const countries = feature.fields.get('countries') as string;
       expect(typeof countries).toBe('string');
       expect(countries).toContain('CountryA');
       expect(countries).toContain('CountryB');

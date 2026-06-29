@@ -60,7 +60,7 @@ export const manipulateFeatures = (findFeaturesResponse: FindPolygonPartsRespons
     };
   });
 
-  return { ...findFeaturesResponse, features: updatedFeatures } as unknown as ExportPolygonPartsResponse;
+  return { ...findFeaturesResponse, features: updatedFeatures };
 };
 
 export const buildUrl = (baseUrl: string, relativePath: string): string => {
