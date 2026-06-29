@@ -40,10 +40,10 @@ export interface IJobHandler<TJobParams = unknown, TTaskParams = unknown> {
 }
 
 export interface IPermittedJobTypes {
-  ingestionNew: string;
-  ingestionUpdate: string;
-  ingestionSwapUpdate: string;
-  exportJob: string;
+  ingestionNew?: string;
+  ingestionUpdate?: string;
+  ingestionSwapUpdate?: string;
+  exportJob?: string;
 }
 
 export interface ITaskConfig {

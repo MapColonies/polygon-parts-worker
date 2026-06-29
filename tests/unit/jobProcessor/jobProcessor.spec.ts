@@ -1,6 +1,6 @@
 import nock from 'nock';
 import { JobProcessor } from '../../../src/models/jobProcessor';
-import { configMock, registerDefaultConfig } from '../mocks/configMock';
+import { configMock, registerDefaultConfig, setValue } from '../mocks/configMock';
 import { failTaskRequest, newJobResponseMock, updatedJobRequest } from '../mocks/jobsMocks';
 import { initTaskForIngestionNew, reachedMaxAttemptsTask } from '../mocks/tasksMocks';
 import * as handlerFactory from '../../../src/models/handlerFactory';
@@ -195,6 +195,41 @@ describe('JobProcessor', () => {
         reachedMaxAttemptsTask.reason
       );
       expect(notifyOnFinishedTaskSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('instanceType polling', () => {
+    it('should poll only the ingestion job types when instanceType is ingestion', async () => {
+      setValue('instanceType', 'ingestion');
+      const ingestionJobProcessor = jobProcessorInstance();
+      const dequeueSpy = jest.spyOn(mockQueueClient, 'dequeue').mockResolvedValue(null);
+
+      const resultPromise = ingestionJobProcessor.start({ runOnce: true });
+      ingestionJobProcessor.stop();
+      await resultPromise;
+
+      const dequeuedJobTypes = dequeueSpy.mock.calls.map(([jobType]) => jobType);
+      expect(dequeuedJobTypes).toContain('Ingestion_New');
+      expect(dequeuedJobTypes).toContain('Ingestion_Update');
+      expect(dequeuedJobTypes).toContain('Ingestion_Swap_Update');
+      expect(dequeuedJobTypes).not.toContain('Export');
+    });
+
+    it('should poll only the export job type when instanceType is export', async () => {
+      setValue('instanceType', 'export');
+      const exportJobType = configMock.get('jobDefinitions.jobs.export.type') as unknown as string;
+      const exportJobProcessor = jobProcessorInstance();
+      const dequeueSpy = jest.spyOn(mockQueueClient, 'dequeue').mockResolvedValue(null);
+
+      const resultPromise = exportJobProcessor.start({ runOnce: true });
+      exportJobProcessor.stop();
+      await resultPromise;
+
+      const dequeuedJobTypes = dequeueSpy.mock.calls.map(([jobType]) => jobType);
+      expect(dequeuedJobTypes).toContain(exportJobType);
+      expect(dequeuedJobTypes).not.toContain('Ingestion_New');
+      expect(dequeuedJobTypes).not.toContain('Ingestion_Update');
+      expect(dequeuedJobTypes).not.toContain('Ingestion_Swap_Update');
     });
   });
 });

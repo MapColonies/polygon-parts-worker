@@ -1,4 +1,5 @@
 {
+  "instanceType": "",
   "telemetry": {
     "logger": {
       "level": "info",

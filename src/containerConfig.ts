@@ -7,8 +7,9 @@ import type { Logger } from '@map-colonies/js-logger';
 import { instancePerContainerCachingFactory } from 'tsyringe';
 import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import type { IHttpRetryConfig } from '@map-colonies/mc-utils';
+import { InstanceType } from '@map-colonies/raster-shared';
 import { Registry } from 'prom-client';
-import { getHandlerTokens, SERVICES, SERVICE_NAME } from './common/constants';
+import { HANDLER_TOKENS, SERVICES, SERVICE_NAME } from './common/constants';
 import { getTracing } from './common/tracing';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
 import type { IJobManagerConfig } from './common/interfaces';
@@ -32,14 +33,17 @@ const queueClientFactory = (container: DependencyContainer): QueueClient => {
   );
 };
 
-const validateRequiredDirectories = (container: DependencyContainer): void => {
+const validateRequiredDirectories = (container: DependencyContainer, instanceType: InstanceType): void => {
   const config = container.resolve<ConfigType>(SERVICES.CONFIG);
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
 
-  const requiredDirectories = [
-    { name: 'reportsPath', path: config.get('reportsPath') as string },
-    { name: 'ingestionSourcesDirPath', path: config.get('ingestionSourcesDirPath') as string },
-  ];
+  const requiredDirectories =
+    instanceType === InstanceType.INGESTION
+      ? [
+          { name: 'reportsPath', path: config.get('reportsPath') as string },
+          { name: 'ingestionSourcesDirPath', path: config.get('ingestionSourcesDirPath') as string },
+        ]
+      : [{ name: 'gpkgsLocation', path: config.get('gpkgsLocation') as string }];
 
   const missingDirectories: string[] = [];
 
@@ -63,6 +67,22 @@ const validateRequiredDirectories = (container: DependencyContainer): void => {
   }
 };
 
+const getInstanceType = (config: ConfigType): InstanceType => {
+  const instanceType = config.get('instanceType') as string;
+  const allowed = Object.values(InstanceType) as string[];
+  if (!allowed.includes(instanceType)) {
+    throw new Error(`invalid instanceType '${instanceType}', must be one of: ${allowed.join(', ')}`);
+  }
+  return instanceType as InstanceType;
+};
+
+const getHandlerDependencies = (instanceType: InstanceType): InjectionObject<unknown>[] => {
+  if (instanceType === InstanceType.INGESTION) {
+    return [{ token: HANDLER_TOKENS.INGESTION, provider: { useClass: IngestionJobHandler } }];
+  }
+  return [{ token: HANDLER_TOKENS.EXPORT, provider: { useClass: ExportJobHandler } }];
+};
+
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
   useChild?: boolean;
@@ -70,7 +90,7 @@ export interface RegisterOptions {
 
 export const registerExternalValues = async (options?: RegisterOptions): Promise<DependencyContainer> => {
   const configInstance = getConfig();
-  const handlerTokens = getHandlerTokens(configInstance);
+  const instanceType = getInstanceType(configInstance);
 
   const loggerConfig = configInstance.get('telemetry.logger');
   const logger = await jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, mixin: getOtelMixin() });
@@ -85,10 +105,7 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
     { token: SERVICES.TRACER, provider: { useValue: tracer } },
     { token: SERVICES.METRICS, provider: { useValue: metricsRegistry } },
     { token: SERVICES.QUEUE_CLIENT, provider: { useFactory: instancePerContainerCachingFactory(queueClientFactory) } },
-    { token: handlerTokens.NEW, provider: { useClass: IngestionJobHandler } },
-    { token: handlerTokens.UPDATE, provider: { useClass: IngestionJobHandler } },
-    { token: handlerTokens.SWAP, provider: { useClass: IngestionJobHandler } },
-    { token: handlerTokens.EXPORT, provider: { useClass: ExportJobHandler } },
+    ...getHandlerDependencies(instanceType),
     {
       token: SERVICES.S3CONFIG,
       provider: {
@@ -108,7 +125,7 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
   ];
 
   const registeredContainer = registerDependencies(dependencies, options?.override, options?.useChild);
-  validateRequiredDirectories(registeredContainer);
+  validateRequiredDirectories(registeredContainer, instanceType);
 
   return registeredContainer;
 };

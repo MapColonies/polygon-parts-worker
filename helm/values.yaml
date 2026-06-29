@@ -1,3 +1,7 @@
+# instanceType selects which jobs this deployment polls and which resources it carries.
+# Must be set to one of: ingestion | export
+instanceType: ""
+
 global:
   cloudProvider: {}
   tracing: {}
@@ -81,7 +85,7 @@ metrics:
     scrape: false
 
 configManagement:
-  offlineMode: false
+  offlineMode: true
   name: 'polygon-parts-worker'
   version: 'latest'
   serverUrl: 'http://localhost:8080/api'
@@ -168,7 +172,7 @@ resources:
       memory: 128Mi
 
 route:
-  enabled: true
+  enabled: false
   path: /
   host:
   timeout:

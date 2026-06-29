@@ -1,3 +1,4 @@
+{{- include "polygon-parts-worker.validateInstanceType" . -}}
 {{- $releaseName := .Release.Name -}}
 {{- $chartName := include "polygon-parts-worker.name" . -}}
 {{- $metrics := (include "common.metrics.merged" .) | fromYaml }}
@@ -76,9 +77,9 @@ spec:
             - name: {{ $internalVolumeName }}
               mountPath: {{ $fs.internalPvc.mountPath }}
             {{- end }}  
-            {{- if $fs.ingestionSourcePvc.enabled }}
+            {{- if and (eq .Values.instanceType "ingestion") $fs.ingestionSourcePvc.enabled }}
             - name: ingestion-storage
-              mountPath: {{ $fs.ingestionSourcePvc.mountPath }} 
+              mountPath: {{ $fs.ingestionSourcePvc.mountPath }}
               subPath: {{ $fs.ingestionSourcePvc.subPath }}
             {{- end }}
             {{- if .Values.extraVolumeMounts -}}
@@ -100,7 +101,7 @@ spec:
             {{- if .Values.extraEnvVars }}
             {{- toYaml .Values.extraEnvVars | nindent 12 }}
             {{- end }}
-            {{- if eq (upper $storage.reportProvider) "S3" }}
+            {{- if and (eq .Values.instanceType "ingestion") (eq (upper $storage.reportProvider) "S3") }}
             - name: S3_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
@@ -111,7 +112,7 @@ spec:
                 secretKeyRef:
                   name: {{ $storage.s3.secretName }}
                   key: secretAccessKey
-            {{- end }}               
+            {{- end }}
           envFrom:
             - configMapRef:
                 name: {{ printf "%s-configmap" (include "polygon-parts-worker.fullname" .) }}
@@ -153,7 +154,7 @@ spec:
           secret:
             secretName: {{ .Values.caSecretName }}
         {{- end }}
-        {{- if $fs.ingestionSourcePvc.enabled }}
+        {{- if and (eq .Values.instanceType "ingestion") $fs.ingestionSourcePvc.enabled }}
         - name: ingestion-storage
           persistentVolumeClaim:
             claimName: {{ $fs.ingestionSourcePvc.name }}

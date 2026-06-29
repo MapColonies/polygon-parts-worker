@@ -43,6 +43,7 @@ const setConfigValues = (values: Record<string, unknown>): void => {
 
 const registerDefaultConfig = (): void => {
   const configValues = {
+    instanceType: 'ingestion',
     telemetry: {
       logger: {
         level: 'info',

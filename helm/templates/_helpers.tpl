@@ -60,6 +60,15 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Validates that instanceType is set to a supported value. Fails the render otherwise.
+*/}}
+{{- define "polygon-parts-worker.validateInstanceType" -}}
+{{- if not (has .Values.instanceType (list "ingestion" "export")) -}}
+{{- fail (printf "instanceType must be set to one of: ingestion, export (got: %q)" .Values.instanceType) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Returns the environment from global if exists or from the chart's values, defaults to development
 */}}
 {{- define "polygon-parts-worker.environment" -}}
