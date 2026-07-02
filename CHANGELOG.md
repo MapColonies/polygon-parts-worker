@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.3.0](https://github.com/MapColonies/polygon-parts-worker/compare/v2.2.0...v2.3.0) (2026-06-29)
+
+
+### Features
+
+* boilerplate maintenance (MAPCO-10116) ([#93](https://github.com/MapColonies/polygon-parts-worker/issues/93)) ([0c0d896](https://github.com/MapColonies/polygon-parts-worker/commit/0c0d89676a32351af027a4a6aa9468f500e5e2ab))
+* separate worker into ingestion and export instances(MAPCO-9571) ([#95](https://github.com/MapColonies/polygon-parts-worker/issues/95)) ([7a53beb](https://github.com/MapColonies/polygon-parts-worker/commit/7a53beb340a003ecc8697eed230be7668a209bdb))
+
 ## [2.2.0](https://github.com/MapColonies/polygon-parts-worker/compare/v2.1.8...v2.2.0) (2026-04-30)
 
 
