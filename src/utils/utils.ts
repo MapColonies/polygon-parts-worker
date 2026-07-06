@@ -1,5 +1,5 @@
 import path from 'path';
-import { convertKeysToExportColumns, RoiFeatureCollection } from '@map-colonies/raster-shared';
+import { convertKeysToGpkgColumns, RoiFeatureCollection } from '@map-colonies/raster-shared';
 import { v4 as uuidv4 } from 'uuid';
 import { degreesPerPixelToZoomLevel, zoomLevelToResolutionMeter } from '@map-colonies/mc-utils';
 import { ExportFeatureProperties, FindPolygonPartsResponse, ExportPolygonPartsResponse } from '../common/interfaces';
@@ -56,7 +56,7 @@ export const manipulateFeatures = (findFeaturesResponse: FindPolygonPartsRespons
     // (applies the resolutionDegree -> resolution_deg override).
     return {
       ...feature,
-      properties: convertKeysToExportColumns(selectedProperties) as unknown as ExportFeatureProperties,
+      properties: convertKeysToGpkgColumns(selectedProperties) as unknown as ExportFeatureProperties,
     };
   });
 
