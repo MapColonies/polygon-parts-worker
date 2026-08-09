@@ -9,8 +9,18 @@
 {{- $fs := (include "common.fs.merged" .) | fromYaml }}
 {{- $storage := (include "common.storage.merged" .) | fromYaml }}
 
-{{- /* PVC handling - check if both PVCs point to the same claim */ -}}
-{{- $samePvc := and $fs.ingestionSourcePvc.enabled $fs.internalPvc.enabled (eq $fs.internalPvc.name $fs.ingestionSourcePvc.name) }}
+{{- /* the ingestion source PVC is only mounted on ingestion instances */ -}}
+{{- $ingestionPvcMounted := false }}
+{{- if and (eq .Values.instanceType "ingestion") $fs.ingestionSourcePvc.enabled }}
+{{-   $ingestionPvcMounted = true }}
+{{- end }}
+
+{{- /* reuse the ingestion volume for the internal PVC only when that volume is actually there and points to the same claim */ -}}
+{{- $samePvc := false }}
+{{- if and $ingestionPvcMounted $fs.internalPvc.enabled (eq $fs.internalPvc.name $fs.ingestionSourcePvc.name) }}
+{{-   $samePvc = true }}
+{{- end }}
+
 {{- $internalVolumeName := ternary "ingestion-storage" "internal-storage" $samePvc }}
 
 {{- if .Values.enabled -}}
@@ -77,7 +87,7 @@ spec:
             - name: {{ $internalVolumeName }}
               mountPath: {{ $fs.internalPvc.mountPath }}
             {{- end }}  
-            {{- if and (eq .Values.instanceType "ingestion") $fs.ingestionSourcePvc.enabled }}
+            {{- if $ingestionPvcMounted }}
             - name: ingestion-storage
               mountPath: {{ $fs.ingestionSourcePvc.mountPath }}
               subPath: {{ $fs.ingestionSourcePvc.subPath }}
@@ -154,7 +164,7 @@ spec:
           secret:
             secretName: {{ .Values.caSecretName }}
         {{- end }}
-        {{- if and (eq .Values.instanceType "ingestion") $fs.ingestionSourcePvc.enabled }}
+        {{- if $ingestionPvcMounted }}
         - name: ingestion-storage
           persistentVolumeClaim:
             claimName: {{ $fs.ingestionSourcePvc.name }}
