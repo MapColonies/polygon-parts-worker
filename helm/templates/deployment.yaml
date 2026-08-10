@@ -12,13 +12,13 @@
 {{- /* the ingestion source PVC is only mounted on ingestion instances */ -}}
 {{- $ingestionPvcMounted := false }}
 {{- if and (eq .Values.instanceType "ingestion") $fs.ingestionSourcePvc.enabled }}
-{{-   $ingestionPvcMounted = true }}
+{{- $ingestionPvcMounted = true }}
 {{- end }}
 
 {{- /* reuse the ingestion volume for the internal PVC only when that volume is actually there and points to the same claim */ -}}
 {{- $samePvc := false }}
 {{- if and $ingestionPvcMounted $fs.internalPvc.enabled (eq $fs.internalPvc.name $fs.ingestionSourcePvc.name) }}
-{{-   $samePvc = true }}
+{{- $samePvc = true }}
 {{- end }}
 
 {{- $internalVolumeName := ternary "ingestion-storage" "internal-storage" $samePvc }}
