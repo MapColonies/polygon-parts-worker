@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.3.2](https://github.com/MapColonies/polygon-parts-worker/compare/v2.3.1...v2.3.2) (2026-08-10)
+
+
+### Bug Fixes
+
+* update PVC handling for ingestion instances and disable internalPVC by default ([#102](https://github.com/MapColonies/polygon-parts-worker/issues/102)) ([8e94c49](https://github.com/MapColonies/polygon-parts-worker/commit/8e94c49f10d048411d05560e9f48cd9ebf94d8b8))
+
 ## [2.3.1](https://github.com/MapColonies/polygon-parts-worker/compare/v2.3.0...v2.3.1) (2026-08-04)
 
 
