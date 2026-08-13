@@ -74,6 +74,8 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
       logger.info({ msg: 'shapefile stats retrieved', shapeFileStats });
       this.validationErrorCollector.setShapefileStats(shapeFileStats);
 
+      this.restoreErrorsOfPreviousAttempt(task);
+
       const chunkProcessor = this.setupChunkProcessor(job);
       await shpReader.readAndProcess(shapefileFullPath, chunkProcessor);
       logger.info({ msg: 'all chunks processed' });
@@ -213,6 +215,17 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
 
     this.logger.info({ msg: 'shapefile chunk reader initialized', chunkMaxVertices: this.chunkMaxVertices });
     return reader;
+  }
+
+  private restoreErrorsOfPreviousAttempt(task: ITaskResponse<ValidationTaskParameters>): void {
+    const { processingState, errorsSummary } = task.parameters;
+
+    if (!processingState) {
+      this.logger.info({ msg: 'task has no processing state, collecting errors from scratch', taskId: task.id });
+      return;
+    }
+
+    this.validationErrorCollector.restoreErrorsSummary(errorsSummary);
   }
 
   private setupChunkProcessor(job: IJobResponse<IngestionJobParams, unknown>): ChunkProcessor {

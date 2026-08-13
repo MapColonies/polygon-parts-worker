@@ -7,7 +7,8 @@ import { PolygonPartsChunkValidationResult, ValidationErrorType } from '@map-col
 import { IngestionJobHandler } from '../../../src/models/ingestion/ingestionHandler';
 import { ingestionJobHandlerInstance, configMock, mockQueueClient, mockPolygonPartsClient } from '../jobProcessor/jobProcessorSetup';
 import { newJobResponseMock } from '../mocks/jobsMocks';
-import { validationTask } from '../mocks/tasksMocks';
+import { createResumedValidationTask, validationTask } from '../mocks/tasksMocks';
+import { emptyErrorsSummary, errorsSummaryWithErrors } from '../mocks/errorsSummaryMocks';
 import { mockFSWithShapefiles } from '../mocks/fsMocks';
 import { shapeFileMetricsMock } from '../mocks/telemetryMock';
 import { ShpFeatureProperties } from '../../../src/schemas/shpFile.schema';
@@ -33,6 +34,7 @@ describe('IngestionJobHandler', () => {
   const ingestionSourcePath = configMock.get('ingestionSourcesDirPath') as string;
   const absoluteShapefilePath = path.join(ingestionSourcePath, newJobResponseMock.parameters.inputFiles.metadataShapefilePath);
   const jobManagerClientUpdateJobSpy = jest.spyOn(mockQueueClient.jobManagerClient, 'updateJob').mockResolvedValue(undefined);
+  const resumedTask = createResumedValidationTask(absoluteShapefilePath);
 
   beforeEach(() => {
     mockFSWithShapefiles(absoluteShapefilePath);
@@ -550,6 +552,51 @@ describe('IngestionJobHandler', () => {
 
         // The loadState function should return the task's processingState
         expect(stateManager.loadState()).toBe(validationTask.parameters.processingState);
+      });
+
+      it('should restore the errors summary of the previous attempt when the task is resumed', async () => {
+        mockQueueClient.jobManagerClient.getTask = jest.fn().mockResolvedValue(resumedTask);
+        const mockUpdateTask = jest.spyOn(mockQueueClient.jobManagerClient, 'updateTask');
+        // all the chunks that had errors were already processed in the previous attempt
+        mockReadAndProcess.mockResolvedValue(undefined);
+
+        await ingestionJobHandler.processJob(newJobResponseMock, resumedTask);
+
+        expect(mockUpdateTask).toHaveBeenLastCalledWith(
+          newJobResponseMock.id,
+          resumedTask.id,
+          expect.objectContaining({
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            parameters: expect.objectContaining({
+              isValid: false,
+              errorsSummary: errorsSummaryWithErrors,
+            }),
+          })
+        );
+      });
+
+      it('should ignore the persisted errors summary when the task is processed from scratch', async () => {
+        const freshTask: ITaskResponse<ValidationTaskParameters> = {
+          ...validationTask,
+          parameters: { ...validationTask.parameters, processingState: null, errorsSummary: errorsSummaryWithErrors },
+        };
+        mockQueueClient.jobManagerClient.getTask = jest.fn().mockResolvedValue(freshTask);
+        const mockUpdateTask = jest.spyOn(mockQueueClient.jobManagerClient, 'updateTask');
+        mockReadAndProcess.mockResolvedValue(undefined);
+
+        await ingestionJobHandler.processJob(newJobResponseMock, freshTask);
+
+        expect(mockUpdateTask).toHaveBeenLastCalledWith(
+          newJobResponseMock.id,
+          freshTask.id,
+          expect.objectContaining({
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            parameters: expect.objectContaining({
+              isValid: true,
+              errorsSummary: emptyErrorsSummary,
+            }),
+          })
+        );
       });
 
       it('should save processing state after each chunk', async () => {
