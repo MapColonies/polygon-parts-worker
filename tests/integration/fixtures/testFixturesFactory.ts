@@ -36,6 +36,7 @@ export interface CreateTaskOptions {
   type?: string;
   checkSum?: string;
   processingState?: ValidationTaskParameters['processingState'];
+  errorsSummary?: ValidationTaskParameters['errorsSummary'];
   status?: OperationStatus;
   attempts?: number;
 }
@@ -101,6 +102,29 @@ export function createTask(options: CreateTaskOptions = {}): ITaskResponse<Valid
   const processingState = options.processingState ?? null;
   const status = options.status ?? OperationStatus.IN_PROGRESS;
   const attempts = options.attempts ?? 0;
+  const errorsSummary = options.errorsSummary ?? {
+    errorsCount: {
+      vertices: 0,
+      metadata: 0,
+      geometryValidity: 0,
+      resolution: 0,
+      smallGeometries: 0,
+      smallHoles: 0,
+      unknown: 0,
+    },
+    thresholds: {
+      smallGeometries: {
+        exceeded: false,
+      },
+      smallHoles: {
+        count: 50,
+        exceeded: false,
+      },
+      resolution: {
+        exceeded: false,
+      },
+    },
+  };
 
   return {
     id: taskId,
@@ -110,29 +134,7 @@ export function createTask(options: CreateTaskOptions = {}): ITaskResponse<Valid
     parameters: {
       processingState,
       checksums: [{ algorithm: 'XXH64', checksum: 'random-checksum-value', fileName: 'ShapeMetadata.shp' }],
-      errorsSummary: {
-        errorsCount: {
-          vertices: 0,
-          metadata: 0,
-          geometryValidity: 0,
-          resolution: 0,
-          smallGeometries: 0,
-          smallHoles: 0,
-          unknown: 0,
-        },
-        thresholds: {
-          smallGeometries: {
-            exceeded: false,
-          },
-          smallHoles: {
-            count: 50,
-            exceeded: false,
-          },
-          resolution: {
-            exceeded: false,
-          },
-        },
-      },
+      errorsSummary,
       isValid: false,
     },
     created: new Date().toISOString(),
