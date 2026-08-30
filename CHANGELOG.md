@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.3.3](https://github.com/MapColonies/polygon-parts-worker/compare/v2.3.2...v2.3.3) (2026-08-30)
+
+
+### Bug Fixes
+
+* keep error state of previous task attempt (MAPCO-11442) ([#104](https://github.com/MapColonies/polygon-parts-worker/issues/104)) ([c885158](https://github.com/MapColonies/polygon-parts-worker/commit/c8851582e9274b2b39840093faef897f5dda9e46))
+
 ## [2.3.2](https://github.com/MapColonies/polygon-parts-worker/compare/v2.3.1...v2.3.2) (2026-08-10)
 
 
