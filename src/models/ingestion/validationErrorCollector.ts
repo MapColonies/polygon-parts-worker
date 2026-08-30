@@ -189,8 +189,15 @@ export class ValidationErrorCollector {
     this.shapefileStats = { ...stats };
   }
 
-  /**
-   */
+  public restoreErrorsSummary(errorsSummary: ValidationAggregatedErrors): void {
+    this.errorsCount = { ...errorsSummary.errorsCount };
+    this.thresholdsResult = {
+      smallGeometries: { ...errorsSummary.thresholds.smallGeometries },
+      smallHoles: { ...errorsSummary.thresholds.smallHoles },
+      resolution: { ...errorsSummary.thresholds.resolution },
+    };
+    this.logger.info({ msg: 'restored errors summary of previous attempt', errorsSummary });
+  }
 
   /**
    * Clears all collected errors and resets counters
