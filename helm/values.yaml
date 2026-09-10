@@ -44,7 +44,7 @@ jobDefinitions:
       maxAttempts: 3
       smallGeometriesPercentageThreshold: 5
       smallHolesPercentageThreshold: 5
-      reportsDownloadPath: "/downloads/validation-reports"
+      reportsDownloadPath: "/validation-reports"
 
 serviceUrls:
   jobManager: ""
