@@ -29,6 +29,6 @@ spec:
           service:
             name: {{ printf "%s-service" (include "polygon-parts-worker.fullname" .) }}
             port:
-              number: {{ .Values.env.port }}
+              number: {{ .Values.server.port }}
     host: {{ .Values.ingress.host | quote }}
 {{- end -}}
