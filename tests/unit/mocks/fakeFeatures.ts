@@ -3,6 +3,8 @@ import { INGESTION_VALIDATIONS } from '@map-colonies/raster-shared';
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const createFakeShpFeatureProperties = () => {
+  const dateEnd = faker.date.past();
+  const dateStart = faker.date.past({ refDate: dateEnd });
   return {
     id: faker.number.int().toString(),
     sourceId: faker.string.alpha({ length: { min: 1, max: 5 } }),
@@ -14,7 +16,8 @@ export const createFakeShpFeatureProperties = () => {
       min: INGESTION_VALIDATIONS.horizontalAccuracyCE90.min,
       max: INGESTION_VALIDATIONS.horizontalAccuracyCE90.max,
     }),
-    updateDate: faker.date.past(),
+    dateStart,
+    dateEnd,
     sourceRes: faker.number.int({ min: INGESTION_VALIDATIONS.resolutionMeter.min, max: INGESTION_VALIDATIONS.resolutionMeter.max }),
     publishRes: faker.number.float({ min: INGESTION_VALIDATIONS.resolutionMeter.min, max: INGESTION_VALIDATIONS.resolutionMeter.max }),
     sourceName: faker.string.alpha({ length: { min: 3, max: 8 } }),

@@ -19,8 +19,14 @@ import { createIngestionJob, createTask, jobTypes } from '../fixtures/testFixtur
 import { HttpMockHelper } from '../mocks/httpMocks';
 import { CallbackClient } from '../../../src/clients/callbackClient';
 import { getTestContainerConfig, resetContainer } from '../testContainerConfig';
-import { getActualReportErrorsCount, reportPathBuilder, setUpValidationReportsDir, tearDownValidationReportsDir } from './validationTaskFlow.helpers';
-import { failedValidationTestCases } from './validationTaskFlow.cases';
+import {
+  getActualReportErrorsCount,
+  getReportFeatures,
+  reportPathBuilder,
+  setUpValidationReportsDir,
+  tearDownValidationReportsDir,
+} from './validationTaskFlow.helpers';
+import { expectedReportColumns, failedValidationTestCases } from './validationTaskFlow.cases';
 
 describe('Validation Task Flow', () => {
   registerDefaultConfig();
@@ -133,6 +139,13 @@ describe('Validation Task Flow', () => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect(ingestionHandlerProcessJobSpy).toHaveBeenCalledWith(expect.objectContaining({ ...job, expirationDate: expect.any(String) }), task);
       expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1); // Only 1 chunk created from the shapefile
+      const [requestBody] = polygonPartsManagerValidateSpy.mock.calls[0];
+      expect(requestBody.partsData.features[0].properties).toEqual(
+        expect.objectContaining({
+          imagingTimeBeginUTC: new Date('2025-07-01T00:00:00Z'), // dateStart column
+          imagingTimeEndUTC: new Date('2025-07-25T00:00:00Z'), // dateEnd column
+        })
+      );
       expect(jobTrackerNotifySpy).toHaveBeenCalledWith(task.id);
     });
   });
@@ -181,6 +194,15 @@ describe('Validation Task Flow', () => {
       expect(ingestionHandlerProcessJobSpy).toHaveBeenCalledWith(expect.objectContaining({ ...job, expirationDate: expect.any(String) }), task);
       expect(jobTrackerNotifySpy).toHaveBeenCalledWith(task.id);
       expect(actualErrorsCount).toEqual(testCase.expectedErrorsCount);
+
+      const { included, excluded } = expectedReportColumns;
+      const reportFeatures = await getReportFeatures({ reader: shpReader, reportDirPath: reportsDirPath, jobId: job.id });
+      for (const feature of reportFeatures) {
+        const reportColumns = Object.keys(feature.properties ?? {});
+        expect(reportColumns).toEqual(expect.arrayContaining(included));
+        excluded.forEach((column) => expect(reportColumns).not.toContain(column));
+      }
+
       expect(callbackClientSendSpy).toHaveBeenCalledWith(
         job.parameters.callbackUrls,
         expect.objectContaining({ jobId: job.id, taskId: task.id, status: OperationStatus.COMPLETED })

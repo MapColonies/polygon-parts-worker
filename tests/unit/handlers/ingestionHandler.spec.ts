@@ -457,6 +457,47 @@ describe('IngestionJobHandler', () => {
         expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1);
       });
 
+      it('should map dateStart to imagingTimeBeginUTC and dateEnd to imagingTimeEndUTC', async () => {
+        const dateStart = new Date('2024-01-01T00:00:00Z');
+        const dateEnd = new Date('2024-01-05T00:00:00Z');
+        const mockValidFeature = {
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [34.5, 31.5],
+                [34.6, 31.5],
+                [34.6, 31.6],
+                [34.5, 31.6],
+                [34.5, 31.5],
+              ],
+            ],
+          },
+          properties: { ...createFakeShpFeatureProperties(), dateStart, dateEnd },
+        } as unknown as Feature<Polygon, ShpFeatureProperties>;
+
+        mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
+          await chunkProcessor.process({
+            id: 1,
+            verticesCount: 500,
+            features: [mockValidFeature],
+            skippedFeatures: [],
+            skippedVerticesCount: 0,
+          });
+        });
+
+        const polygonPartsManagerValidateSpy = jest.spyOn(mockPolygonPartsClient, 'validate');
+
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
+
+        expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1);
+        const [requestBody] = polygonPartsManagerValidateSpy.mock.calls[0];
+        expect(requestBody.partsData.features[0].properties).toEqual(
+          expect.objectContaining({ imagingTimeBeginUTC: dateStart, imagingTimeEndUTC: dateEnd })
+        );
+      });
+
       it('should record metadata errors when chunk contains invalid features', async () => {
         const mockInvalidFeature = {
           type: 'Feature',

@@ -11,6 +11,12 @@ const defaultExpectedErrorsCount: ErrorsCount = {
   unknown: 0,
 };
 
+// The report mirrors the input schema: dateStart/dateEnd replaced the legacy updateDate column
+export const expectedReportColumns = {
+  included: ['dateStart', 'dateEnd'],
+  excluded: ['updateDate'],
+};
+
 export interface FailedValidationTestCase {
   description: string;
   shapefilePath: string;

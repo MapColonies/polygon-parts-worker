@@ -2,13 +2,21 @@ import { z } from 'zod';
 import { bboxSchema, multiPolygonSchema, PolygonPartsFeatureCollection, polygonSchema, INGESTION_VALIDATIONS } from '@map-colonies/raster-shared';
 import { commaSeparatedStringSchema, flexibleDateCoerce } from './common.schema';
 
-export const shpFeaturePropertiesSchema = z.object({
+const LEGACY_DATE_REPLACEMENT_MESSAGE = 'Required (replaces the legacy updateDate column)';
+
+// Empty dbf cells arrive as null, which z.coerce.date would silently turn into 1970-01-01
+const requiredFlexibleDate = z
+  .custom<unknown>((val) => val !== undefined && val !== null && val !== '', { message: LEGACY_DATE_REPLACEMENT_MESSAGE, fatal: true })
+  .pipe(flexibleDateCoerce);
+
+const shpFeaturePropertiesBaseSchema = z.object({
   id: z.string(),
   sourceId: z
     .string()
     .nullish()
     .transform((val) => val ?? undefined),
-  updateDate: flexibleDateCoerce,
+  dateStart: requiredFlexibleDate,
+  dateEnd: requiredFlexibleDate,
   sensors: commaSeparatedStringSchema,
   desc: z
     .string()
@@ -49,15 +57,20 @@ export const shpFeaturePropertiesSchema = z.object({
     .transform((val) => val ?? undefined),
 });
 
+export const shpFeaturePropertiesSchema = shpFeaturePropertiesBaseSchema.refine((properties) => properties.dateStart <= properties.dateEnd, {
+  message: 'dateStart must be earlier than or equal to dateEnd',
+  path: ['dateEnd'],
+});
+
 export type ShpFeatureProperties = z.infer<typeof shpFeaturePropertiesSchema>;
 
-export const featureIdSchema = shpFeaturePropertiesSchema.pick({ id: true });
+export const featureIdSchema = shpFeaturePropertiesBaseSchema.pick({ id: true });
 
 export const verticesSchema = z.object({
   vertices: z.number().int().positive(),
 });
 
-export const exceededVerticesFeaturePropertiesSchema = shpFeaturePropertiesSchema.extend(verticesSchema.shape);
+export const exceededVerticesFeaturePropertiesSchema = shpFeaturePropertiesBaseSchema.extend(verticesSchema.shape);
 
 export const shpFeatureBaseSchema = z.object({
   type: z.literal('Feature'),
