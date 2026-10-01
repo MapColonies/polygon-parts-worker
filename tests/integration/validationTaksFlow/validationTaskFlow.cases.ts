@@ -11,6 +11,17 @@ const defaultExpectedErrorsCount: ErrorsCount = {
   unknown: 0,
 };
 
+export interface ReportColumnsExpectation {
+  included: string[];
+  excluded: string[];
+}
+
+// The report mirrors the input schema: dateStart/dateEnd replaced the legacy updateDate column
+export const defaultExpectedReportColumns: ReportColumnsExpectation = {
+  included: ['dateStart', 'dateEnd'],
+  excluded: ['updateDate'],
+};
+
 export interface FailedValidationTestCase {
   description: string;
   shapefilePath: string;
@@ -18,6 +29,7 @@ export interface FailedValidationTestCase {
   ppManagerValidationResult: PolygonPartsChunkValidationResult[];
   chunkMaxVertices?: number;
   expectedResolutionExceeded?: boolean;
+  expectedReportColumns?: ReportColumnsExpectation;
 }
 
 export const failedValidationTestCases: FailedValidationTestCase[] = [
@@ -185,5 +197,28 @@ export const failedValidationTestCases: FailedValidationTestCase[] = [
       resolution: 1,
     },
     expectedResolutionExceeded: true,
+  },
+  {
+    description: 'Metadata error (legacy updateDate column without dateStart/dateEnd)',
+    shapefilePath: '/invalid/metadata_error/legacy_update_date_shapefile/ShapeMetadata.shp',
+    ppManagerValidationResult: [
+      {
+        parts: [],
+        smallHolesCount: 0,
+      },
+    ],
+    expectedErrorsCount: { ...defaultExpectedErrorsCount, metadata: 1 },
+    expectedReportColumns: { included: [], excluded: ['updateDate'] },
+  },
+  {
+    description: 'Geometry validity error (legacy updateDate column alongside dateStart/dateEnd)',
+    shapefilePath: '/invalid/legacy_update_date_alongside_new_dates/ShapeMetadata.shp',
+    ppManagerValidationResult: [
+      {
+        parts: [{ id: '1', errors: [{ code: 'Geometry_Validity' }] }],
+        smallHolesCount: 0,
+      },
+    ],
+    expectedErrorsCount: { ...defaultExpectedErrorsCount, geometryValidity: 1 },
   },
 ];
