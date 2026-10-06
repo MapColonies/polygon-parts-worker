@@ -376,13 +376,16 @@ export class ValidationErrorCollector {
       errorProps[columnName] = errors.map((e) => e.message).join(METADATA_ERROR_SEPARATOR);
     });
 
-    // The report mirrors the input schema, which replaced the legacy updateDate column with dateStart/dateEnd
+    // The report follows the current input schema: dateStart/dateEnd are always present (empty when missing)
+    // and the legacy updateDate column they replaced is never written
     const { updateDate, ...featureProperties } = invalidFeature.feature.properties as Record<string, unknown>;
 
     return {
       ...invalidFeature.feature,
       properties: {
         ...featureProperties,
+        dateStart: featureProperties.dateStart ?? null,
+        dateEnd: featureProperties.dateEnd ?? null,
         ...errorProps,
       },
     };

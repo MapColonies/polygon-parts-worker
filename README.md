@@ -240,7 +240,7 @@ Each row of the Shape metadata file carries its own imaging time range:
 
 - A row with a missing, empty, or invalid `dateStart`/`dateEnd`, or with `dateStart` later than `dateEnd`, fails with a metadata error (`e_metadata`).
 - The legacy `updateDate` column is no longer read. A file that has only `updateDate` fails validation. If `updateDate` is sent alongside the new columns it is ignored.
-- The failure report Shapefile mirrors the input columns (so `dateStart`/`dateEnd` for a file in the current schema), but never includes `updateDate`.
+- The failure report Shapefile always carries `dateStart` and `dateEnd` (empty when missing in the input) and never includes `updateDate`.
 
 ### Chunk Processing
 - Configurable chunk size based on vertex count (default: 1000 vertices)

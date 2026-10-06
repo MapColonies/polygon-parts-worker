@@ -498,6 +498,44 @@ describe('IngestionJobHandler', () => {
         );
       });
 
+      it('should record a metadata error when dateStart is later than dateEnd', async () => {
+        const mockReversedDatesFeature = {
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [34.5, 31.5],
+                [34.6, 31.5],
+                [34.6, 31.6],
+                [34.5, 31.6],
+                [34.5, 31.5],
+              ],
+            ],
+          },
+          properties: { ...createFakeShpFeatureProperties(), dateStart: '2024-01-10', dateEnd: '2024-01-05' },
+        } as unknown as Feature<Polygon, ShpFeatureProperties>;
+
+        mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
+          await chunkProcessor.process({
+            id: 1,
+            verticesCount: 500,
+            features: [mockReversedDatesFeature],
+            skippedFeatures: [],
+            skippedVerticesCount: 0,
+          });
+        });
+        const addMetadataErrorsSpy = jest.spyOn(ValidationErrorCollector.prototype, 'addMetadataError');
+
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
+
+        expect(addMetadataErrorsSpy).toHaveBeenCalledWith(
+          [expect.objectContaining({ path: ['properties', 'dateEnd'], message: 'dateStart must be earlier than or equal to dateEnd' })],
+          mockReversedDatesFeature,
+          1
+        );
+      });
+
       it('should record metadata errors when chunk contains invalid features', async () => {
         const mockInvalidFeature = {
           type: 'Feature',

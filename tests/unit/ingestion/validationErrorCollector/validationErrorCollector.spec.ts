@@ -875,6 +875,26 @@ describe('ValidationErrorCollector', () => {
         expect.objectContaining({ dateStart: originalProperties.dateStart, dateEnd: originalProperties.dateEnd })
       );
     });
+
+    it('should always include dateStart and dateEnd columns in the report features, even when the input lacks them', () => {
+      // Arrange
+      const { dateStart, dateEnd, ...legacyProperties } = { ...createFakeShpFeatureProperties(), updateDate: faker.date.past() };
+      const feature: Feature<Geometry, unknown> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [] },
+        properties: legacyProperties,
+      };
+      const zodIssues: ZodIssue[] = [{ code: 'custom', path: ['dateStart'], message: 'Required (replaces the legacy updateDate column)' }];
+
+      // Act
+      collector.addMetadataError(zodIssues, feature, 1);
+
+      // Assert
+      const featuresWithErrors = collector.getFeaturesWithErrorProperties();
+      expect(featuresWithErrors).toHaveLength(1);
+      expect(featuresWithErrors[0].properties).toEqual(expect.objectContaining({ dateStart: null, dateEnd: null }));
+      expect(featuresWithErrors[0].properties).not.toHaveProperty('updateDate');
+    });
   });
 
   describe('getErrorCounts', () => {
