@@ -123,14 +123,14 @@ describe('ValidationErrorCollector', () => {
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
-        properties: { ...createFakeShpFeatureProperties(), updateDate: 2025, ep90: 4001 },
+        properties: { ...createFakeShpFeatureProperties(), dateStart: 2025, ep90: 4001 },
       };
       const zodIssues: ZodIssue[] = [
         {
           code: 'invalid_type',
           expected: 'string',
           received: 'number',
-          path: ['updateDate'],
+          path: ['dateStart'],
           message: 'Expected string, received number',
         },
 
@@ -165,7 +165,7 @@ describe('ValidationErrorCollector', () => {
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
-        properties: { ...createFakeShpFeatureProperties(), updateDate: 2025 },
+        properties: { ...createFakeShpFeatureProperties(), dateStart: 2025 },
       };
 
       const zodIssues: ZodIssue[] = [
@@ -173,7 +173,7 @@ describe('ValidationErrorCollector', () => {
           code: 'invalid_type',
           expected: 'string',
           received: 'number',
-          path: ['updateDate'],
+          path: ['dateStart'],
           message: 'Expected string, received number',
         },
       ];
@@ -853,6 +853,22 @@ describe('ValidationErrorCollector', () => {
         expect(featuresWithErrors[0].properties[key]).toEqual(originalProperties[key as keyof typeof originalProperties]);
       });
     });
+
+    it('should always include dateStart and dateEnd columns in the report features, even when the input lacks them', () => {
+      const { dateStart, dateEnd, ...propertiesWithoutDates } = createFakeShpFeatureProperties();
+      const feature: Feature<Geometry, unknown> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [] },
+        properties: propertiesWithoutDates,
+      };
+      const zodIssues: ZodIssue[] = [{ code: 'custom', path: ['dateStart'], message: 'Required' }];
+
+      collector.addMetadataError(zodIssues, feature, 1);
+
+      const featuresWithErrors = collector.getFeaturesWithErrorProperties();
+      expect(featuresWithErrors).toHaveLength(1);
+      expect(featuresWithErrors[0].properties).toEqual(expect.objectContaining({ dateStart: null, dateEnd: null }));
+    });
   });
 
   describe('getErrorCounts', () => {
@@ -889,14 +905,14 @@ describe('ValidationErrorCollector', () => {
       const metadataFeature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
-        properties: { ...createFakeShpFeatureProperties(), updateDate: 2025 },
+        properties: { ...createFakeShpFeatureProperties(), dateStart: 2025 },
       };
       const zodIssues: ZodIssue[] = [
         {
           code: 'invalid_type',
           expected: 'string',
           received: 'number',
-          path: ['updateDate'],
+          path: ['dateStart'],
           message: 'Expected string, received number',
         },
       ];
@@ -1296,14 +1312,14 @@ describe('ValidationErrorCollector', () => {
       const metadataFeature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
-        properties: { ...createFakeShpFeatureProperties(), updateDate: 2025 },
+        properties: { ...createFakeShpFeatureProperties(), dateStart: 2025 },
       };
       const zodIssues: ZodIssue[] = [
         {
           code: 'invalid_type',
           expected: 'string',
           received: 'number',
-          path: ['updateDate'],
+          path: ['dateStart'],
           message: 'Expected string, received number',
         },
       ];
@@ -1424,14 +1440,14 @@ describe('ValidationErrorCollector', () => {
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
-        properties: { ...createFakeShpFeatureProperties(), updateDate: 2025 },
+        properties: { ...createFakeShpFeatureProperties(), dateStart: 2025 },
       };
       const zodIssues: ZodIssue[] = [
         {
           code: 'invalid_type',
           expected: 'string',
           received: 'number',
-          path: ['updateDate'],
+          path: ['dateStart'],
           message: 'Expected string, received number',
         },
       ];
