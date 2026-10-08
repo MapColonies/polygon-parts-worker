@@ -26,7 +26,7 @@ import {
   setUpValidationReportsDir,
   tearDownValidationReportsDir,
 } from './validationTaskFlow.helpers';
-import { expectedReportColumns, failedValidationTestCases } from './validationTaskFlow.cases';
+import { expectedReportDateColumns, failedValidationTestCases } from './validationTaskFlow.cases';
 
 describe('Validation Task Flow', () => {
   registerDefaultConfig();
@@ -195,12 +195,9 @@ describe('Validation Task Flow', () => {
       expect(jobTrackerNotifySpy).toHaveBeenCalledWith(task.id);
       expect(actualErrorsCount).toEqual(testCase.expectedErrorsCount);
 
-      const { included, excluded } = expectedReportColumns;
       const reportFeatures = await getReportFeatures({ reader: shpReader, reportDirPath: reportsDirPath, jobId: job.id });
       for (const feature of reportFeatures) {
-        const reportColumns = Object.keys(feature.properties ?? {});
-        expect(reportColumns).toEqual(expect.arrayContaining(included));
-        excluded.forEach((column) => expect(reportColumns).not.toContain(column));
+        expect(Object.keys(feature.properties ?? {})).toEqual(expect.arrayContaining(expectedReportDateColumns));
       }
 
       expect(callbackClientSendSpy).toHaveBeenCalledWith(

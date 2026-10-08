@@ -2,11 +2,9 @@ import { z } from 'zod';
 import { bboxSchema, multiPolygonSchema, PolygonPartsFeatureCollection, polygonSchema, INGESTION_VALIDATIONS } from '@map-colonies/raster-shared';
 import { commaSeparatedStringSchema, flexibleDateCoerce } from './common.schema';
 
-const LEGACY_DATE_REPLACEMENT_MESSAGE = 'Required (replaces the legacy updateDate column)';
-
 // Empty dbf cells arrive as null, which z.coerce.date would silently turn into 1970-01-01
 const requiredFlexibleDate = z
-  .custom<unknown>((val) => val !== undefined && val !== null && val !== '', { message: LEGACY_DATE_REPLACEMENT_MESSAGE, fatal: true })
+  .custom<unknown>((val) => val !== undefined && val !== null && val !== '', { message: 'Required', fatal: true })
   .pipe(flexibleDateCoerce);
 
 const shpFeaturePropertiesBaseSchema = z.object({

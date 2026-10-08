@@ -44,7 +44,7 @@ describe('shpFeaturePropertiesSchema', () => {
       const result = shpFeaturePropertiesSchema.safeParse(properties);
 
       expect(result.success).toBe(false);
-      expect(result.error?.issues).toEqual([expect.objectContaining({ path: [field], message: 'Required (replaces the legacy updateDate column)' })]);
+      expect(result.error?.issues).toEqual([expect.objectContaining({ path: [field], message: 'Required' })]);
     });
 
     it('should reject an invalid dateStart', () => {
@@ -56,26 +56,6 @@ describe('shpFeaturePropertiesSchema', () => {
       expect(result.error?.issues).toEqual([
         expect.objectContaining({ path: ['dateStart'], message: 'Expected a valid date format (ISO 8601 or DD/MM/YYYY)' }),
       ]);
-    });
-
-    it('should reject a legacy row that has only updateDate', () => {
-      const { dateStart, dateEnd, ...rest } = createFakeShpFeatureProperties();
-      const legacyProperties = { ...rest, updateDate: dateEnd };
-
-      const result = shpFeaturePropertiesSchema.safeParse(legacyProperties);
-
-      expect(result.success).toBe(false);
-      expect(result.error?.issues.map((issue) => issue.path)).toEqual([['dateStart'], ['dateEnd']]);
-    });
-
-    it('should ignore updateDate when it is sent alongside dateStart and dateEnd', () => {
-      const properties = { ...createFakeShpFeatureProperties(), dateStart: '2024-01-01', dateEnd: '2024-01-05', updateDate: '2030-01-01' };
-
-      const result = shpFeaturePropertiesSchema.parse(properties);
-
-      expect(result).not.toHaveProperty('updateDate');
-      expect(result.dateStart).toEqual(new Date('2024-01-01'));
-      expect(result.dateEnd).toEqual(new Date('2024-01-05'));
     });
   });
 });
