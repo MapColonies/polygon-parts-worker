@@ -861,7 +861,7 @@ describe('ValidationErrorCollector', () => {
         geometry: { type: 'Polygon', coordinates: [] },
         properties: propertiesWithoutDates,
       };
-      const zodIssues: ZodIssue[] = [{ code: 'custom', path: ['dateStart'], message: 'Required' }];
+      const zodIssues: ZodIssue[] = [{ code: 'custom', path: ['dateStart'], message: 'dateStart is required' }];
 
       collector.addMetadataError(zodIssues, feature, 1);
 

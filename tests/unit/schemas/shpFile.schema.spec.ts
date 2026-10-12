@@ -44,7 +44,7 @@ describe('shpFeaturePropertiesSchema', () => {
       const result = shpFeaturePropertiesSchema.safeParse(properties);
 
       expect(result.success).toBe(false);
-      expect(result.error?.issues).toEqual([expect.objectContaining({ path: [field], message: 'Required' })]);
+      expect(result.error?.issues).toEqual([expect.objectContaining({ path: [field], message: `${field} is required` })]);
     });
 
     it('should reject an invalid dateStart', () => {

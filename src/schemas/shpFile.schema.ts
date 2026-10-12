@@ -3,9 +3,10 @@ import { bboxSchema, multiPolygonSchema, PolygonPartsFeatureCollection, polygonS
 import { commaSeparatedStringSchema, flexibleDateCoerce } from './common.schema';
 
 // Empty dbf cells arrive as null, which z.coerce.date would silently turn into 1970-01-01
-const requiredFlexibleDate = z
-  .custom<unknown>((val) => val !== undefined && val !== null && val !== '', { message: 'Required', fatal: true })
-  .pipe(flexibleDateCoerce);
+const requiredFlexibleDate = (fieldName: string): z.ZodPipeline<z.ZodType<unknown>, typeof flexibleDateCoerce> =>
+  z
+    .custom<unknown>((val) => val !== undefined && val !== null && val !== '', { message: `${fieldName} is required`, fatal: true })
+    .pipe(flexibleDateCoerce);
 
 const shpFeaturePropertiesBaseSchema = z.object({
   id: z.string(),
@@ -13,8 +14,8 @@ const shpFeaturePropertiesBaseSchema = z.object({
     .string()
     .nullish()
     .transform((val) => val ?? undefined),
-  dateStart: requiredFlexibleDate,
-  dateEnd: requiredFlexibleDate,
+  dateStart: requiredFlexibleDate('dateStart'),
+  dateEnd: requiredFlexibleDate('dateEnd'),
   sensors: commaSeparatedStringSchema,
   desc: z
     .string()
