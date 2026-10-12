@@ -457,6 +457,85 @@ describe('IngestionJobHandler', () => {
         expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1);
       });
 
+      it('should map dateStart to imagingTimeBeginUTC and dateEnd to imagingTimeEndUTC', async () => {
+        const dateStart = new Date('2024-01-01T00:00:00Z');
+        const dateEnd = new Date('2024-01-05T00:00:00Z');
+        const mockValidFeature = {
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [34.5, 31.5],
+                [34.6, 31.5],
+                [34.6, 31.6],
+                [34.5, 31.6],
+                [34.5, 31.5],
+              ],
+            ],
+          },
+          properties: { ...createFakeShpFeatureProperties(), dateStart, dateEnd },
+        } as unknown as Feature<Polygon, ShpFeatureProperties>;
+
+        mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
+          await chunkProcessor.process({
+            id: 1,
+            verticesCount: 500,
+            features: [mockValidFeature],
+            skippedFeatures: [],
+            skippedVerticesCount: 0,
+          });
+        });
+
+        const polygonPartsManagerValidateSpy = jest.spyOn(mockPolygonPartsClient, 'validate');
+
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
+
+        expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1);
+        const [requestBody] = polygonPartsManagerValidateSpy.mock.calls[0];
+        expect(requestBody.partsData.features[0].properties).toEqual(
+          expect.objectContaining({ imagingTimeBeginUTC: dateStart, imagingTimeEndUTC: dateEnd })
+        );
+      });
+
+      it('should record a metadata error when dateStart is later than dateEnd', async () => {
+        const mockReversedDatesFeature = {
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [34.5, 31.5],
+                [34.6, 31.5],
+                [34.6, 31.6],
+                [34.5, 31.6],
+                [34.5, 31.5],
+              ],
+            ],
+          },
+          properties: { ...createFakeShpFeatureProperties(), dateStart: '2024-01-10', dateEnd: '2024-01-05' },
+        } as unknown as Feature<Polygon, ShpFeatureProperties>;
+
+        mockReadAndProcess.mockImplementation(async (_, chunkProcessor: { process: (chunk: ShapefileChunk) => Promise<void> }) => {
+          await chunkProcessor.process({
+            id: 1,
+            verticesCount: 500,
+            features: [mockReversedDatesFeature],
+            skippedFeatures: [],
+            skippedVerticesCount: 0,
+          });
+        });
+        const addMetadataErrorsSpy = jest.spyOn(ValidationErrorCollector.prototype, 'addMetadataError');
+
+        await ingestionJobHandler.processJob(newJobResponseMock, validationTask);
+
+        expect(addMetadataErrorsSpy).toHaveBeenCalledWith(
+          [expect.objectContaining({ path: ['properties', 'dateEnd'], message: 'dateStart must be earlier than or equal to dateEnd' })],
+          mockReversedDatesFeature,
+          1
+        );
+      });
+
       it('should record metadata errors when chunk contains invalid features', async () => {
         const mockInvalidFeature = {
           type: 'Feature',

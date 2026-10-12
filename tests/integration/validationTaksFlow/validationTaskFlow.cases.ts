@@ -11,6 +11,8 @@ const defaultExpectedErrorsCount: ErrorsCount = {
   unknown: 0,
 };
 
+export const expectedReportDateColumns = ['dateStart', 'dateEnd'];
+
 export interface FailedValidationTestCase {
   description: string;
   shapefilePath: string;
