@@ -1,7 +1,7 @@
 {{- include "polygon-parts-worker.validateInstanceType" . -}}
 {{- $releaseName := .Release.Name -}}
 {{- $chartName := include "polygon-parts-worker.name" . -}}
-{{- $metrics := (include "common.metrics.merged" .) | fromYaml }}
+{{- $server := .Values.server -}}
 {{- $cloudProviderFlavor := include "polygon-parts-worker.cloudProviderFlavor" . -}}
 {{- $cloudProviderDockerRegistryUrl := include "polygon-parts-worker.cloudProviderDockerRegistryUrl" . -}}
 {{- $cloudProviderImagePullSecretName := include "polygon-parts-worker.cloudProviderImagePullSecretName" . -}}
@@ -97,7 +97,7 @@ spec:
             {{- end }}
           env:
             - name: SERVER_PORT
-              value: {{ .Values.env.targetPort | quote }}
+              value: {{ $server.targetPort | quote }}
             - name: K8S_POD_UID
               valueFrom:
                 fieldRef:
@@ -128,8 +128,8 @@ spec:
                 name: {{ printf "%s-configmap" (include "polygon-parts-worker.fullname" .) }}
           ports:
             - name: http
-              containerPort: {{ .Values.env.targetPort }}
-              protocol: {{ .Values.env.protocol }}
+              containerPort: {{ $server.targetPort }}
+              protocol: {{ $server.protocol }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
@@ -137,7 +137,7 @@ spec:
             failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
             httpGet:
               path: {{ .Values.livenessProbe.path }}
-              port: {{ .Values.env.targetPort }}
+              port: {{ $server.targetPort }}
           {{- end }}
           {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
@@ -146,7 +146,7 @@ spec:
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
             httpGet:
               path: {{ .Values.readinessProbe.path }}
-              port: {{ .Values.env.targetPort }}
+              port: {{ $server.targetPort }}
           {{- end }}     
           {{- if .Values.resources.enabled }}
           resources:
