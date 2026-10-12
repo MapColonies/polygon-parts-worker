@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/MapColonies/polygon-parts-worker/compare/v2.3.3...v3.0.0) (2026-10-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* replace updateDate with dateStart/dateEnd shapefile columns (MAPCO-11818) ([#107](https://github.com/MapColonies/polygon-parts-worker/issues/107))
+
+### Features
+
+* replace updateDate with dateStart/dateEnd shapefile columns (MAPCO-11818) ([#107](https://github.com/MapColonies/polygon-parts-worker/issues/107)) ([90353a8](https://github.com/MapColonies/polygon-parts-worker/commit/90353a8d2aad43f22899ae4216a45d47a2d29a31))
+
 ## [2.3.3](https://github.com/MapColonies/polygon-parts-worker/compare/v2.3.2...v2.3.3) (2026-08-30)
 
 
