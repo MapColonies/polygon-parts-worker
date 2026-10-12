@@ -2,8 +2,8 @@ apiVersion: v2
 name: polygon-parts-worker
 description: A Helm chart for polygon-parts-worker
 type: application
-version: 2.3.3
-appVersion: 2.3.3
+version: 3.0.0
+appVersion: 3.0.0
 dependencies:
   - name: mclabels
     version: 1.0.1
