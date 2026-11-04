@@ -93,7 +93,7 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
   const instanceType = getInstanceType(configInstance);
 
   const loggerConfig = configInstance.get('telemetry.logger');
-  const logger = await jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, mixin: getOtelMixin() });
+  const logger = await jsLogger({ ...loggerConfig, mixin: getOtelMixin() });
 
   const metricsRegistry = new Registry();
   const tracer = trace.getTracer(SERVICE_NAME);
