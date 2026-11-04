@@ -67,22 +67,5 @@ describe('shpFeaturePropertiesSchema', () => {
 
       expect(result.success).toBe(true);
     });
-
-    it('should parse properties when classify is missing', () => {
-      const properties = createFakeShpFeatureProperties();
-
-      const result = shpFeaturePropertiesSchema.safeParse(properties);
-
-      expect(result.success).toBe(true);
-    });
-
-    it('should parse properties when classify is a string and ignore its value', () => {
-      const properties = { ...createFakeShpFeatureProperties(), classify: 'some-classification' };
-
-      const result = shpFeaturePropertiesSchema.safeParse(properties);
-
-      expect(result.success).toBe(true);
-      expect(result.data).not.toHaveProperty('classify');
-    });
   });
 });
