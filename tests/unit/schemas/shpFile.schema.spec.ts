@@ -19,7 +19,7 @@ describe('shpFeatureSchema', () => {
     properties: { ...createFakeShpFeatureProperties(), ...propertiesOverrides },
   });
 
-  describe('classify property (MAPCO-12032)', () => {
+  describe('classify property', () => {
     it('should parse a feature when classify is null', () => {
       const feature = createFeature({ classify: null });
 
