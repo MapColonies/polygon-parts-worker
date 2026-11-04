@@ -21,6 +21,5 @@ export const createFakeShpFeatureProperties = () => {
     sourceRes: faker.number.int({ min: INGESTION_VALIDATIONS.resolutionMeter.min, max: INGESTION_VALIDATIONS.resolutionMeter.max }),
     publishRes: faker.number.float({ min: INGESTION_VALIDATIONS.resolutionMeter.min, max: INGESTION_VALIDATIONS.resolutionMeter.max }),
     sourceName: faker.string.alpha({ length: { min: 3, max: 8 } }),
-    classify: faker.string.alpha({ length: { min: 3, max: 8 } }),
   };
 };
