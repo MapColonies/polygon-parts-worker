@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.1](https://github.com/MapColonies/polygon-parts-worker/compare/v3.0.0...v3.0.1) (2026-11-04)
+
+
+### Bug Fixes
+
+* remove classify validation from shp schema (MAPCO-12032) ([#109](https://github.com/MapColonies/polygon-parts-worker/issues/109)) ([f942fbc](https://github.com/MapColonies/polygon-parts-worker/commit/f942fbcb263913a6d990717cf5cfd0a1b146045a))
+
 ## [3.0.0](https://github.com/MapColonies/polygon-parts-worker/compare/v2.3.3...v3.0.0) (2026-10-12)
 
 
