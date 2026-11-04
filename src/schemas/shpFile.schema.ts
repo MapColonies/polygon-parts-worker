@@ -40,7 +40,6 @@ export const shpFeaturePropertiesSchema = z.object({
     .max(INGESTION_VALIDATIONS.resolutionMeter.max, {
       message: `Publish resolution meter should not be larger than ${INGESTION_VALIDATIONS.resolutionMeter.max}`,
     }),
-  classify: z.string(),
   sourceName: z.string(),
   scale: z.coerce
     .number()
