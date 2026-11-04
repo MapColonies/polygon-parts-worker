@@ -7,7 +7,7 @@ import { ChunkProcessor, ShapefileChunk, ShapefileChunkReader } from '@map-colon
 import { SHAPEFILE_REPORT_FILE_NAME, VALIDATION_ERROR_TYPE_FORMATS } from '../../../src/models/ingestion/constants';
 import { ErrorsCount } from '../../../src/models/ingestion/types';
 
-interface GetActualReportErrorsCountParams {
+interface GetReportParams {
   reader: ShapefileChunkReader;
   reportDirPath: string;
   jobId: string;
@@ -85,9 +85,13 @@ export const reportPathBuilder = (baseDir: string, jobId: string): string => {
   return path.join(baseDir, jobId);
 };
 
-export const getActualReportErrorsCount = async ({ reader, reportDirPath, jobId }: GetActualReportErrorsCountParams): Promise<ErrorsCount> => {
+export const getReportFeatures = async ({ reader, reportDirPath, jobId }: GetReportParams): Promise<Feature[]> => {
   const reportPath = await findAndUnzipReport(reportDirPath, jobId);
-  const features = await getReportFeatureCollection(reader, reportPath);
+  return getReportFeatureCollection(reader, reportPath);
+};
+
+export const getActualReportErrorsCount = async (params: GetReportParams): Promise<ErrorsCount> => {
+  const features = await getReportFeatures(params);
   const actualErrorsCount = countErrorsInReport(features);
   return actualErrorsCount;
 };

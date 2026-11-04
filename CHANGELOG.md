@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/MapColonies/polygon-parts-worker/compare/v2.3.3...v3.0.0) (2026-10-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* replace updateDate with dateStart/dateEnd shapefile columns (MAPCO-11818) ([#107](https://github.com/MapColonies/polygon-parts-worker/issues/107))
+
+### Features
+
+* replace updateDate with dateStart/dateEnd shapefile columns (MAPCO-11818) ([#107](https://github.com/MapColonies/polygon-parts-worker/issues/107)) ([90353a8](https://github.com/MapColonies/polygon-parts-worker/commit/90353a8d2aad43f22899ae4216a45d47a2d29a31))
+
+## [2.3.3](https://github.com/MapColonies/polygon-parts-worker/compare/v2.3.2...v2.3.3) (2026-08-30)
+
+
+### Bug Fixes
+
+* keep error state of previous task attempt (MAPCO-11442) ([#104](https://github.com/MapColonies/polygon-parts-worker/issues/104)) ([c885158](https://github.com/MapColonies/polygon-parts-worker/commit/c8851582e9274b2b39840093faef897f5dda9e46))
+
+## [2.3.2](https://github.com/MapColonies/polygon-parts-worker/compare/v2.3.1...v2.3.2) (2026-08-10)
+
+
+### Bug Fixes
+
+* update PVC handling for ingestion instances and disable internalPVC by default ([#102](https://github.com/MapColonies/polygon-parts-worker/issues/102)) ([8e94c49](https://github.com/MapColonies/polygon-parts-worker/commit/8e94c49f10d048411d05560e9f48cd9ebf94d8b8))
+
+## [2.3.1](https://github.com/MapColonies/polygon-parts-worker/compare/v2.3.0...v2.3.1) (2026-08-04)
+
+
+### Miscellaneous Chores
+
+* force alignment to rc track ([f18a460](https://github.com/MapColonies/polygon-parts-worker/commit/f18a460e1ee3409668de7dd1909e6a524e519e26))
+
 ## [2.3.0](https://github.com/MapColonies/polygon-parts-worker/compare/v2.2.0...v2.3.0) (2026-06-29)
 
 

@@ -56,6 +56,7 @@ storage:
   reportProvider: ""  # FS | S3
   fs:
     internalPvc:
+      enabled: false
       name: ""
       gpkgSubPath: ""
       reportsPath: ""

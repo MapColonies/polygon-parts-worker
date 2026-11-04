@@ -26,14 +26,14 @@ export const hasCriticalErrorsTestCases = [
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
-        properties: { ...createFakeShpFeatureProperties(), updateDate: 2025 },
+        properties: { ...createFakeShpFeatureProperties(), dateStart: 2025 },
       };
       const zodIssues: ZodIssue[] = [
         {
           code: 'invalid_type',
           expected: 'string',
           received: 'number',
-          path: ['updateDate'],
+          path: ['dateStart'],
           message: 'Expected string, received number',
         },
       ];
@@ -111,14 +111,14 @@ export const getFeaturesWithErrorPropertiesTestCases = [
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
-        properties: { ...createFakeShpFeatureProperties(), updateDate: 2025 },
+        properties: { ...createFakeShpFeatureProperties(), dateStart: 2025 },
       };
       const zodIssues: ZodIssue[] = [
         {
           code: 'invalid_type',
           expected: 'string',
           received: 'number',
-          path: ['updateDate'],
+          path: ['dateStart'],
           message: 'Expected string, received number',
         },
       ];

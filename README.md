@@ -230,6 +230,17 @@ You can run tests using the following commands:
 - Supports large shapefiles through chunk-based processing
 - Transforms shapefile properties to polygon parts format
 
+#### Imaging Date Columns
+Each row of the Shape metadata file carries its own imaging time range:
+
+| Column      | Required | Maps to               | Notes                                              |
+|-------------|----------|-----------------------|----------------------------------------------------|
+| `dateStart` | Yes      | `imagingTimeBeginUTC` | ISO 8601 or `DD/MM/YYYY`                           |
+| `dateEnd`   | Yes      | `imagingTimeEndUTC`   | ISO 8601 or `DD/MM/YYYY`; must be `>= dateStart`   |
+
+- A row with a missing, empty, or invalid `dateStart`/`dateEnd`, or with `dateStart` later than `dateEnd`, fails with a metadata error (`e_metadata`).
+- The failure report Shapefile always carries `dateStart` and `dateEnd` (empty when missing in the input).
+
 ### Chunk Processing
 - Configurable chunk size based on vertex count (default: 1000 vertices)
 - Memory-efficient processing of large datasets

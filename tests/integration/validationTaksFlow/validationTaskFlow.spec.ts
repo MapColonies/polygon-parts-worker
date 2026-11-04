@@ -3,7 +3,7 @@ import nock from 'nock';
 import { DependencyContainer } from 'tsyringe';
 import { StatusCodes } from 'http-status-codes';
 import { PolygonPartsChunkValidationResult } from '@map-colonies/raster-shared';
-import { OperationStatus, TaskHandler } from '@map-colonies/mc-priority-queue';
+import { JobManagerClient, OperationStatus, TaskHandler } from '@map-colonies/mc-priority-queue';
 import { ShapefileChunkReader } from '@map-colonies/shapefile-reader';
 import { faker } from '@faker-js/faker';
 import { JobProcessor } from '../../../src/models/jobProcessor';
@@ -14,12 +14,19 @@ import { PolygonPartsManagerClient } from '../../../src/clients/polygonPartsMana
 import { ShapefileNotFoundError } from '../../../src/common/errors';
 import { JobTrackerClient } from '../../../src/clients/jobTrackerClient';
 import { configMock, registerDefaultConfig, setValue } from '../../unit/mocks/configMock';
+import { errorsSummaryWithErrors } from '../../unit/mocks/errorsSummaryMocks';
 import { createIngestionJob, createTask, jobTypes } from '../fixtures/testFixturesFactory';
 import { HttpMockHelper } from '../mocks/httpMocks';
 import { CallbackClient } from '../../../src/clients/callbackClient';
 import { getTestContainerConfig, resetContainer } from '../testContainerConfig';
-import { getActualReportErrorsCount, reportPathBuilder, setUpValidationReportsDir, tearDownValidationReportsDir } from './validationTaskFlow.helpers';
-import { failedValidationTestCases } from './validationTaskFlow.cases';
+import {
+  getActualReportErrorsCount,
+  getReportFeatures,
+  reportPathBuilder,
+  setUpValidationReportsDir,
+  tearDownValidationReportsDir,
+} from './validationTaskFlow.helpers';
+import { expectedReportDateColumns, failedValidationTestCases } from './validationTaskFlow.cases';
 
 describe('Validation Task Flow', () => {
   registerDefaultConfig();
@@ -132,6 +139,13 @@ describe('Validation Task Flow', () => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect(ingestionHandlerProcessJobSpy).toHaveBeenCalledWith(expect.objectContaining({ ...job, expirationDate: expect.any(String) }), task);
       expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1); // Only 1 chunk created from the shapefile
+      const [requestBody] = polygonPartsManagerValidateSpy.mock.calls[0];
+      expect(requestBody.partsData.features[0].properties).toEqual(
+        expect.objectContaining({
+          imagingTimeBeginUTC: new Date('2025-07-01T00:00:00Z'), // dateStart column
+          imagingTimeEndUTC: new Date('2025-07-25T00:00:00Z'), // dateEnd column
+        })
+      );
       expect(jobTrackerNotifySpy).toHaveBeenCalledWith(task.id);
     });
   });
@@ -180,6 +194,12 @@ describe('Validation Task Flow', () => {
       expect(ingestionHandlerProcessJobSpy).toHaveBeenCalledWith(expect.objectContaining({ ...job, expirationDate: expect.any(String) }), task);
       expect(jobTrackerNotifySpy).toHaveBeenCalledWith(task.id);
       expect(actualErrorsCount).toEqual(testCase.expectedErrorsCount);
+
+      const reportFeatures = await getReportFeatures({ reader: shpReader, reportDirPath: reportsDirPath, jobId: job.id });
+      for (const feature of reportFeatures) {
+        expect(Object.keys(feature.properties ?? {})).toEqual(expect.arrayContaining(expectedReportDateColumns));
+      }
+
       expect(callbackClientSendSpy).toHaveBeenCalledWith(
         job.parameters.callbackUrls,
         expect.objectContaining({ jobId: job.id, taskId: task.id, status: OperationStatus.COMPLETED })
@@ -460,6 +480,55 @@ describe('Validation Task Flow', () => {
 
       expect(polygonPartsManagerValidateSpy).toHaveBeenCalledTimes(1); // Should process only the the last feature remaining (final chunk)
       expect(jobTrackerNotifySpy).toHaveBeenCalledWith(task.id);
+    });
+
+    it('should keep the errors of the previous attempt and mark the task as invalid for invalid shapefile', async () => {
+      const jobId = faker.string.uuid();
+      const filePath = '/valid/137_parts_valid/ShapeMetadata.shp';
+
+      const task = createTask({
+        jobId,
+        attempts: 1,
+        // all the features that failed validation were already processed in the previous attempt
+        processingState: { lastProcessedChunkIndex: 18, lastProcessedFeatureIndex: 135, filePath, timestamp: new Date() },
+        errorsSummary: errorsSummaryWithErrors,
+      });
+
+      const job = createIngestionJob({
+        shapefilePath: filePath,
+        jobId,
+        tasks: [task],
+      });
+
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: [],
+        smallHolesCount: 0,
+      };
+
+      HttpMockHelper.mockJobManagerUpdateJob(job.id, { status: OperationStatus.IN_PROGRESS });
+      HttpMockHelper.mockJobManagerSearchTasks(job.type, taskTypesToProcess, task);
+      HttpMockHelper.mockJobManagerGetJob(job.id, job);
+      HttpMockHelper.mockPolygonPartsValidate(validationResult);
+      HttpMockHelper.mockJobManagerUpdateTask(job.id, task.id);
+      HttpMockHelper.mockJobTrackerFinishTask(task.id);
+      HttpMockHelper.mockJobManagerGetTaskById(job.id, task.id, task);
+      HttpMockHelper.mockJobManagerGetJob(job.id, job, true);
+
+      const jobManagerUpdateTaskSpy = jest.spyOn(JobManagerClient.prototype, 'updateTask');
+      const processor = testContainer.resolve(JobProcessor);
+
+      await processor.start({ runOnce: true });
+
+      expect(jobManagerUpdateTaskSpy).toHaveBeenCalledWith(
+        job.id,
+        task.id,
+        expect.objectContaining({
+          parameters: expect.objectContaining({
+            isValid: false,
+            errorsSummary: errorsSummaryWithErrors,
+          }),
+        })
+      );
     });
   });
 });

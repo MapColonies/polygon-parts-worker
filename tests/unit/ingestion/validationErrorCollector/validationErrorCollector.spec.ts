@@ -1,12 +1,18 @@
 import { Feature, Geometry, Polygon } from 'geojson';
 import { ZodIssue } from 'zod';
-import { ValidationErrorType, PolygonPartsChunkValidationResult, PolygonPartValidationErrorItem } from '@map-colonies/raster-shared';
+import {
+  ValidationErrorType,
+  PolygonPartsChunkValidationResult,
+  PolygonPartValidationErrorItem,
+  ValidationAggregatedErrors,
+} from '@map-colonies/raster-shared';
 import { faker } from '@faker-js/faker';
 import { ValidationErrorCollector } from '../../../../src/models/ingestion/validationErrorCollector';
 import { configMock, registerDefaultConfig } from '../../mocks/configMock';
 import { formatZodIssues } from '../../../../src/schemas/common.schema';
 import { loggerMock } from '../../mocks/telemetryMock';
 import { createFakeShpFeatureProperties } from '../../mocks/fakeFeatures';
+import { createFakeErrorsSummary } from '../../mocks/errorsSummaryMocks';
 import { hasCriticalErrorsTestCases, getFeaturesWithErrorPropertiesTestCases } from './validationErrorCollector.cases';
 
 describe('ValidationErrorCollector', () => {
@@ -117,14 +123,14 @@ describe('ValidationErrorCollector', () => {
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
-        properties: { ...createFakeShpFeatureProperties(), updateDate: 2025, ep90: 4001 },
+        properties: { ...createFakeShpFeatureProperties(), dateStart: 2025, ep90: 4001 },
       };
       const zodIssues: ZodIssue[] = [
         {
           code: 'invalid_type',
           expected: 'string',
           received: 'number',
-          path: ['updateDate'],
+          path: ['dateStart'],
           message: 'Expected string, received number',
         },
 
@@ -159,7 +165,7 @@ describe('ValidationErrorCollector', () => {
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
-        properties: { ...createFakeShpFeatureProperties(), updateDate: 2025 },
+        properties: { ...createFakeShpFeatureProperties(), dateStart: 2025 },
       };
 
       const zodIssues: ZodIssue[] = [
@@ -167,7 +173,7 @@ describe('ValidationErrorCollector', () => {
           code: 'invalid_type',
           expected: 'string',
           received: 'number',
-          path: ['updateDate'],
+          path: ['dateStart'],
           message: 'Expected string, received number',
         },
       ];
@@ -847,6 +853,22 @@ describe('ValidationErrorCollector', () => {
         expect(featuresWithErrors[0].properties[key]).toEqual(originalProperties[key as keyof typeof originalProperties]);
       });
     });
+
+    it('should always include dateStart and dateEnd columns in the report features, even when the input lacks them', () => {
+      const { dateStart, dateEnd, ...propertiesWithoutDates } = createFakeShpFeatureProperties();
+      const feature: Feature<Geometry, unknown> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [] },
+        properties: propertiesWithoutDates,
+      };
+      const zodIssues: ZodIssue[] = [{ code: 'custom', path: ['dateStart'], message: 'dateStart is required' }];
+
+      collector.addMetadataError(zodIssues, feature, 1);
+
+      const featuresWithErrors = collector.getFeaturesWithErrorProperties();
+      expect(featuresWithErrors).toHaveLength(1);
+      expect(featuresWithErrors[0].properties).toEqual(expect.objectContaining({ dateStart: null, dateEnd: null }));
+    });
   });
 
   describe('getErrorCounts', () => {
@@ -883,14 +905,14 @@ describe('ValidationErrorCollector', () => {
       const metadataFeature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
-        properties: { ...createFakeShpFeatureProperties(), updateDate: 2025 },
+        properties: { ...createFakeShpFeatureProperties(), dateStart: 2025 },
       };
       const zodIssues: ZodIssue[] = [
         {
           code: 'invalid_type',
           expected: 'string',
           received: 'number',
-          path: ['updateDate'],
+          path: ['dateStart'],
           message: 'Expected string, received number',
         },
       ];
@@ -1143,6 +1165,79 @@ describe('ValidationErrorCollector', () => {
     });
   });
 
+  describe('restoreErrorsSummary', () => {
+    it('should restore error counts and thresholds collected in a previous attempt', () => {
+      // Arrange
+      const previousAttemptSummary = createFakeErrorsSummary();
+
+      // Act
+      collector.restoreErrorsSummary(previousAttemptSummary);
+
+      // Assert
+      expect(collector.getErrorsSummary()).toStrictEqual(previousAttemptSummary);
+    });
+
+    it('should accumulate errors of the current attempt on top of the restored ones', () => {
+      // Arrange
+      const maxVerticesAllowed = configMock.get('jobDefinitions.tasks.validation.chunkMaxVertices') as unknown as number;
+      const previousAttemptSummary: ValidationAggregatedErrors = {
+        errorsCount: { geometryValidity: 0, metadata: 0, vertices: 3, resolution: 0, smallHoles: 0, smallGeometries: 0, unknown: 0 },
+        thresholds: { smallGeometries: { exceeded: false }, smallHoles: { exceeded: false, count: 0 }, resolution: { exceeded: false } },
+      };
+      const feature: Feature<Geometry, unknown> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [] },
+        properties: { ...createFakeShpFeatureProperties(), vertices: faker.number.int({ min: maxVerticesAllowed + 1 }) },
+      };
+
+      // Act
+      collector.restoreErrorsSummary(previousAttemptSummary);
+      collector.addVerticesErrors([feature], 1, maxVerticesAllowed);
+
+      // Assert
+      expect(collector.getErrorCounts().vertices).toBe(4);
+    });
+
+    it('should not mutate the restored summary when new errors are collected', () => {
+      // Arrange
+      const previousAttemptSummary: ValidationAggregatedErrors = {
+        errorsCount: { geometryValidity: 0, metadata: 0, vertices: 0, resolution: 0, smallHoles: 0, smallGeometries: 0, unknown: 0 },
+        thresholds: { smallGeometries: { exceeded: false }, smallHoles: { exceeded: false, count: 2 }, resolution: { exceeded: false } },
+      };
+      const feature: Feature<Polygon, { id: string }> = {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [[[]]] },
+        properties: createFakeShpFeatureProperties(),
+      };
+      const validationResult: PolygonPartsChunkValidationResult = {
+        parts: [{ id: feature.properties.id, errors: [{ code: ValidationErrorType.SMALL_HOLES }] }],
+        smallHolesCount: 5,
+      };
+
+      // Act
+      collector.restoreErrorsSummary(previousAttemptSummary);
+      collector.addValidationErrors(validationResult, [feature], 1);
+
+      // Assert
+      expect(previousAttemptSummary.thresholds.smallHoles.count).toBe(2);
+      expect(collector.getThresholdsInfo().smallHoles.count).toBe(7);
+    });
+
+    it('should keep critical errors of a previous attempt reported as critical', () => {
+      // Arrange
+      const previousAttemptSummary: ValidationAggregatedErrors = {
+        errorsCount: { geometryValidity: 1, metadata: 0, vertices: 0, resolution: 0, smallHoles: 0, smallGeometries: 0, unknown: 0 },
+        thresholds: { smallGeometries: { exceeded: false }, smallHoles: { exceeded: false, count: 0 }, resolution: { exceeded: false } },
+      };
+
+      // Act
+      collector.restoreErrorsSummary(previousAttemptSummary);
+
+      // Assert
+      expect(collector.hasCriticalErrors()).toBe(true);
+    });
+  });
+
   describe('setShapefileStats', () => {
     it('should affect threshold calculations', () => {
       // Arrange
@@ -1217,14 +1312,14 @@ describe('ValidationErrorCollector', () => {
       const metadataFeature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
-        properties: { ...createFakeShpFeatureProperties(), updateDate: 2025 },
+        properties: { ...createFakeShpFeatureProperties(), dateStart: 2025 },
       };
       const zodIssues: ZodIssue[] = [
         {
           code: 'invalid_type',
           expected: 'string',
           received: 'number',
-          path: ['updateDate'],
+          path: ['dateStart'],
           message: 'Expected string, received number',
         },
       ];
@@ -1345,14 +1440,14 @@ describe('ValidationErrorCollector', () => {
       const feature: Feature<Geometry, unknown> = {
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [] },
-        properties: { ...createFakeShpFeatureProperties(), updateDate: 2025 },
+        properties: { ...createFakeShpFeatureProperties(), dateStart: 2025 },
       };
       const zodIssues: ZodIssue[] = [
         {
           code: 'invalid_type',
           expected: 'string',
           received: 'number',
-          path: ['updateDate'],
+          path: ['dateStart'],
           message: 'Expected string, received number',
         },
       ];

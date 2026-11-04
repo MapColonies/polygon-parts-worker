@@ -74,6 +74,8 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
       logger.info({ msg: 'shapefile stats retrieved', shapeFileStats });
       this.validationErrorCollector.setShapefileStats(shapeFileStats);
 
+      this.restoreErrorsOfPreviousAttempt(task);
+
       const chunkProcessor = this.setupChunkProcessor(job);
       await shpReader.readAndProcess(shapefileFullPath, chunkProcessor);
       logger.info({ msg: 'all chunks processed' });
@@ -215,6 +217,17 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
     return reader;
   }
 
+  private restoreErrorsOfPreviousAttempt(task: ITaskResponse<ValidationTaskParameters>): void {
+    const { processingState, errorsSummary } = task.parameters;
+
+    if (!processingState) {
+      this.logger.info({ msg: 'task has no processing state, collecting errors from scratch', taskId: task.id });
+      return;
+    }
+
+    this.validationErrorCollector.restoreErrorsSummary(errorsSummary);
+  }
+
   private setupChunkProcessor(job: IJobResponse<IngestionJobParams, unknown>): ChunkProcessor {
     return {
       process: async (chunk: ShapefileChunk): Promise<void> => {
@@ -306,8 +319,8 @@ export class IngestionJobHandler implements IJobHandler<IngestionJobParams, Vali
       sourceId: feature.properties.sourceId,
       sourceName: feature.properties.sourceName,
       horizontalAccuracyCE90: feature.properties.ep90,
-      imagingTimeBeginUTC: feature.properties.updateDate,
-      imagingTimeEndUTC: feature.properties.updateDate,
+      imagingTimeBeginUTC: feature.properties.dateStart,
+      imagingTimeEndUTC: feature.properties.dateEnd,
       sourceResolutionMeter: feature.properties.sourceRes,
       resolutionMeter: resolutions.resolutionMeter,
       resolutionDegree: resolutions.resolutionDegree,

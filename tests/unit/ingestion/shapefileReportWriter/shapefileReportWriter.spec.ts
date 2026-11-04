@@ -14,7 +14,8 @@ import { IngestionJobParams, ValidationTaskParameters } from '../../../../src/co
 import { ShapefileFinalizationParams } from '../../../../src/models/ingestion/types';
 import { loggerMock } from '../../mocks/telemetryMock';
 import { configMock, registerDefaultConfig } from '../../mocks/configMock';
-import { createFakeErrorsSummary, createFakeFeaturesWithErrors } from './shapefileReportWriter.data';
+import { createFakeErrorsSummary } from '../../mocks/errorsSummaryMocks';
+import { createFakeFeaturesWithErrors } from './shapefileReportWriter.data';
 import { writeChunkTestCases } from './shapefileReportWriter.cases';
 
 jest.mock('ogr2ogr');

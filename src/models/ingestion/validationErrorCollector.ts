@@ -189,8 +189,15 @@ export class ValidationErrorCollector {
     this.shapefileStats = { ...stats };
   }
 
-  /**
-   */
+  public restoreErrorsSummary(errorsSummary: ValidationAggregatedErrors): void {
+    this.errorsCount = { ...errorsSummary.errorsCount };
+    this.thresholdsResult = {
+      smallGeometries: { ...errorsSummary.thresholds.smallGeometries },
+      smallHoles: { ...errorsSummary.thresholds.smallHoles },
+      resolution: { ...errorsSummary.thresholds.resolution },
+    };
+    this.logger.info({ msg: 'restored errors summary of previous attempt', errorsSummary });
+  }
 
   /**
    * Clears all collected errors and resets counters
@@ -369,10 +376,15 @@ export class ValidationErrorCollector {
       errorProps[columnName] = errors.map((e) => e.message).join(METADATA_ERROR_SEPARATOR);
     });
 
+    // The report always carries the dateStart/dateEnd columns, empty when the input row lacks them
+    const featureProperties = invalidFeature.feature.properties as Record<string, unknown>;
+
     return {
       ...invalidFeature.feature,
       properties: {
-        ...(invalidFeature.feature.properties as Record<string, unknown>),
+        ...featureProperties,
+        dateStart: featureProperties.dateStart ?? null,
+        dateEnd: featureProperties.dateEnd ?? null,
         ...errorProps,
       },
     };

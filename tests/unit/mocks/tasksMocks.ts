@@ -1,6 +1,6 @@
 import { ITaskResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { ValidationTaskParameters } from '../../../src/common/interfaces';
-import { createFakeErrorsSummary } from '../ingestion/shapefileReportWriter/shapefileReportWriter.data';
+import { createFakeErrorsSummary, errorsSummaryWithErrors } from './errorsSummaryMocks';
 
 //copied from Ingestion-Trigger, should be moved to a shared library (Mc-Models)
 export interface IPollingTaskParameters {
@@ -25,6 +25,16 @@ export const validationTask: ITaskResponse<ValidationTaskParameters> = {
   jobId: '321d495f-e6e4-45cc-b301-4ebc4e894f03',
   resettable: true,
 };
+
+export const createResumedValidationTask = (shapefilePath: string): ITaskResponse<ValidationTaskParameters> => ({
+  ...validationTask,
+  attempts: 1,
+  parameters: {
+    ...validationTask.parameters,
+    processingState: { filePath: shapefilePath, lastProcessedChunkIndex: 5, lastProcessedFeatureIndex: 100, timestamp: new Date() },
+    errorsSummary: errorsSummaryWithErrors,
+  },
+});
 
 export const initTaskForIngestionNew: ITaskResponse<IPollingTaskParameters> = {
   id: '4a5486bd-6269-4898-b9b1-647fe56d6ae2',
