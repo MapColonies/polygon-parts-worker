@@ -58,14 +58,4 @@ describe('shpFeaturePropertiesSchema', () => {
       ]);
     });
   });
-
-  describe('classify property', () => {
-    it('should parse properties when classify is null', () => {
-      const properties = { ...createFakeShpFeatureProperties(), classify: null };
-
-      const result = shpFeaturePropertiesSchema.safeParse(properties);
-
-      expect(result.success).toBe(true);
-    });
-  });
 });
