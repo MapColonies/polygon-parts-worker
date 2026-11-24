@@ -49,7 +49,7 @@ spec:
         app: {{ $chartName }}
         release: {{ $releaseName }}
         run: {{ $releaseName }}-{{ $chartName }}
-        {{- include "polygon-parts-worker.selectorLabels" . | nindent 8 }}
+        {{- include "polygon-parts-worker.labels" . | nindent 8 }}
       annotations:
         {{ include "mclabels.annotations" . | nindent 8 }}
         {{- if .Values.resetOnConfigChange }}
