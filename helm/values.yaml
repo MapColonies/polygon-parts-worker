@@ -4,9 +4,10 @@ instanceType: ""
 
 global:
   cloudProvider: {}
-  tracing: {}
-  metrics: {}
-  openTelemetryOptions: {}
+  telemetry:
+    tracing: {}
+    logger:
+      opentelemetryOptions: {}
   environment: ''
   jobDefinitions: {}
   serviceUrls: {}
@@ -15,7 +16,7 @@ global:
 mclabels:
   #environment: development
   component: backend
-  partOf: core
+  partOf: ingestion
   owner: raster
   gisDomain: raster
   prometheus:
@@ -43,7 +44,7 @@ jobDefinitions:
       maxAttempts: 3
       smallGeometriesPercentageThreshold: 5
       smallHolesPercentageThreshold: 5
-      reportsDownloadPath: "/downloads/validation-reports"
+      reportsDownloadPath: "/validation-reports"
 
 serviceUrls:
   jobManager: ""
@@ -75,15 +76,6 @@ cloudProvider:
   dockerRegistryUrl: 'my-registry-url.io'
   imagePullSecretName: 'my-registry-secret'
   flavor: openshift
-
-tracing:
-  enabled: false
-  url: ""
-metrics:
-  enabled: false
-  url: ""
-  prometheus:
-    scrape: false
 
 configManagement:
   offlineMode: true
@@ -139,18 +131,30 @@ image:
   repository: polygon-parts-worker
   tag: 'latest'
   pullPolicy: IfNotPresent
-env:
+
+server:
   port: 8080
   targetPort: 8080
   protocol: TCP
-  logLevel: info
-  logPrettyPrintEnabled: false
-  openTelemetryOptions:
-    enabled: false
-    url: ''
-    resourceAttributes: {}
   responseCompressionEnabled: true
   requestPayloadLimit: 1mb
+
+telemetry:
+  logger:
+    level: info
+    prettyPrint: false
+    opentelemetryOptions:
+      enabled: true
+      url: http://localhost:4317
+      # Rendered as OTEL_RESOURCE_ATTRIBUTES in "key=value,key=value" format
+      # resourceAttributes:
+      #   service.namespace: namespace
+      #   deployment.environment: dev
+  tracing:
+    enabled: true
+    url: http://localhost:4318/v1/traces
+
+env:
   disableHttpClientLogs: false
   httpRetry:
     attempts: 5
