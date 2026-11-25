@@ -34,9 +34,8 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define "polygon-parts-worker.labels" -}}
-app.kubernetes.io/name: {{ include "polygon-parts-worker.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
 helm.sh/chart: {{ include "polygon-parts-worker.chart" . }}
+{{ include "polygon-parts-worker.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
