@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.2](https://github.com/MapColonies/polygon-parts-worker/compare/v3.0.1...v3.0.2) (2026-11-25)
+
+
+### Bug Fixes
+
+* **helm:** add mclabels to pod template labels ([#111](https://github.com/MapColonies/polygon-parts-worker/issues/111)) ([3679c72](https://github.com/MapColonies/polygon-parts-worker/commit/3679c72d028dc775c6d3a3776e0f2128912ec606))
+
 ## [3.0.1](https://github.com/MapColonies/polygon-parts-worker/compare/v3.0.0...v3.0.1) (2026-11-04)
 
 
