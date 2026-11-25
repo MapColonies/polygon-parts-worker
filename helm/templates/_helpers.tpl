@@ -56,6 +56,7 @@ Selector labels
 {{- define "polygon-parts-worker.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "polygon-parts-worker.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{ include "mclabels.selectorLabels" . }}
 {{- end }}
 
 {{/*
